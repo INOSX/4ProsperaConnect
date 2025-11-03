@@ -24,6 +24,7 @@ import {
 import Card from '../ui/Card'
 import { AudioRecorder } from '../../services/audioHandler'
 import { HeyGenStreamingService } from '../../services/heygenStreamingService'
+import { OpenAIAssistantService } from '../../services/openaiAssistantService'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
@@ -38,14 +39,20 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [recordingStatus, setRecordingStatus] = useState('')
   const [audioRecorder, setAudioRecorder] = useState(null)
   const [streamingService] = useState(() => new HeyGenStreamingService())
+  const [openaiAssistant, setOpenaiAssistant] = useState(null)
   const [avatarConnected, setAvatarConnected] = useState(false)
   const avatarConnectedRef = useRef(false)
+  const openaiAssistantRef = useRef(null)
   const videoRef = useRef(null)
   
-  // Sincronizar ref com state
+  // Sincronizar refs com state
   useEffect(() => {
     avatarConnectedRef.current = avatarConnected
   }, [avatarConnected])
+  
+  useEffect(() => {
+    openaiAssistantRef.current = openaiAssistant
+  }, [openaiAssistant])
 
   useEffect(() => {
     let mounted = true
@@ -95,15 +102,36 @@ const Sidebar = ({ isOpen, onClose }) => {
           setRecordingStatus(status)
         },
         async (text) => {
-          // Quando a transcrição for concluída, enviar texto para o avatar falar
+          // Quando a transcrição for concluída, enviar texto para OpenAI primeiro, depois para o avatar
           console.log('🔵 onTranscriptionComplete called in Sidebar:', { text })
           const isConnected = avatarConnectedRef.current
           console.log('🔵 Transcription complete callback:', { text, avatarConnected: isConnected })
+          
           if (isConnected) {
-            setRecordingStatus('Enviando para avatar...')
             try {
-              console.log('🔵 Calling streamingService.sendText...')
-              const result = await streamingService.sendText(text)
+              let responseText = text
+              
+              // Se OpenAI Assistant estiver disponível, obter resposta inteligente
+              const assistant = openaiAssistantRef.current
+              if (assistant && assistant.isInitialized()) {
+                setRecordingStatus('Obtendo resposta da IA...')
+                try {
+                  console.log('🔵 Getting response from OpenAI Assistant...')
+                  responseText = await assistant.getResponse(text)
+                  console.log('✅ OpenAI Assistant response:', responseText)
+                } catch (error) {
+                  console.error('❌ Error getting OpenAI response, using original text:', error)
+                  // Se falhar, usar o texto original
+                  responseText = text
+                }
+              } else {
+                console.log('⚠️ OpenAI Assistant not available, avatar will repeat the text')
+              }
+              
+              // Enviar resposta para o avatar falar
+              setRecordingStatus('Enviando para avatar...')
+              console.log('🔵 Calling streamingService.sendText with:', responseText)
+              const result = await streamingService.sendText(responseText)
               console.log('✅ Text sent successfully, result:', result)
               setRecordingStatus('Avatar respondendo...')
               setTimeout(() => setRecordingStatus(''), 3000)
@@ -156,6 +184,27 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     try {
       setRecordingStatus('Conectando avatar...')
+      
+      // Inicializar OpenAI Assistant primeiro (se ainda não inicializado)
+      if (!openaiAssistant) {
+        const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY
+        if (!openaiApiKey) {
+          console.warn('⚠️ OpenAI API key not found. Avatar will work but without AI responses.')
+          setRecordingStatus('Aviso: Chave OpenAI não encontrada')
+        } else {
+          try {
+            setRecordingStatus('Inicializando assistente OpenAI...')
+            const assistant = new OpenAIAssistantService(openaiApiKey)
+            await assistant.initialize()
+            setOpenaiAssistant(assistant)
+            console.log('✅ OpenAI Assistant initialized')
+          } catch (error) {
+            console.error('❌ Error initializing OpenAI Assistant:', error)
+            // Continuar mesmo se falhar, o avatar ainda funcionará
+          }
+        }
+      }
+      
       // Passar videoElement diretamente para createSession para configurar listeners ANTES da sessão
       const sessionData = await streamingService.createSession(null, videoRef.current)
       // Se chegou aqui, o stream está pronto
