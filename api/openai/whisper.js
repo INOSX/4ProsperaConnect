@@ -54,11 +54,13 @@ export default async function handler(req, res) {
     formDataParts.push('')
     formDataParts.push('whisper-1')
 
-    // Adicionar language (opcional) - força PT para reduzir detecções indevidas
-    formDataParts.push(`--${boundary}`)
-    formDataParts.push('Content-Disposition: form-data; name="language"')
-    formDataParts.push('')
-    formDataParts.push(language || 'pt')
+    // Adicionar language (opcional). Se não enviado, o Whisper AUTO-DETECTA o idioma
+    if (language) {
+      formDataParts.push(`--${boundary}`)
+      formDataParts.push('Content-Disposition: form-data; name="language"')
+      formDataParts.push('')
+      formDataParts.push(language)
+    }
     
     // Finalizar boundary
     formDataParts.push(`--${boundary}--`)

@@ -21,7 +21,8 @@ export class AudioRecorder {
       minRecordingMs: options.minRecordingMs ?? 1200,
       timesliceMs: options.timesliceMs ?? 800,
       continuous: options.continuous ?? true,
-      language: options.language ?? 'pt',
+      // Se undefined, não enviaremos o campo e o Whisper fará auto-detecção
+      language: options.language,
     }
     this.lastTranscript = ''
   }
@@ -133,15 +134,17 @@ export class AudioRecorder {
       // Converter blob para base64 para enviar via JSON
       const base64 = await this.blobToBase64(audioBlob)
       
+      const payload = {
+        file: base64,
+      }
+      if (this.options.language) payload.language = this.options.language
+
       const response = await fetch('/api/openai/whisper', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          file: base64,
-          language: this.options.language,
-        }),
+        body: JSON.stringify(payload),
       })
 
       if (!response.ok) {
