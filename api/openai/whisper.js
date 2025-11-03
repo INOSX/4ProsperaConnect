@@ -26,7 +26,7 @@ export default async function handler(req, res) {
 
   try {
     // O arquivo vem como base64 no body
-    const { file } = req.body
+    const { file, language } = req.body
 
     if (!file) {
       return res.status(400).json({ error: 'No audio file provided' })
@@ -53,6 +53,12 @@ export default async function handler(req, res) {
     formDataParts.push('Content-Disposition: form-data; name="model"')
     formDataParts.push('')
     formDataParts.push('whisper-1')
+
+    // Adicionar language (opcional) - força PT para reduzir detecções indevidas
+    formDataParts.push(`--${boundary}`)
+    formDataParts.push('Content-Disposition: form-data; name="language"')
+    formDataParts.push('')
+    formDataParts.push(language || 'pt')
     
     // Finalizar boundary
     formDataParts.push(`--${boundary}--`)

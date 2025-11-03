@@ -16,12 +16,14 @@ export class AudioRecorder {
     this.silenceCheckIntervalId = null
     this.recordingStartedAt = 0
     this.options = {
-      silenceThreshold: options.silenceThreshold ?? 0.01, // nível RMS ~0..1
-      silenceDurationMs: options.silenceDurationMs ?? 1200,
-      minRecordingMs: options.minRecordingMs ?? 600,
-      timesliceMs: options.timesliceMs ?? 1000,
+      silenceThreshold: options.silenceThreshold ?? 0.03, // mais rígido contra ruído
+      silenceDurationMs: options.silenceDurationMs ?? 800,
+      minRecordingMs: options.minRecordingMs ?? 1200,
+      timesliceMs: options.timesliceMs ?? 800,
       continuous: options.continuous ?? true,
+      language: options.language ?? 'pt',
     }
+    this.lastTranscript = ''
   }
 
   async startRecording() {
@@ -138,6 +140,7 @@ export class AudioRecorder {
         },
         body: JSON.stringify({
           file: base64,
+          language: this.options.language,
         }),
       })
 
@@ -147,9 +150,15 @@ export class AudioRecorder {
       }
 
       const data = await response.json()
-      console.log('Received transcription:', data.text)
+      const text = (data.text || '').trim()
+      console.log('Received transcription:', text)
       this.onStatusChange('')
-      this.onTranscriptionComplete(data.text)
+
+      // Filtrar vazios/curtíssimos/repetidos
+      if (text && text.length >= 2 && text !== this.lastTranscript) {
+        this.lastTranscript = text
+        this.onTranscriptionComplete(text)
+      }
 
       // Reiniciar automaticamente se estiver no modo contínuo
       if (this.options.continuous) {

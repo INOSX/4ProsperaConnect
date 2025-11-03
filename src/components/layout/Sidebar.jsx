@@ -142,6 +142,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       // Habilitar áudio após gesto do usuário
       try {
         videoRef.current.muted = false
+        videoRef.current.volume = 1.0
         await videoRef.current.play().catch(() => {})
       } catch (_) {}
       setRecordingStatus('Avatar conectado!')
