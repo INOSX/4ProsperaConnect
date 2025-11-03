@@ -38,13 +38,23 @@ export class HeyGenStreamingService {
       }
 
       const data = await response.json()
+      console.log('🔵 Session token response:', { 
+        hasToken: !!data.token, 
+        hasAccessToken: !!data.access_token,
+        hasSessionToken: !!data.session_token,
+        hasDataToken: !!data.data?.token,
+        keys: Object.keys(data)
+      })
+      
       // O token pode estar em diferentes campos dependendo da resposta
       this.sessionToken = data.token || data.access_token || data.session_token || data.data?.token
       
       if (!this.sessionToken) {
+        console.error('❌ Session token not found. Response:', data)
         throw new Error('Session token not found in response')
       }
 
+      console.log('✅ Session token obtained:', this.sessionToken.substring(0, 20) + '...')
       return this.sessionToken
     } catch (error) {
       console.error('Error getting session token:', error)
@@ -243,6 +253,7 @@ export class HeyGenStreamingService {
       }
 
       // Criar instância do SDK
+      console.log('🔵 Creating StreamingAvatar with token:', token ? token.substring(0, 20) + '...' : 'null')
       this.avatar = new StreamingAvatar({ token })
 
       // Configurar event listeners ANTES de criar a sessão se videoElement fornecido
