@@ -45,6 +45,8 @@ export default async function handler(req, res) {
     formDataParts.push('Content-Type: audio/webm')
     formDataParts.push('')
     formDataParts.push(fileBuffer)
+    // Adicionar quebra de linha após o binário para não "colar" no próximo cabeçalho
+    formDataParts.push('')
     
     // Adicionar model
     formDataParts.push(`--${boundary}`)
