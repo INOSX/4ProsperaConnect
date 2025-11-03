@@ -36,39 +36,40 @@ export default async function handler(req, res) {
     const fileBuffer = Buffer.from(file, 'base64')
 
     // Criar FormData para enviar para OpenAI usando multipart/form-data manual
+    // Formato correto: cada campo deve ter CRLF após cabeçalhos e conteúdo
     const boundary = '----WebKitFormBoundary' + Math.random().toString(16).substring(2)
+    const CRLF = '\r\n'
     const formDataParts = []
     
     // Adicionar arquivo
-    formDataParts.push(`--${boundary}`)
-    formDataParts.push('Content-Disposition: form-data; name="file"; filename="audio.webm"')
-    formDataParts.push('Content-Type: audio/webm')
-    formDataParts.push('')
-    formDataParts.push(fileBuffer)
-    // Adicionar quebra de linha após o binário para não "colar" no próximo cabeçalho
-    formDataParts.push('')
+    formDataParts.push(`--${boundary}${CRLF}`)
+    formDataParts.push(`Content-Disposition: form-data; name="file"; filename="audio.webm"${CRLF}`)
+    formDataParts.push(`Content-Type: audio/webm${CRLF}`)
+    formDataParts.push(CRLF) // Linha em branco antes do conteúdo binário
+    formDataParts.push(fileBuffer) // Conteúdo binário
+    formDataParts.push(CRLF) // CRLF após o binário
     
     // Adicionar model
-    formDataParts.push(`--${boundary}`)
-    formDataParts.push('Content-Disposition: form-data; name="model"')
-    formDataParts.push('')
-    formDataParts.push('whisper-1')
+    formDataParts.push(`--${boundary}${CRLF}`)
+    formDataParts.push(`Content-Disposition: form-data; name="model"${CRLF}`)
+    formDataParts.push(CRLF) // Linha em branco antes do valor
+    formDataParts.push(`whisper-1${CRLF}`)
 
     // Adicionar language (opcional). Se não enviado, o Whisper AUTO-DETECTA o idioma
     if (language) {
-      formDataParts.push(`--${boundary}`)
-      formDataParts.push('Content-Disposition: form-data; name="language"')
-      formDataParts.push('')
-      formDataParts.push(language)
+      formDataParts.push(`--${boundary}${CRLF}`)
+      formDataParts.push(`Content-Disposition: form-data; name="language"${CRLF}`)
+      formDataParts.push(CRLF) // Linha em branco antes do valor
+      formDataParts.push(`${language}${CRLF}`)
     }
     
     // Finalizar boundary
-    formDataParts.push(`--${boundary}--`)
+    formDataParts.push(`--${boundary}--${CRLF}`)
     
     // Concatenar todas as partes
     const formDataBuffer = Buffer.concat(
       formDataParts.map(part => 
-        Buffer.isBuffer(part) ? part : Buffer.from(part + '\r\n', 'utf8')
+        Buffer.isBuffer(part) ? part : Buffer.from(part, 'utf8')
       )
     )
 
