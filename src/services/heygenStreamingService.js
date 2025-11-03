@@ -309,7 +309,7 @@ export class HeyGenStreamingService {
     try {
       await this.avatar.speak({
         text: text,
-        task_type: TaskType.REPEAT, // REPEAT = falar imediatamente
+        taskType: TaskType.REPEAT, // propriedade correta do SDK
       })
       console.log('✅ Text sent to avatar:', text)
     } catch (error) {

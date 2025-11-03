@@ -100,7 +100,7 @@ const Sidebar = ({ isOpen, onClose }) => {
               setRecordingStatus('Erro: ' + error.message)
             }
           } else {
-            setRecordingStatus('Avatar não conectado')
+            setRecordingStatus('')
           }
         },
         {
