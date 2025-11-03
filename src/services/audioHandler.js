@@ -3,23 +3,38 @@
  * Baseado na documentação: https://docs.heygen.com/docs/adding-speech-to-text-integration-to-demo-project
  */
 export class AudioRecorder {
-  constructor(onStatusChange, onTranscriptionComplete) {
+  constructor(onStatusChange, onTranscriptionComplete, options = {}) {
     this.mediaRecorder = null
     this.audioChunks = []
     this.isRecording = false
     this.onStatusChange = onStatusChange
     this.onTranscriptionComplete = onTranscriptionComplete
+    this.stream = null
+    this.audioContext = null
+    this.mediaStreamSource = null
+    this.analyser = null
+    this.silenceCheckIntervalId = null
+    this.recordingStartedAt = 0
+    this.options = {
+      silenceThreshold: options.silenceThreshold ?? 0.01, // nível RMS ~0..1
+      silenceDurationMs: options.silenceDurationMs ?? 1200,
+      minRecordingMs: options.minRecordingMs ?? 600,
+      timesliceMs: options.timesliceMs ?? 1000,
+      continuous: options.continuous ?? true,
+    }
   }
 
   async startRecording() {
     try {
       console.log('Requesting microphone access...')
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      // Reutilizar o stream quando possível
+      this.stream = this.stream || await navigator.mediaDevices.getUserMedia({ audio: true })
       console.log('Microphone access granted')
       
-      this.mediaRecorder = new MediaRecorder(stream)
+      this.mediaRecorder = new MediaRecorder(this.stream)
       this.audioChunks = []
       this.isRecording = true
+      this.recordingStartedAt = Date.now()
 
       this.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -35,25 +50,77 @@ export class AudioRecorder {
         await this.sendToWhisper(audioBlob)
       }
 
-      this.mediaRecorder.start(1000) // Collect data every second
+      this.mediaRecorder.start(this.options.timesliceMs)
       console.log('Started recording')
       this.onStatusChange('Recording... Speak now')
+
+      // Iniciar detecção de silêncio
+      await this.startSilenceDetection()
     } catch (error) {
       console.error('Error starting recording:', error)
       this.onStatusChange('Error: ' + error.message)
     }
   }
 
-  stopRecording() {
+  stopRecording(stopTracks = false) {
     if (this.mediaRecorder && this.isRecording) {
       console.log('Stopping recording...')
-      this.mediaRecorder.stop()
+      try { this.mediaRecorder.stop() } catch (_) {}
       this.isRecording = false
       this.onStatusChange('Processing audio...')
-      
-      // Stop all tracks in the stream
-      const stream = this.mediaRecorder.stream
-      stream.getTracks().forEach(track => track.stop())
+      this.stopSilenceDetection()
+
+      if (stopTracks && this.stream) {
+        this.stream.getTracks().forEach(track => track.stop())
+        this.stream = null
+      }
+    }
+  }
+
+  async startSilenceDetection() {
+    try {
+      if (!this.stream) return
+      this.audioContext = this.audioContext || new (window.AudioContext || window.webkitAudioContext)()
+      this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.stream)
+      this.analyser = this.audioContext.createAnalyser()
+      this.analyser.fftSize = 1024
+      this.mediaStreamSource.connect(this.analyser)
+
+      const bufferLength = this.analyser.fftSize
+      const dataArray = new Float32Array(bufferLength)
+      let silenceStart = Date.now()
+
+      this.stopSilenceDetection()
+      this.silenceCheckIntervalId = setInterval(() => {
+        if (!this.isRecording) return
+        this.analyser.getFloatTimeDomainData(dataArray)
+        // RMS simples
+        let sumSquares = 0
+        for (let i = 0; i < bufferLength; i++) sumSquares += dataArray[i] * dataArray[i]
+        const rms = Math.sqrt(sumSquares / bufferLength)
+
+        const now = Date.now()
+        const elapsed = now - this.recordingStartedAt
+        const isSilent = rms < this.options.silenceThreshold
+
+        if (isSilent) {
+          if (now - silenceStart > this.options.silenceDurationMs && elapsed > this.options.minRecordingMs) {
+            // Silêncio sustentado: parar automaticamente sem encerrar as trilhas
+            this.stopRecording(false)
+          }
+        } else {
+          silenceStart = now
+        }
+      }, 150)
+    } catch (err) {
+      console.warn('Silence detection unavailable:', err?.message)
+    }
+  }
+
+  stopSilenceDetection() {
+    if (this.silenceCheckIntervalId) {
+      clearInterval(this.silenceCheckIntervalId)
+      this.silenceCheckIntervalId = null
     }
   }
 
@@ -83,6 +150,16 @@ export class AudioRecorder {
       console.log('Received transcription:', data.text)
       this.onStatusChange('')
       this.onTranscriptionComplete(data.text)
+
+      // Reiniciar automaticamente se estiver no modo contínuo
+      if (this.options.continuous) {
+        // Pequena pausa para evitar encadear gravações
+        setTimeout(() => {
+          if (!this.isRecording) {
+            this.startRecording()
+          }
+        }, 250)
+      }
     } catch (error) {
       console.error('Error transcribing audio:', error)
       this.onStatusChange('Error: Failed to transcribe audio')

@@ -168,7 +168,8 @@ const Sidebar = ({ isOpen, onClose }) => {
       await audioRecorder.startRecording()
     } else {
       setIsRecording(false)
-      audioRecorder.stopRecording()
+      // Ao parar manualmente, podemos encerrar as trilhas para liberar o microfone
+      audioRecorder.stopRecording(true)
     }
   }
   const menuItems = [
