@@ -102,6 +102,10 @@ const Sidebar = ({ isOpen, onClose }) => {
           } else {
             setRecordingStatus('Avatar não conectado')
           }
+        },
+        {
+          continuous: false,
+          autoStopOnSilence: false,
         }
       )
       setAudioRecorder(recorder)

@@ -20,7 +20,10 @@ export class AudioRecorder {
       silenceDurationMs: options.silenceDurationMs ?? 800,
       minRecordingMs: options.minRecordingMs ?? 1200,
       timesliceMs: options.timesliceMs ?? 800,
-      continuous: options.continuous ?? true,
+      // Escuta contínua desligada por padrão (requer clique para cada gravação)
+      continuous: options.continuous ?? false,
+      // Auto-parar por silêncio desligado por padrão (parar manual)
+      autoStopOnSilence: options.autoStopOnSilence ?? false,
       // Se undefined, não enviaremos o campo e o Whisper fará auto-detecção
       language: options.language,
     }
@@ -57,8 +60,10 @@ export class AudioRecorder {
       console.log('Started recording')
       this.onStatusChange('Recording... Speak now')
 
-      // Iniciar detecção de silêncio
-      await this.startSilenceDetection()
+      // Iniciar detecção de silêncio se habilitado
+      if (this.options.autoStopOnSilence) {
+        await this.startSilenceDetection()
+      }
     } catch (error) {
       console.error('Error starting recording:', error)
       this.onStatusChange('Error: ' + error.message)
