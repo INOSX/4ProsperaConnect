@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('storage-updated', onUpdated)
   }, [])
 
-  // Inicializar AudioRecorder e conectar avatar
+  // Inicializar AudioRecorder (apenas uma vez, não recriar quando avatarConnected mudar)
   useEffect(() => {
     if (!audioRecorder) {
       const recorder = new AudioRecorder(
@@ -96,6 +96,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         },
         async (text) => {
           // Quando a transcrição for concluída, enviar texto para o avatar falar
+          console.log('🔵 onTranscriptionComplete called in Sidebar:', { text })
           const isConnected = avatarConnectedRef.current
           console.log('🔵 Transcription complete callback:', { text, avatarConnected: isConnected })
           if (isConnected) {
@@ -124,8 +125,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         }
       )
       setAudioRecorder(recorder)
+      console.log('✅ AudioRecorder initialized')
     }
-  }, [audioRecorder, avatarConnected, streamingService])
+  }, [audioRecorder, streamingService]) // Removido avatarConnected das dependências
 
   // Conectar avatar ao montar o componente
   // NOTA: A conexão deve ser iniciada após interação do usuário devido à política de AudioContext do navegador

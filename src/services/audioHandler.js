@@ -163,9 +163,26 @@ export class AudioRecorder {
       this.onStatusChange('')
 
       // Filtrar vazios/curtíssimos/repetidos
+      console.log('🔵 Checking transcription:', { 
+        text, 
+        length: text.length, 
+        lastTranscript: this.lastTranscript,
+        isDifferent: text !== this.lastTranscript,
+        willCallCallback: text && text.length >= 2 && text !== this.lastTranscript
+      })
+      
       if (text && text.length >= 2 && text !== this.lastTranscript) {
         this.lastTranscript = text
-        this.onTranscriptionComplete(text)
+        console.log('🔵 Calling onTranscriptionComplete with:', text)
+        try {
+          this.onTranscriptionComplete(text)
+        } catch (error) {
+          console.error('❌ Error in onTranscriptionComplete callback:', error)
+        }
+      } else {
+        console.warn('⚠️ Transcription filtered out:', {
+          reason: !text ? 'empty' : text.length < 2 ? 'too short' : 'duplicate'
+        })
       }
 
       // Reiniciar automaticamente se estiver no modo contínuo
