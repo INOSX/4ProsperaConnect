@@ -2,7 +2,7 @@
  * Serviço para integração com HeyGen Streaming Avatar usando SDK oficial
  * Baseado na documentação: https://docs.heygen.com/docs/streaming-avatar-sdk
  */
-import StreamingAvatar, { StreamingEvents, TaskType } from '@heygen/streaming-avatar'
+import StreamingAvatar, { StreamingEvents, TaskType, TaskMode } from '@heygen/streaming-avatar'
 
 export class HeyGenStreamingService {
   constructor() {
@@ -225,9 +225,10 @@ export class HeyGenStreamingService {
    * Cria uma nova sessão de streaming usando o SDK oficial
    * @param {string} avatarId - ID do avatar (opcional)
    * @param {HTMLVideoElement} videoElement - Elemento de vídeo (opcional, pode ser configurado depois)
+   * @param {string} knowledgeId - ID da knowledge base para respostas inteligentes (opcional)
    * @returns {Promise<Object>} Session data
    */
-  async createSession(avatarId = null, videoElement = null) {
+  async createSession(avatarId = null, videoElement = null, knowledgeId = null) {
     try {
       // Obter session token primeiro
       const token = await this.getSessionToken()
@@ -253,10 +254,18 @@ export class HeyGenStreamingService {
 
       // Criar e iniciar sessão
       // O SDK gerencia automaticamente a conexão LiveKit
-      const sessionData = await this.avatar.createStartAvatar({
+      const sessionConfig = {
         avatarName: avatarId || 'default',
         quality: 'high',
-      })
+      }
+      
+      // Adicionar knowledgeId se fornecido (para respostas inteligentes)
+      if (knowledgeId) {
+        sessionConfig.knowledgeId = knowledgeId
+        console.log('🔵 Using knowledgeId for intelligent responses:', knowledgeId)
+      }
+
+      const sessionData = await this.avatar.createStartAvatar(sessionConfig)
 
       this.sessionId = sessionData.session_id
       console.log('✅ Session created with SDK:', this.sessionId)
@@ -316,16 +325,24 @@ export class HeyGenStreamingService {
 
     try {
       // Verificar se TaskType está disponível
-      console.log('🔵 TaskType available:', { TaskType, REPEAT: TaskType?.REPEAT })
+      console.log('🔵 TaskType available:', { TaskType, TALK: TaskType?.TALK, REPEAT: TaskType?.REPEAT })
       
-      // Tentar usar TaskType.REPEAT, se não funcionar, tentar sem taskType ou com outro valor
+      // Usar TaskType.TALK (padrão) para respostas inteligentes ao invés de REPEAT
+      // Conforme documentação: https://github.com/HeyGen-Official/StreamingAvatarSDK
       const speakParams = {
         text: text,
       }
       
-      // Adicionar taskType se disponível
-      if (TaskType && TaskType.REPEAT !== undefined) {
-        speakParams.taskType = TaskType.REPEAT
+      // Usar TALK (padrão) para respostas inteligentes, não REPEAT
+      // Conforme documentação: task_type: TaskType.TALK (padrão) para respostas inteligentes
+      // task_type: TaskType.REPEAT faz o avatar repetir o texto
+      if (TaskType && TaskType.TALK !== undefined) {
+        speakParams.task_type = TaskType.TALK // snake_case conforme documentação
+      }
+      
+      // Adicionar TaskMode.SYNC se disponível (para modo síncrono)
+      if (TaskMode && TaskMode.SYNC !== undefined) {
+        speakParams.taskMode = TaskMode.SYNC
       }
       
       console.log('🔵 Calling avatar.speak with:', speakParams)
@@ -337,12 +354,12 @@ export class HeyGenStreamingService {
       console.error('❌ Error sending text:', error)
       console.error('❌ Error details:', { message: error.message, stack: error.stack, error })
       
-      // Tentar sem taskType se a primeira tentativa falhou
-      if (TaskType && error.message?.includes('taskType')) {
-        console.log('🔄 Retrying without taskType...')
+      // Tentar sem parâmetros extras se a primeira tentativa falhou
+      if (error.message?.includes('task') || error.message?.includes('Task')) {
+        console.log('🔄 Retrying with default parameters (TALK mode)...')
         try {
           const result = await this.avatar.speak({ text: text })
-          console.log('✅ Text sent to avatar successfully (without taskType):', text)
+          console.log('✅ Text sent to avatar successfully (default mode):', text)
           return result
         } catch (retryError) {
           console.error('❌ Retry also failed:', retryError)
