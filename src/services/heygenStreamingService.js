@@ -302,18 +302,54 @@ export class HeyGenStreamingService {
    * @param {string} text - Texto para o avatar falar
    */
   async sendText(text) {
-    if (!this.avatar || !this.sessionId) {
+    console.log('🔵 sendText called with:', { text, hasAvatar: !!this.avatar, sessionId: this.sessionId })
+    
+    if (!this.avatar) {
+      console.error('❌ Avatar not initialized')
       throw new Error('Session not initialized. Call createSession first.')
     }
 
+    if (!this.sessionId) {
+      console.error('❌ Session ID not set')
+      throw new Error('Session ID not set. Call createSession first.')
+    }
+
     try {
-      await this.avatar.speak({
+      // Verificar se TaskType está disponível
+      console.log('🔵 TaskType available:', { TaskType, REPEAT: TaskType?.REPEAT })
+      
+      // Tentar usar TaskType.REPEAT, se não funcionar, tentar sem taskType ou com outro valor
+      const speakParams = {
         text: text,
-        taskType: TaskType.REPEAT, // propriedade correta do SDK
-      })
-      console.log('✅ Text sent to avatar:', text)
+      }
+      
+      // Adicionar taskType se disponível
+      if (TaskType && TaskType.REPEAT !== undefined) {
+        speakParams.taskType = TaskType.REPEAT
+      }
+      
+      console.log('🔵 Calling avatar.speak with:', speakParams)
+      const result = await this.avatar.speak(speakParams)
+      console.log('✅ Text sent to avatar successfully:', text)
+      console.log('✅ Speak result:', result)
+      return result
     } catch (error) {
-      console.error('Error sending text:', error)
+      console.error('❌ Error sending text:', error)
+      console.error('❌ Error details:', { message: error.message, stack: error.stack, error })
+      
+      // Tentar sem taskType se a primeira tentativa falhou
+      if (TaskType && error.message?.includes('taskType')) {
+        console.log('🔄 Retrying without taskType...')
+        try {
+          const result = await this.avatar.speak({ text: text })
+          console.log('✅ Text sent to avatar successfully (without taskType):', text)
+          return result
+        } catch (retryError) {
+          console.error('❌ Retry also failed:', retryError)
+          throw retryError
+        }
+      }
+      
       throw error
     }
   }

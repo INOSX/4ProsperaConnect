@@ -39,7 +39,13 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [audioRecorder, setAudioRecorder] = useState(null)
   const [streamingService] = useState(() => new HeyGenStreamingService())
   const [avatarConnected, setAvatarConnected] = useState(false)
+  const avatarConnectedRef = useRef(false)
   const videoRef = useRef(null)
+  
+  // Sincronizar ref com state
+  useEffect(() => {
+    avatarConnectedRef.current = avatarConnected
+  }, [avatarConnected])
 
   useEffect(() => {
     let mounted = true
@@ -90,17 +96,26 @@ const Sidebar = ({ isOpen, onClose }) => {
         },
         async (text) => {
           // Quando a transcrição for concluída, enviar texto para o avatar falar
-          if (avatarConnected) {
+          const isConnected = avatarConnectedRef.current
+          console.log('🔵 Transcription complete callback:', { text, avatarConnected: isConnected })
+          if (isConnected) {
             setRecordingStatus('Enviando para avatar...')
             try {
-              await streamingService.sendText(text)
-              setRecordingStatus('')
+              console.log('🔵 Calling streamingService.sendText...')
+              const result = await streamingService.sendText(text)
+              console.log('✅ Text sent successfully, result:', result)
+              setRecordingStatus('Avatar respondendo...')
+              setTimeout(() => setRecordingStatus(''), 3000)
             } catch (error) {
-              console.error('Error sending text to avatar:', error)
+              console.error('❌ Error sending text to avatar:', error)
+              console.error('❌ Error stack:', error.stack)
               setRecordingStatus('Erro: ' + error.message)
+              setTimeout(() => setRecordingStatus(''), 5000)
             }
           } else {
-            setRecordingStatus('')
+            console.warn('⚠️ Avatar not connected, skipping sendText')
+            setRecordingStatus('Avatar não conectado. Clique em "Conectar Avatar" primeiro.')
+            setTimeout(() => setRecordingStatus(''), 3000)
           }
         },
         {
