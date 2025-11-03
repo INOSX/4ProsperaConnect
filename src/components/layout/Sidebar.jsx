@@ -139,6 +139,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       const sessionData = await streamingService.createSession(null, videoRef.current)
       // Se chegou aqui, o stream está pronto
       setAvatarConnected(true)
+      // Habilitar áudio após gesto do usuário
+      try {
+        videoRef.current.muted = false
+        await videoRef.current.play().catch(() => {})
+      } catch (_) {}
       setRecordingStatus('Avatar conectado!')
       setTimeout(() => setRecordingStatus(''), 2000)
     } catch (error) {
