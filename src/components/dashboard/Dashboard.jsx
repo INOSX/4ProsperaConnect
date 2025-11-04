@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import { ClientService } from '../../services/clientService'
+import { supabase } from '../../services/supabase'
+import { parseCSVString, parseExcelFromArrayBuffer, cleanData, detectColumnTypes, generateDataStats } from '../../services/dataParser'
 import Card from '../ui/Card'
 import FileUpload from './FileUpload'
 import ChartContainer from './ChartContainer'
-import DebugTest from './DebugTest'
 import { 
   TrendingUp, 
   Users, 
@@ -10,22 +14,30 @@ import {
   Activity,
   Upload,
   BarChart3,
-  Database,
-  X
+  X,
+  Minus
 } from 'lucide-react'
+import { RotateCcw } from 'lucide-react'
 
 const Dashboard = () => {
   const [showFileUpload, setShowFileUpload] = useState(false)
-  const [showDebugTest, setShowDebugTest] = useState(false)
   const [datasets, setDatasets] = useState([])
   const [selectedDataset, setSelectedDataset] = useState(null)
   const [chartType, setChartType] = useState('line')
   const [xColumn, setXColumn] = useState('')
   const [yColumn, setYColumn] = useState('')
+  const [hiddenKpiKeys, setHiddenKpiKeys] = useState(new Set())
+  const [minimizedKpiKeys, setMinimizedKpiKeys] = useState(new Set())
+  const [animatingKpi, setAnimatingKpi] = useState({ key: null, action: null })
+  const location = useLocation()
+  const { user } = useAuth()
 
   const handleDataLoaded = (newDataset) => {
     setDatasets(prev => [newDataset, ...prev])
     setSelectedDataset(newDataset)
+    // Resetar visibilidade/estado dos cards ao carregar novos dados
+    setHiddenKpiKeys(new Set())
+    setMinimizedKpiKeys(new Set())
     // Heurística: eixo X categórico, eixo Y numérico
     if (newDataset.columns && newDataset.columns.length >= 1) {
       const columnTypes = newDataset.columnTypes || {}
@@ -59,6 +71,86 @@ const Dashboard = () => {
     }
   }
 
+  // Carregar arquivos selecionados vindos da página Datasets
+  useEffect(() => {
+    const state = location.state
+    if (!state || !state.selectedFiles || state._consumed) return
+
+    let cancelled = false
+    async function loadFromStorage() {
+      try {
+        // Obter client/bucket do usuário
+        const cr = await ClientService.getClientByUserId(user?.id)
+        if (!cr?.success) return
+        const bucket = String(cr.client.id)
+
+        for (const file of state.selectedFiles) {
+          if (cancelled) break
+          const filename = file.filename
+          const { data: blob, error } = await supabase.storage.from(bucket).download(filename)
+          if (error || !blob) continue
+
+          let parsed
+          // Tentar CSV primeiro
+          if (filename.toLowerCase().endsWith('.csv')) {
+            const text = await blob.text()
+            parsed = await parseCSVString(text)
+          } else if (filename.toLowerCase().endsWith('.xlsx') || filename.toLowerCase().endsWith('.xls')) {
+            const ab = await blob.arrayBuffer()
+            parsed = parseExcelFromArrayBuffer(ab)
+          } else {
+            // Se não reconhecido, tentar como CSV por padrão
+            const text = await blob.text()
+            parsed = await parseCSVString(text)
+          }
+
+          // Limpeza / tipos / stats
+          const cleaned = cleanData(parsed.data)
+          const columnTypes = detectColumnTypes(cleaned)
+          const stats = generateDataStats(cleaned)
+
+          handleDataLoaded({
+            id: filename,
+            name: filename,
+            data: cleaned,
+            columns: parsed.columns,
+            columnTypes,
+            stats,
+            created_at: Date.now()
+          })
+        }
+      } catch (e) {
+        console.error('Erro ao carregar arquivos do Storage:', e)
+      }
+    }
+    loadFromStorage()
+    // Marcar state como consumido para evitar reprocessar ao navegar
+    location.state._consumed = true
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.selectedFiles?.length, user?.id])
+
+  // Ouvir seleção de dataset vinda da Sidebar (vector store)
+  useEffect(() => {
+    const handler = (e) => {
+      const ds = e.detail
+      handleDataLoaded({
+        ...ds,
+        rowCount: ds.row_count,
+        columns: ds.columns
+      })
+    }
+    window.addEventListener('dataset-selected', handler)
+    return () => window.removeEventListener('dataset-selected', handler)
+  }, [])
+
+  // Abrir modal de upload quando a Sidebar indicar que o arquivo não existe no Storage
+  useEffect(() => {
+    const openHandler = () => setShowFileUpload(true)
+    window.addEventListener('open-upload', openHandler)
+    return () => window.removeEventListener('open-upload', openHandler)
+  }, [])
+
   const handleChartTypeChange = (type) => {
     setChartType(type)
   }
@@ -80,37 +172,182 @@ const Dashboard = () => {
     }
   }
 
-  // Dados mockados para demonstração
-  const kpis = [
-    {
-      title: 'Total de Vendas',
-      value: 'R$ 45.231',
-      change: '+12.5%',
-      changeType: 'positive',
-      icon: DollarSign
-    },
-    {
-      title: 'Novos Clientes',
-      value: '1.234',
-      change: '+8.2%',
-      changeType: 'positive',
-      icon: Users
-    },
-    {
-      title: 'Taxa de Conversão',
-      value: '3.24%',
-      change: '+2.1%',
-      changeType: 'positive',
-      icon: TrendingUp
-    },
-    {
-      title: 'Atividade',
-      value: '89.2%',
-      change: '-1.2%',
-      changeType: 'negative',
-      icon: Activity
+  const hideKpi = (key) => {
+    setHiddenKpiKeys(prev => new Set(prev).add(key))
+  }
+
+  const toggleMinimizeKpi = (key) => {
+    const willMinimize = !minimizedKpiKeys.has(key)
+    if (willMinimize) {
+      // anima saída do grid
+      setAnimatingKpi({ key, action: 'min' })
+      setTimeout(() => {
+        setAnimatingKpi({ key: null, action: null })
+        setMinimizedKpiKeys(prev => new Set(prev).add(key))
+      }, 180)
+    } else {
+      // anima saída da faixa minimizada
+      setAnimatingKpi({ key, action: 'expand' })
+      setTimeout(() => {
+        setAnimatingKpi({ key: null, action: null })
+        setMinimizedKpiKeys(prev => {
+          const next = new Set(prev)
+          next.delete(key)
+          return next
+        })
+      }, 180)
     }
-  ]
+  }
+
+  // Função para escolher ícone baseado no nome da coluna
+  const getIconForColumn = (columnName) => {
+    const lowerName = columnName.toLowerCase()
+    if (lowerName.includes('venda') || lowerName.includes('receita') || lowerName.includes('valor') || lowerName.includes('preço') || lowerName.includes('total')) {
+      return DollarSign
+    }
+    if (lowerName.includes('cliente') || lowerName.includes('pessoa') || lowerName.includes('usuário')) {
+      return Users
+    }
+    if (lowerName.includes('taxa') || lowerName.includes('percentual') || lowerName.includes('conversão') || lowerName.includes('crescimento')) {
+      return TrendingUp
+    }
+    if (lowerName.includes('atividade') || lowerName.includes('ativo') || lowerName.includes('status')) {
+      return Activity
+    }
+    // Padrão: TrendingUp para métricas gerais
+    return TrendingUp
+  }
+
+  // Função para formatar valores baseado no tipo e magnitude
+  const formatValue = (value, columnName, metricType) => {
+    const lowerName = columnName.toLowerCase()
+    
+    // Se é um percentual (nome contém 'percent', 'taxa', etc.) ou o valor está entre 0 e 1
+    if (lowerName.includes('percent') || lowerName.includes('taxa') || lowerName.includes('rate') || 
+        (value > 0 && value < 1 && lowerName.includes('proporção'))) {
+      return `${(value * 100).toFixed(2)}%`
+    }
+    
+    // Se é um valor monetário
+    if (lowerName.includes('valor') || lowerName.includes('preço') || lowerName.includes('custo') || 
+        lowerName.includes('receita') || lowerName.includes('venda') || lowerName.includes('total') ||
+        lowerName.includes('r$') || lowerName.includes('dinheiro')) {
+      return new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      }).format(value)
+    }
+    
+    // Números grandes: usar separador de milhares
+    if (Math.abs(value) >= 1000) {
+      return new Intl.NumberFormat('pt-BR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(value)
+    }
+    
+    // Números pequenos: manter decimais se necessário
+    return value.toFixed(2)
+  }
+
+  // Gerar KPIs dinamicamente a partir dos dados
+  const generateKPIsFromDataset = (dataset) => {
+    if (!dataset || !dataset.data || !dataset.columnTypes || !dataset.stats) {
+      return []
+    }
+
+    const { columnTypes, stats, columns } = dataset
+    const { columnStats } = stats
+    const kpis = []
+
+    // 1) Tentar gerar KPIs por categoria (ex.: Entrada, Saída) somando uma métrica numérica
+    const candidateCategoricals = columns
+      .filter(col => columnTypes[col] === 'string')
+      .sort((a, b) => {
+        const ua = (columnStats[a]?.uniqueValues ?? Number.MAX_SAFE_INTEGER)
+        const ub = (columnStats[b]?.uniqueValues ?? Number.MAX_SAFE_INTEGER)
+        return ua - ub
+      })
+
+    const categorical = candidateCategoricals.find(col => {
+      const u = columnStats[col]?.uniqueValues
+      return typeof u === 'number' && u >= 2 && u <= 10 // poucas categorias para cards
+    })
+
+    const numericColumns = columns.filter(col => columnTypes[col] === 'number' && columnStats[col]?.numeric)
+    const measure = numericColumns[0]
+
+    if (categorical && measure) {
+      // Agregar soma por categoria
+      const totalsByCategory = {}
+      dataset.data.forEach(row => {
+        const key = String(row[categorical] ?? '').trim()
+        const valRaw = row[measure]
+        const val = typeof valRaw === 'number' ? valRaw : Number(valRaw)
+        if (!key || isNaN(val)) return
+        totalsByCategory[key] = (totalsByCategory[key] || 0) + val
+      })
+
+      const entries = Object.entries(totalsByCategory)
+        .sort((a, b) => b[1] - a[1])
+
+      entries.forEach(([label, value]) => {
+        // Ajuste de ícone quando o rótulo indica "entrada" ou "saída"
+        const lower = label.toLowerCase()
+        let Icon = getIconForColumn(measure)
+        if (lower.includes('entrada')) Icon = TrendingUp
+        if (lower.includes('saída') || lower.includes('saida')) Icon = Activity
+
+        kpis.push({
+          title: label, // título = valor categórico (ex.: Entrada, Saída)
+          value: formatValue(value, measure, 'Total'),
+          change: null,
+          changeType: null,
+          icon: Icon,
+          rawValue: value,
+          metricType: 'Total'
+        })
+      })
+
+      if (kpis.length > 0) return kpis
+    }
+
+    // 2) Fallback: se não houver categórica adequada, mostrar KPIs por coluna numérica
+    if (numericColumns.length === 0) {
+      if (dataset.data.length > 0) {
+        return [{
+          title: 'Total de Registros',
+          value: dataset.data.length.toLocaleString('pt-BR'),
+          change: null,
+          changeType: null,
+      icon: Activity
+        }]
+      }
+      return []
+    }
+
+    numericColumns.forEach(column => {
+      const statsForColumn = columnStats[column].numeric
+      if (!statsForColumn) return
+      const metricValue = statsForColumn.sum
+      kpis.push({
+        title: column,
+        value: formatValue(metricValue, column, 'Total'),
+        change: null,
+        changeType: null,
+        icon: getIconForColumn(column),
+        rawValue: metricValue,
+        metricType: 'Total'
+      })
+    })
+
+    return kpis
+  }
+
+  // Gerar KPIs dinâmicos baseados no dataset selecionado
+  const kpis = selectedDataset ? generateKPIsFromDataset(selectedDataset) : []
+  const minimizedKpis = kpis.filter((k, i) => minimizedKpiKeys.has(k.title || String(i)) && !hiddenKpiKeys.has(k.title || String(i)))
+  const visibleKpis = kpis.filter((k, i) => !minimizedKpiKeys.has(k.title || String(i)) && !hiddenKpiKeys.has(k.title || String(i)))
 
   return (
     <div className="space-y-6">
@@ -128,13 +365,6 @@ const Dashboard = () => {
             <Upload className="h-4 w-4" />
             <span>Upload de Dados</span>
           </button>
-          <button 
-            onClick={() => setShowDebugTest(true)}
-            className="btn-secondary flex items-center space-x-2"
-          >
-            <Database className="h-4 w-4" />
-            <span>Debug</span>
-          </button>
           <button className="btn-primary flex items-center space-x-2">
             <BarChart3 className="h-4 w-4" />
             <span>Nova Análise</span>
@@ -142,16 +372,83 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi, index) => {
+      {/* KPIs Grid - Dinâmico baseado nos dados */}
+      {/* Faixa de KPIs minimizados */}
+      {minimizedKpis.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 -mt-2">
+          {minimizedKpis.map((kpi, index) => {
+            const key = kpi.title || String(index)
+            const Icon = kpi.icon
+            const isAnimating = animatingKpi.key === key && animatingKpi.action === 'expand'
+            return (
+              <div key={`mini-${key}`} className={`rounded-md border border-gray-200 bg-white pl-2 pr-1.5 py-1 shadow-sm flex items-center space-x-2 transition-all duration-200 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+                <Icon className="h-3.5 w-3.5 text-primary-600" />
+                <span className="text-xs text-gray-800 max-w-[140px] truncate" title={kpi.title}>{kpi.title}</span>
+                <button
+                  onClick={() => toggleMinimizeKpi(key)}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-600"
+                  title="Restaurar"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => hideKpi(key)}
+                  className="p-1 rounded hover:bg-red-50 text-red-600"
+                  title="Fechar"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {visibleKpis.length > 0 ? (
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${visibleKpis.length === 3 ? 'lg:grid-cols-3' : ''} ${visibleKpis.length >= 4 ? 'lg:grid-cols-4' : ''} gap-6`}>
+          {visibleKpis.map((kpi, index) => {
           const Icon = kpi.icon
+            const key = kpi.title || String(index)
+            const isAnimating = animatingKpi.key === key && animatingKpi.action === 'min'
           return (
-            <Card key={index} className="relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
+              <Card key={key} className={`relative overflow-hidden group transition-all duration-200 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+              >
+                {/* Botões no canto superior direito (estilo Windows) */}
+                <div className="absolute top-0 right-0 z-10 flex items-center bg-white rounded-bl-lg border-l border-b border-gray-200 shadow-sm">
+                  {/* Ícone do KPI (drasticamente reduzido) */}
+                  <div className="h-5 w-5 bg-gradient-primary rounded-sm flex items-center justify-center mr-0.5">
+                    <Icon className="h-3 w-3 text-white" />
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleMinimizeKpi(key)
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+                    title={'Minimizar'}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      hideKpi(key)
+                    }}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    title="Fechar"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+
+                {/* Conteúdo do card */}
+                <div className="flex items-center justify-between pr-2">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-600 pr-16">{kpi.title}</p>
+                    {(
+                      <>
                   <p className="text-2xl font-bold text-gray-900 mt-1">{kpi.value}</p>
+                        {kpi.change !== null && kpi.changeType !== null && (
                   <div className="flex items-center mt-2">
                     <span className={`text-sm font-medium ${
                       kpi.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
@@ -160,15 +457,21 @@ const Dashboard = () => {
                     </span>
                     <span className="text-sm text-gray-500 ml-1">vs mês anterior</span>
                   </div>
+                        )}
+                      </>
+                    )}
                 </div>
-                <div className="h-12 w-12 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
+                  {/* Ícone removido daqui; agora aparece na barra de ações no topo */}
               </div>
             </Card>
           )
         })}
       </div>
+      ) : (
+        <Card className="p-6 text-center">
+          <p className="text-gray-500">Carregue dados para visualizar métricas</p>
+        </Card>
+      )}
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -290,27 +593,6 @@ const Dashboard = () => {
           onDataLoaded={handleDataLoaded}
           onClose={() => setShowFileUpload(false)}
         />
-      )}
-
-
-      {/* Debug Test Modal */}
-      {showDebugTest && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <Card className="relative">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-900">Debug Completo</h2>
-                <button
-                  onClick={() => setShowDebugTest(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <X className="h-5 w-5 text-gray-500" />
-                </button>
-              </div>
-              <DebugTest />
-            </Card>
-          </div>
-        </div>
       )}
     </div>
   )

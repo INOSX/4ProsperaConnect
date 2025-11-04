@@ -14,6 +14,7 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
   const [uploadError, setUploadError] = useState(null)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [parsedData, setParsedData] = useState(null)
+  const [originalFile, setOriginalFile] = useState(null)
   const [dataStats, setDataStats] = useState(null)
   const [fileName, setFileName] = useState('')
 
@@ -51,6 +52,7 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
         columnTypes,
         stats
       })
+      setOriginalFile(file)
       setDataStats(stats)
       setUploadSuccess(true)
       
@@ -91,7 +93,19 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
         throw new Error('Vectorstore não configurado para este cliente.')
       }
 
-      // Salvar metadados no Supabase (apenas informações sobre o arquivo)
+      // Garantir bucket do usuário no Supabase (chama API com service role)
+      const ensureResp = await fetch('/api/supabase/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'ensureBucket', userId: client.id })
+      })
+      if (!ensureResp.ok) {
+        const err = await ensureResp.json().catch(() => ({}))
+        throw new Error(`Falha ao garantir bucket: ${err.error || ensureResp.statusText}`)
+      }
+      const { bucket } = await ensureResp.json()
+
+      // Salvar metadados no Supabase
       const { supabase } = await import('../../services/supabase')
       
       const { data: savedDataSource, error: dataSourceError } = await supabase
@@ -113,7 +127,50 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
         throw new Error(`Erro ao salvar metadados: ${dataSourceError.message}`)
       }
 
-      // Fazer upload dos dados para o vectorstore do cliente
+      // 1) Salvar o ARQUIVO ORIGINAL no Supabase Storage (para visualização e vínculo)
+      if (originalFile) {
+        const ab = await originalFile.arrayBuffer()
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
+        const resp = await fetch('/api/supabase/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'upload', bucket, path: originalFile.name, data: base64, contentType: originalFile.type || 'application/octet-stream' })
+        })
+        if (!resp.ok) {
+          const errJ = await resp.json().catch(() => ({}))
+          throw new Error(`Erro ao enviar arquivo original: ${errJ.error || resp.statusText}`)
+        }
+      }
+
+      // 1.2) Salvar também uma CÓPIA CSV no Storage (fonte para gráficos)
+      const csvHeaders = parsedData.columns
+      const csvRows = [csvHeaders.join(',')]
+      parsedData.data.forEach(row => {
+        const values = csvHeaders.map(h => {
+          const v = row[h]
+          if (v === null || v === undefined) return ''
+          const s = String(v)
+          return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s
+        })
+        csvRows.push(values.join(','))
+      })
+      const csvBlob = new Blob([csvRows.join('\n')], { type: 'text/csv' })
+      const storageCsvPath = `${fileName.replace(/\.[^/.]+$/, '.csv')}`
+      {
+        const ab = await csvBlob.arrayBuffer()
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(ab)))
+        const resp = await fetch('/api/supabase/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'upload', bucket, path: storageCsvPath, data: base64, contentType: 'text/csv' })
+        })
+        if (!resp.ok) {
+          const errJ = await resp.json().catch(() => ({}))
+          throw new Error(`Erro ao enviar CSV: ${errJ.error || resp.statusText}`)
+        }
+      }
+
+      // 2) Fazer upload dos dados (em CSV) para o vectorstore do cliente
       const uploadResult = await OpenAIService.uploadDataToVectorstore(
         client.vectorstore_id,
         parsedData.data,
@@ -138,6 +195,8 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
       
       // Fechar modal
       onClose()
+      // Notificar que o Storage foi atualizado (Sidebar recarrega a lista)
+      window.dispatchEvent(new CustomEvent('storage-updated'))
       
     } catch (error) {
       console.error('Erro ao salvar dados:', error)
@@ -255,7 +314,13 @@ const FileUpload = ({ onDataLoaded, onClose }) => {
                               key={colIndex}
                               className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap"
                             >
-                              {row[column] || '-'}
+                              {(() => {
+                                const v = row[column]
+                                if (v === null || v === undefined || v === '') return '-'
+                                if (v instanceof Date) return v.toLocaleDateString('pt-BR')
+                                if (typeof v === 'number') return new Intl.NumberFormat('pt-BR').format(v)
+                                return String(v)
+                              })()}
                             </td>
                           ))}
                           {parsedData.columns.length > 10 && (

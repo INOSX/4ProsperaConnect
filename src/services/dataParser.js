@@ -28,6 +28,32 @@ export const parseCSV = (file) => {
 }
 
 /**
+ * Parse conteúdo CSV a partir de string
+ */
+export const parseCSVString = (text) => {
+  return new Promise((resolve, reject) => {
+    Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.errors.length > 0) {
+          reject(new Error(`Erro ao processar CSV: ${results.errors[0].message}`))
+        } else {
+          resolve({
+            data: results.data,
+            columns: results.meta.fields || [],
+            rowCount: results.data.length
+          })
+        }
+      },
+      error: (error) => {
+        reject(new Error(`Erro ao ler CSV: ${error.message}`))
+      }
+    })
+  })
+}
+
+/**
  * Parse um arquivo Excel usando XLSX
  */
 export const parseExcel = (file) => {
@@ -80,6 +106,44 @@ export const parseExcel = (file) => {
     
     reader.readAsArrayBuffer(file)
   })
+}
+
+/**
+ * Parse conteúdo Excel (xlsx/xls) a partir de ArrayBuffer
+ */
+export const parseExcelFromArrayBuffer = (arrayBuffer) => {
+  try {
+    const data = new Uint8Array(arrayBuffer)
+    const workbook = XLSX.read(data, { type: 'array' })
+    const firstSheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[firstSheetName]
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
+    if (jsonData.length === 0) {
+      return { data: [], columns: [], rowCount: 0 }
+    }
+    const headers = jsonData[0]
+    const rows = jsonData.slice(1)
+    const dataObjects = rows.map(row => {
+      const obj = {}
+      headers.forEach((header, index) => {
+        obj[header] = row[index] || ''
+      })
+      return obj
+    })
+    return { data: dataObjects, columns: headers, rowCount: dataObjects.length }
+  } catch (error) {
+    throw new Error(`Erro ao processar Excel: ${error.message}`)
+  }
+}
+
+export const base64ToUint8Array = (base64) => {
+  const binaryString = atob(base64)
+  const len = binaryString.length
+  const bytes = new Uint8Array(len)
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i)
+  }
+  return bytes
 }
 
 /**
