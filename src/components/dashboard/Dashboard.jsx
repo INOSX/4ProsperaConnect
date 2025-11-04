@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDataset } from '../../contexts/DatasetContext'
 import { ClientService } from '../../services/clientService'
 import { supabase } from '../../services/supabase'
 import { parseCSVString, parseExcelFromArrayBuffer, cleanData, detectColumnTypes, generateDataStats } from '../../services/dataParser'
@@ -22,7 +23,7 @@ import { RotateCcw } from 'lucide-react'
 const Dashboard = () => {
   const [showFileUpload, setShowFileUpload] = useState(false)
   const [datasets, setDatasets] = useState([])
-  const [selectedDataset, setSelectedDataset] = useState(null)
+  const { selectedDataset, setSelectedDataset } = useDataset()
   const [chartType, setChartType] = useState('line')
   const [xColumn, setXColumn] = useState('')
   const [yColumn, setYColumn] = useState('')
@@ -34,6 +35,7 @@ const Dashboard = () => {
 
   const handleDataLoaded = (newDataset) => {
     setDatasets(prev => [newDataset, ...prev])
+    // Atualizar o contexto compartilhado
     setSelectedDataset(newDataset)
     // Resetar visibilidade/estado dos cards ao carregar novos dados
     setHiddenKpiKeys(new Set())

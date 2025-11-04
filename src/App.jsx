@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { DatasetProvider } from './contexts/DatasetContext'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
 import ProtectedRoute from './components/auth/ProtectedRoute'
@@ -12,7 +13,8 @@ import { Analytics } from '@vercel/analytics/react'
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <DatasetProvider>
+        <BrowserRouter>
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/login" element={<LoginForm />} />
@@ -42,6 +44,7 @@ function App() {
           <Analytics />
         </div>
       </BrowserRouter>
+      </DatasetProvider>
     </AuthProvider>
   )
 }

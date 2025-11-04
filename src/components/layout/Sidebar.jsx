@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDataset } from '../../contexts/DatasetContext'
 import { ClientService } from '../../services/clientService'
 import { OpenAIService } from '../../services/openaiService'
 import { supabase } from '../../services/supabase'
@@ -28,6 +29,7 @@ import { OpenAIAssistantService } from '../../services/openaiAssistantService'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
+  const { getSelectedFileName } = useDataset()
   const [vectorFiles, setVectorFiles] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [error, setError] = useState(null)
@@ -135,9 +137,13 @@ const Sidebar = ({ isOpen, onClose }) => {
             if (assistant && assistant.isInitialized()) {
               setRecordingStatus('Obtendo resposta da IA...')
               try {
+                // Obter nome do arquivo selecionado do contexto
+                const fileName = getSelectedFileName()
                 console.log('🔵 Getting response from OpenAI Assistant...')
                 console.log('🔵 Input text:', text)
-                responseText = await assistant.getResponse(text)
+                console.log('🔵 Selected file:', fileName)
+                // Passar o nome do arquivo para o assistente
+                responseText = await assistant.getResponse(text, fileName)
                 console.log('✅ OpenAI Assistant response received:', responseText)
                 console.log('✅ Response type:', typeof responseText)
                 console.log('✅ Response length:', responseText?.length)

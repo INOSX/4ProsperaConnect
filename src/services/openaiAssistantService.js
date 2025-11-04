@@ -69,20 +69,32 @@ export class OpenAIAssistantService {
   /**
    * Obtém uma resposta do assistente para uma mensagem do usuário
    * @param {string} userMessage - Mensagem do usuário
+   * @param {string} fileName - Nome do arquivo/dataset selecionado (opcional)
    * @returns {Promise<string>} Resposta do assistente
    */
-  async getResponse(userMessage) {
+  async getResponse(userMessage, fileName = null) {
     if (!this.assistant || !this.thread) {
       throw new Error('Assistant not initialized. Call initialize() first.')
     }
 
     try {
-      console.log('🔵 Sending message to OpenAI Assistant:', userMessage)
+      // Construir mensagem com contexto do arquivo se fornecido
+      let contextualMessage = userMessage
+      if (fileName) {
+        contextualMessage = `Contexto: O usuário está trabalhando com o arquivo/dataset "${fileName}". 
+        
+Pergunta do usuário: ${userMessage}
+
+Por favor, responda a pergunta do usuário considerando que ela se refere ao conteúdo do arquivo "${fileName}". Se a pergunta não estiver relacionada ao arquivo, responda normalmente.`
+        console.log('🔵 Sending message with file context:', { fileName, userMessage })
+      } else {
+        console.log('🔵 Sending message to OpenAI Assistant:', userMessage)
+      }
 
       // Adicionar mensagem do usuário à thread
       await this.client.beta.threads.messages.create(this.thread.id, {
         role: 'user',
-        content: userMessage,
+        content: contextualMessage,
       })
 
       // Criar e executar o assistente
