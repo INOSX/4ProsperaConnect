@@ -265,10 +265,13 @@ export class HeyGenStreamingService {
 
       // Criar e iniciar sessão
       // O SDK gerencia automaticamente a conexão LiveKit
+      // O SDK aceita avatarName que pode ser o avatar_id ou avatar_name
+      console.log('🔵 Creating session with avatarId:', avatarId)
       const sessionConfig = {
         avatarName: avatarId || 'default',
         quality: 'high',
       }
+      console.log('🔵 Session config:', sessionConfig)
       
       // Adicionar knowledgeId se fornecido (para respostas inteligentes)
       if (knowledgeId) {

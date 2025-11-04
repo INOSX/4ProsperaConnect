@@ -159,29 +159,50 @@ export class AudioRecorder {
 
       const data = await response.json()
       const text = (data.text || '').trim()
-      console.log('Received transcription:', text)
-      this.onStatusChange('')
-
-      // Filtrar vazios/curtíssimos/repetidos
-      console.log('🔵 Checking transcription:', { 
-        text, 
-        length: text.length, 
+      console.log('🔵 Received transcription from Whisper:', text)
+      console.log('🔵 Transcription details:', {
+        text,
+        length: text.length,
+        isEmpty: !text,
+        isTooShort: text.length < 2,
         lastTranscript: this.lastTranscript,
-        isDifferent: text !== this.lastTranscript,
-        willCallCallback: text && text.length >= 2 && text !== this.lastTranscript
+        isDuplicate: text === this.lastTranscript,
+        hasCallback: typeof this.onTranscriptionComplete === 'function'
       })
       
+      this.onStatusChange('')
+      
+      // Filtrar vazios/curtíssimos/repetidos
       if (text && text.length >= 2 && text !== this.lastTranscript) {
         this.lastTranscript = text
-        console.log('🔵 Calling onTranscriptionComplete with:', text)
+        console.log('✅ Transcription passed filters, calling callback...')
+        console.log('🔵 onTranscriptionComplete callback exists?', typeof this.onTranscriptionComplete === 'function')
+        
         try {
-          this.onTranscriptionComplete(text)
+          // Verificar se o callback é uma função assíncrona
+          const callbackResult = this.onTranscriptionComplete(text)
+          if (callbackResult instanceof Promise) {
+            console.log('🔵 Callback returned a Promise, awaiting...')
+            await callbackResult
+            console.log('✅ Callback Promise resolved')
+          } else {
+            console.log('✅ Callback executed synchronously')
+          }
         } catch (error) {
           console.error('❌ Error in onTranscriptionComplete callback:', error)
+          console.error('❌ Error stack:', error.stack)
+          console.error('❌ Error details:', {
+            message: error.message,
+            name: error.name,
+            error
+          })
         }
       } else {
+        const reason = !text ? 'empty' : text.length < 2 ? 'too short' : 'duplicate'
         console.warn('⚠️ Transcription filtered out:', {
-          reason: !text ? 'empty' : text.length < 2 ? 'too short' : 'duplicate'
+          reason,
+          text,
+          lastTranscript: this.lastTranscript
         })
       }
 

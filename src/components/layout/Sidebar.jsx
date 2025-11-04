@@ -103,48 +103,78 @@ const Sidebar = ({ isOpen, onClose }) => {
         },
         async (text) => {
           // Quando a transcrição for concluída, enviar texto para OpenAI primeiro, depois para o avatar
-          console.log('🔵 onTranscriptionComplete called in Sidebar:', { text })
-          const isConnected = avatarConnectedRef.current
-          console.log('🔵 Transcription complete callback:', { text, avatarConnected: isConnected })
+          console.log('🔵 ==========================================')
+          console.log('🔵 onTranscriptionComplete CALLED in Sidebar')
+          console.log('🔵 Received text:', text)
+          console.log('🔵 Text type:', typeof text)
+          console.log('🔵 Text length:', text?.length)
           
-          if (isConnected) {
-            try {
-              let responseText = text
-              
-              // Se OpenAI Assistant estiver disponível, obter resposta inteligente
-              const assistant = openaiAssistantRef.current
-              if (assistant && assistant.isInitialized()) {
-                setRecordingStatus('Obtendo resposta da IA...')
-                try {
-                  console.log('🔵 Getting response from OpenAI Assistant...')
-                  responseText = await assistant.getResponse(text)
-                  console.log('✅ OpenAI Assistant response:', responseText)
-                } catch (error) {
-                  console.error('❌ Error getting OpenAI response, using original text:', error)
-                  // Se falhar, usar o texto original
-                  responseText = text
-                }
-              } else {
-                console.log('⚠️ OpenAI Assistant not available, avatar will repeat the text')
-              }
-              
-              // Enviar resposta para o avatar falar
-              setRecordingStatus('Enviando para avatar...')
-              console.log('🔵 Calling streamingService.sendText with:', responseText)
-              const result = await streamingService.sendText(responseText)
-              console.log('✅ Text sent successfully, result:', result)
-              setRecordingStatus('Avatar respondendo...')
-              setTimeout(() => setRecordingStatus(''), 3000)
-            } catch (error) {
-              console.error('❌ Error sending text to avatar:', error)
-              console.error('❌ Error stack:', error.stack)
-              setRecordingStatus('Erro: ' + error.message)
-              setTimeout(() => setRecordingStatus(''), 5000)
-            }
-          } else {
+          const isConnected = avatarConnectedRef.current
+          console.log('🔵 Avatar connected status:', isConnected)
+          console.log('🔵 Avatar connected ref:', avatarConnectedRef.current)
+          console.log('🔵 Streaming service exists?', !!streamingService)
+          console.log('🔵 ==========================================')
+          
+          if (!isConnected) {
             console.warn('⚠️ Avatar not connected, skipping sendText')
-            setRecordingStatus('Avatar não conectado. Clique em "Conectar Avatar" primeiro.')
+            setRecordingStatus('Avatar não conectado. Clique em "Enviar Áudio" primeiro.')
             setTimeout(() => setRecordingStatus(''), 3000)
+            return
+          }
+          
+          try {
+            let responseText = text
+            
+            // Se OpenAI Assistant estiver disponível, obter resposta inteligente
+            const assistant = openaiAssistantRef.current
+            console.log('🔵 OpenAI Assistant check:', {
+              hasAssistant: !!assistant,
+              isInitialized: assistant?.isInitialized?.()
+            })
+            
+            if (assistant && assistant.isInitialized()) {
+              setRecordingStatus('Obtendo resposta da IA...')
+              try {
+                console.log('🔵 Getting response from OpenAI Assistant...')
+                console.log('🔵 Input text:', text)
+                responseText = await assistant.getResponse(text)
+                console.log('✅ OpenAI Assistant response received:', responseText)
+                console.log('✅ Response type:', typeof responseText)
+                console.log('✅ Response length:', responseText?.length)
+              } catch (error) {
+                console.error('❌ Error getting OpenAI response:', error)
+                console.error('❌ Error message:', error.message)
+                console.error('❌ Error stack:', error.stack)
+                // Se falhar, usar o texto original
+                responseText = text
+                console.log('⚠️ Using original text as fallback:', responseText)
+              }
+            } else {
+              console.log('⚠️ OpenAI Assistant not available, avatar will speak the transcribed text')
+            }
+            
+            // Enviar resposta para o avatar falar
+            setRecordingStatus('Enviando para avatar...')
+            console.log('🔵 About to call streamingService.sendText')
+            console.log('🔵 Text to send:', responseText)
+            console.log('🔵 Streaming service:', streamingService)
+            console.log('🔵 sendText method exists?', typeof streamingService.sendText === 'function')
+            
+            const result = await streamingService.sendText(responseText)
+            console.log('✅ Text sent successfully to avatar!')
+            console.log('✅ Result from sendText:', result)
+            setRecordingStatus('Avatar respondendo...')
+            setTimeout(() => setRecordingStatus(''), 3000)
+          } catch (error) {
+            console.error('❌ ==========================================')
+            console.error('❌ ERROR in onTranscriptionComplete callback')
+            console.error('❌ Error message:', error.message)
+            console.error('❌ Error name:', error.name)
+            console.error('❌ Error stack:', error.stack)
+            console.error('❌ Full error object:', error)
+            console.error('❌ ==========================================')
+            setRecordingStatus('Erro: ' + error.message)
+            setTimeout(() => setRecordingStatus(''), 5000)
           }
         },
         {
@@ -206,7 +236,9 @@ const Sidebar = ({ isOpen, onClose }) => {
       }
       
       // Passar videoElement diretamente para createSession para configurar listeners ANTES da sessão
-      const sessionData = await streamingService.createSession(null, videoRef.current)
+      // Usar o avatar Dexter conforme especificado
+      const dexterAvatarId = 'Dexter_Casual_Front_public'
+      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current)
       // Se chegou aqui, o stream está pronto
       setAvatarConnected(true)
       // Habilitar áudio após gesto do usuário
