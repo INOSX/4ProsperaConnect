@@ -33,7 +33,13 @@ export class OpenAIAssistantService {
     const defaultInstructions = `Você é um assistente inteligente e amigável. 
     Responda perguntas de forma clara, concisa e natural em português, inglês ou espanhol.
     Seja educado, profissional e ajude o usuário da melhor forma possível.
-    Mantenha suas respostas breves e diretas, adequadas para conversação por voz.`
+    Mantenha suas respostas breves e diretas, adequadas para conversação por voz.
+    
+    REGRAS IMPORTANTES:
+    - NUNCA mencione nomes de arquivos, datasets, vectorstores ou IDs técnicos nas suas respostas
+    - NUNCA inclua referências como "vendas_padaria_agosto_2025.csv" ou similar
+    - Responda naturalmente sobre os dados sem mencionar arquivos ou fontes técnicas
+    - Foque apenas no conteúdo e nas informações relevantes para o usuário`
 
     try {
       // Se um assistantId foi fornecido, usar o assistente existente
@@ -85,11 +91,14 @@ export class OpenAIAssistantService {
         
 Pergunta do usuário: ${userMessage}
 
-INSTRUÇÕES IMPORTANTES:
+INSTRUÇÕES CRÍTICAS:
 - Use o contexto do arquivo "${fileName}" para responder corretamente sobre o conteúdo dos dados
-- NÃO mencione o nome do arquivo "${fileName}" na sua resposta
+- NUNCA mencione o nome do arquivo "${fileName}" na sua resposta
+- NUNCA mencione extensões de arquivo como ".csv", ".xlsx" ou similares
+- NUNCA mencione termos técnicos como "dataset", "vectorstore" ou "arquivo"
 - Responda naturalmente como se estivesse falando sobre os dados diretamente
-- Se a pergunta não estiver relacionada ao arquivo, responda normalmente sem mencionar arquivos`
+- Se a pergunta não estiver relacionada ao arquivo, responda normalmente sem mencionar arquivos
+- Foque apenas nas informações e análises dos dados, nunca nas fontes ou arquivos técnicos`
         console.log('🔵 Sending message with file context:', { fileName, userMessage })
       } else {
         console.log('🔵 Sending message to OpenAI Assistant:', userMessage)

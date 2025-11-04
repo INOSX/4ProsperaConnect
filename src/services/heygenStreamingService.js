@@ -116,9 +116,10 @@ export class HeyGenStreamingService {
   /**
    * Configura os event listeners do avatar
    * @param {HTMLVideoElement} videoElement - Elemento de vídeo
+   * @param {Function} onDisconnectCallback - Callback chamado quando desconectar (opcional)
    * @returns {Promise<void>} Resolve quando o stream estiver pronto
    */
-  setupEventListeners(videoElement) {
+  setupEventListeners(videoElement, onDisconnectCallback = null) {
     return new Promise((resolve, reject) => {
       if (!this.avatar) {
         reject(new Error('Avatar not initialized'))
@@ -184,6 +185,13 @@ export class HeyGenStreamingService {
         if (videoElement) {
           videoElement.srcObject = null
         }
+        // Notificar o componente sobre a desconexão
+        if (onDisconnectCallback && typeof onDisconnectCallback === 'function') {
+          onDisconnectCallback()
+        }
+        // Limpar estado interno para indicar que a sessão não está mais válida
+        this.avatar = null
+        this.sessionId = null
       }
 
       // Listener para quando avatar começa a falar
@@ -260,9 +268,10 @@ export class HeyGenStreamingService {
    * @param {string} avatarId - ID do avatar (opcional)
    * @param {HTMLVideoElement} videoElement - Elemento de vídeo (opcional, pode ser configurado depois)
    * @param {string} knowledgeId - ID da knowledge base para respostas inteligentes (opcional)
+   * @param {Function} onDisconnectCallback - Callback chamado quando desconectar (opcional)
    * @returns {Promise<Object>} Session data
    */
-  async createSession(avatarId = null, videoElement = null, knowledgeId = null) {
+  async createSession(avatarId = null, videoElement = null, knowledgeId = null, onDisconnectCallback = null) {
     try {
       // Obter session token primeiro
       const token = await this.getSessionToken()
@@ -284,7 +293,7 @@ export class HeyGenStreamingService {
       let streamReadyPromise = null
       if (videoElement) {
         this.videoElement = videoElement
-        streamReadyPromise = this.setupEventListeners(videoElement)
+        streamReadyPromise = this.setupEventListeners(videoElement, onDisconnectCallback)
       }
 
       // Criar e iniciar sessão
@@ -400,9 +409,10 @@ export class HeyGenStreamingService {
   async sendText(text) {
     console.log('🔵 sendText called with:', { text, hasAvatar: !!this.avatar, sessionId: this.sessionId })
     
+    // Verificar se o avatar ainda está válido antes de tentar enviar
     if (!this.avatar) {
-      console.error('❌ Avatar not initialized')
-      throw new Error('Session not initialized. Call createSession first.')
+      console.error('❌ Avatar not initialized or disconnected')
+      throw new Error('Session not initialized or disconnected. Please reconnect the avatar.')
     }
 
     if (!this.sessionId) {
