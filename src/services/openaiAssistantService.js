@@ -81,11 +81,15 @@ export class OpenAIAssistantService {
       // Construir mensagem com contexto do arquivo se fornecido
       let contextualMessage = userMessage
       if (fileName) {
-        contextualMessage = `Contexto: O usuário está trabalhando com o arquivo/dataset "${fileName}". 
+        contextualMessage = `Contexto interno (NÃO mencione o nome do arquivo na sua resposta): O usuário está trabalhando com o arquivo/dataset "${fileName}". 
         
 Pergunta do usuário: ${userMessage}
 
-Por favor, responda a pergunta do usuário considerando que ela se refere ao conteúdo do arquivo "${fileName}". Se a pergunta não estiver relacionada ao arquivo, responda normalmente.`
+INSTRUÇÕES IMPORTANTES:
+- Use o contexto do arquivo "${fileName}" para responder corretamente sobre o conteúdo dos dados
+- NÃO mencione o nome do arquivo "${fileName}" na sua resposta
+- Responda naturalmente como se estivesse falando sobre os dados diretamente
+- Se a pergunta não estiver relacionada ao arquivo, responda normalmente sem mencionar arquivos`
         console.log('🔵 Sending message with file context:', { fileName, userMessage })
       } else {
         console.log('🔵 Sending message to OpenAI Assistant:', userMessage)
@@ -115,7 +119,31 @@ Por favor, responda a pergunta do usuário considerando que ela se refere ao con
         )
 
         if (lastMessage && lastMessage.content[0]?.type === 'text') {
-          const response = lastMessage.content[0].text.value
+          let response = lastMessage.content[0].text.value
+          
+          // Remover menções ao nome do arquivo da resposta (se fileName foi fornecido)
+          if (fileName) {
+            // Remover o nome do arquivo exato (com e sem aspas)
+            const fileNameEscaped = fileName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const patterns = [
+              new RegExp(`"${fileNameEscaped}"`, 'gi'),
+              new RegExp(`'${fileNameEscaped}'`, 'gi'),
+              new RegExp(`\\b${fileNameEscaped}\\b`, 'gi'),
+              new RegExp(`arquivo\\s+["']?${fileNameEscaped}["']?`, 'gi'),
+              new RegExp(`dataset\\s+["']?${fileNameEscaped}["']?`, 'gi'),
+            ]
+            
+            patterns.forEach(pattern => {
+              response = response.replace(pattern, '')
+            })
+            
+            // Limpar espaços duplos e quebras de linha extras
+            response = response.replace(/\s+/g, ' ').trim()
+            
+            // Remover frases que começam com "no arquivo", "do arquivo", etc se ficarem vazias
+            response = response.replace(/^(no|do|da|do arquivo|do dataset|no dataset)\s+[^a-záàâãéêíóôõúç]*/gi, '').trim()
+          }
+          
           console.log('✅ OpenAI Assistant response:', response)
           return response
         }
