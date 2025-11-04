@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useDataset } from '../../contexts/DatasetContext'
 import { ClientService } from '../../services/clientService'
 import { OpenAIService } from '../../services/openaiService'
 import { supabase } from '../../services/supabase'
@@ -28,6 +29,7 @@ import { OpenAIAssistantService } from '../../services/openaiAssistantService'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
+  const { getSelectedFileName } = useDataset()
   const [vectorFiles, setVectorFiles] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [error, setError] = useState(null)
@@ -44,6 +46,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const avatarConnectedRef = useRef(false)
   const openaiAssistantRef = useRef(null)
   const videoRef = useRef(null)
+  const isReconnectingRef = useRef(false)
   
   // Sincronizar refs com state
   useEffect(() => {
@@ -135,9 +138,13 @@ const Sidebar = ({ isOpen, onClose }) => {
             if (assistant && assistant.isInitialized()) {
               setRecordingStatus('Obtendo resposta da IA...')
               try {
+                // Obter nome do arquivo selecionado do contexto
+                const fileName = getSelectedFileName()
                 console.log('🔵 Getting response from OpenAI Assistant...')
                 console.log('🔵 Input text:', text)
-                responseText = await assistant.getResponse(text)
+                console.log('🔵 Selected file:', fileName)
+                // Passar o nome do arquivo para o assistente
+                responseText = await assistant.getResponse(text, fileName)
                 console.log('✅ OpenAI Assistant response received:', responseText)
                 console.log('✅ Response type:', typeof responseText)
                 console.log('✅ Response length:', responseText?.length)
@@ -160,11 +167,55 @@ const Sidebar = ({ isOpen, onClose }) => {
             console.log('🔵 Streaming service:', streamingService)
             console.log('🔵 sendText method exists?', typeof streamingService.sendText === 'function')
             
-            const result = await streamingService.sendText(responseText)
-            console.log('✅ Text sent successfully to avatar!')
-            console.log('✅ Result from sendText:', result)
-            setRecordingStatus('Avatar respondendo...')
-            setTimeout(() => setRecordingStatus(''), 3000)
+            try {
+              const result = await streamingService.sendText(responseText)
+              console.log('✅ Text sent successfully to avatar!')
+              console.log('✅ Result from sendText:', result)
+              setRecordingStatus('Avatar respondendo...')
+              setTimeout(() => setRecordingStatus(''), 3000)
+            } catch (sendError) {
+              // Se o erro for de sessão desconectada (400 ou sessão inválida), tentar reconectar
+              if (sendError.message?.includes('400') || 
+                  sendError.message?.includes('disconnected') || 
+                  sendError.message?.includes('not initialized')) {
+                console.warn('⚠️ Session error detected, attempting to reconnect...')
+                setAvatarConnected(false)
+                setRecordingStatus('Reconectando avatar...')
+                
+                // Tentar reconectar
+                if (!isReconnectingRef.current && videoRef.current) {
+                  isReconnectingRef.current = true
+                  try {
+                    await initializeAvatar()
+                    // Após reconectar, tentar enviar o texto novamente
+                    const retryResult = await streamingService.sendText(responseText)
+                    console.log('✅ Text sent successfully after reconnection!')
+                    setRecordingStatus('Avatar respondendo...')
+                    setTimeout(() => setRecordingStatus(''), 3000)
+                  } catch (reconnectError) {
+                    console.error('❌ Failed to reconnect and send text:', reconnectError)
+                    setRecordingStatus('Erro ao reconectar. Tente novamente.')
+                    setTimeout(() => setRecordingStatus(''), 5000)
+                  } finally {
+                    isReconnectingRef.current = false
+                  }
+                } else {
+                  setRecordingStatus('Erro: Avatar desconectado. Aguarde reconexão...')
+                  setTimeout(() => setRecordingStatus(''), 5000)
+                }
+              } else {
+                // Outro tipo de erro
+                console.error('❌ ==========================================')
+                console.error('❌ ERROR in onTranscriptionComplete callback')
+                console.error('❌ Error message:', sendError.message)
+                console.error('❌ Error name:', sendError.name)
+                console.error('❌ Error stack:', sendError.stack)
+                console.error('❌ Full error object:', sendError)
+                console.error('❌ ==========================================')
+                setRecordingStatus('Erro: ' + sendError.message)
+                setTimeout(() => setRecordingStatus(''), 5000)
+              }
+            }
           } catch (error) {
             console.error('❌ ==========================================')
             console.error('❌ ERROR in onTranscriptionComplete callback')
@@ -224,12 +275,28 @@ const Sidebar = ({ isOpen, onClose }) => {
         } else {
           try {
             setRecordingStatus('Inicializando assistente OpenAI...')
-            const assistant = new OpenAIAssistantService(openaiApiKey)
-            await assistant.initialize()
-            setOpenaiAssistant(assistant)
-            console.log('✅ OpenAI Assistant initialized')
+            // Buscar o assistente do usuário
+            const clientResult = await ClientService.getClientByUserId(user?.id)
+            let assistantId = null
+            
+            if (clientResult?.success && clientResult?.client?.openai_assistant_id) {
+              assistantId = clientResult.client.openai_assistant_id
+              console.log('✅ Found user assistant ID:', assistantId)
+            } else {
+              console.warn('⚠️ User assistant not found, user may need to complete registration')
+              setRecordingStatus('Assistente não encontrado. Verifique se a conta está completa.')
+              // Continuar sem assistente, o avatar ainda funcionará
+            }
+            
+            if (assistantId) {
+              const assistant = new OpenAIAssistantService(openaiApiKey)
+              await assistant.initialize(null, assistantId)
+              setOpenaiAssistant(assistant)
+              console.log('✅ OpenAI Assistant initialized with user ID:', assistantId)
+            }
           } catch (error) {
             console.error('❌ Error initializing OpenAI Assistant:', error)
+            setRecordingStatus('Erro ao inicializar assistente. Avatar funcionará sem IA.')
             // Continuar mesmo se falhar, o avatar ainda funcionará
           }
         }
@@ -272,9 +339,41 @@ const Sidebar = ({ isOpen, onClose }) => {
         dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
       }
       
-      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current)
+      // Callback para quando o avatar desconectar
+      const handleDisconnect = () => {
+        console.log('⚠️ Avatar disconnected, updating state...')
+        setAvatarConnected(false)
+        
+        // Evitar múltiplas reconexões simultâneas
+        if (isReconnectingRef.current) {
+          console.log('⚠️ Reconnection already in progress, skipping...')
+          return
+        }
+        
+        setRecordingStatus('Avatar desconectado. Reconectando...')
+        // Tentar reconectar automaticamente após um breve delay
+        setTimeout(() => {
+          if (videoRef.current && !avatarConnectedRef.current && !isReconnectingRef.current) {
+            isReconnectingRef.current = true
+            console.log('🔄 Attempting to reconnect avatar...')
+            initializeAvatar()
+              .then(() => {
+                isReconnectingRef.current = false
+              })
+              .catch(err => {
+                isReconnectingRef.current = false
+                console.error('❌ Failed to reconnect avatar:', err)
+                setRecordingStatus('Erro ao reconectar. Tente novamente.')
+                setTimeout(() => setRecordingStatus(''), 3000)
+              })
+          }
+        }, 2000)
+      }
+      
+      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current, null, handleDisconnect)
       // Se chegou aqui, o stream está pronto
       setAvatarConnected(true)
+      isReconnectingRef.current = false // Resetar flag de reconexão
       // Habilitar áudio após gesto do usuário
       try {
         videoRef.current.muted = false
@@ -471,7 +570,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                       {!sidebarKpiMinimized && (
                         <div className="mt-2 space-y-2">
                           {/* Vídeo do avatar ao vivo */}
-                          <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '120px' }}>
+                          <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '280px' }}>
                             <video
                               ref={videoRef}
                               autoPlay
