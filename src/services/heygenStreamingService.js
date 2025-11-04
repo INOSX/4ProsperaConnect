@@ -299,7 +299,7 @@ export class HeyGenStreamingService {
       
       const sessionConfig = {
         avatarName: avatarId, // Usar o ID do avatar diretamente
-        quality: 'medium', // Reduzido de 'high' para 'medium' para diminuir uso de banda e melhorar fluidez
+        quality: 'low', // Reduzido para 'low' para diminuir uso de banda e melhorar fluidez do áudio
       }
       console.log('🔵 Session config:', sessionConfig)
       
