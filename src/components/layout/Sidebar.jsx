@@ -237,28 +237,39 @@ const Sidebar = ({ isOpen, onClose }) => {
       
       // Passar videoElement diretamente para createSession para configurar listeners ANTES da sessão
       // Buscar o avatar Dexter da lista de avatares disponíveis
+      // Usar o novo avatar: Dexter_Lawyer_Sitting_public
       let dexterAvatarId = null
       try {
         const avatars = await streamingService.listAvatars()
+        
+        // Garantir que avatars é um array
+        if (!Array.isArray(avatars)) {
+          console.warn('⚠️ listAvatars did not return an array, using fallback')
+          throw new Error('listAvatars did not return an array')
+        }
+        
         const dexterAvatar = avatars.find(avatar => 
           avatar.name === 'Dexter' || 
           avatar.avatar_name === 'Dexter' ||
           avatar.id === '1732323365' ||
-          avatar.id === 'Dexter_Casual_Front_public'
+          avatar.id === 'Dexter_Casual_Front_public' ||
+          avatar.id === 'Dexter_Lawyer_Sitting_public' ||
+          avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
+          avatar.name === 'Dexter_Lawyer_Sitting_public'
         )
         if (dexterAvatar) {
           // Usar o ID do avatar (que é o formato correto para o SDK)
-          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || '1732323365'
+          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
           console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
         } else {
-          // Fallback para o ID conhecido do Dexter
-          dexterAvatarId = '1732323365'
-          console.log('⚠️ Dexter avatar not found in list, using fallback ID:', dexterAvatarId)
+          // Fallback para o novo avatar Dexter_Lawyer_Sitting_public
+          dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
+          console.log('⚠️ Dexter avatar not found in list, using fallback:', dexterAvatarId)
         }
       } catch (error) {
-        console.warn('⚠️ Error listing avatars, using fallback ID:', error)
-        // Fallback para o ID conhecido do Dexter
-        dexterAvatarId = '1732323365'
+        console.warn('⚠️ Error listing avatars, using fallback:', error)
+        // Fallback para o novo avatar Dexter_Lawyer_Sitting_public
+        dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
       }
       
       const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current)

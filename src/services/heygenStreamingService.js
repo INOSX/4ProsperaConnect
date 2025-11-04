@@ -78,11 +78,35 @@ export class HeyGenStreamingService {
       })
 
       if (!response.ok) {
+        console.warn('⚠️ Failed to list avatars, response not ok')
         return []
       }
 
       const data = await response.json()
-      return data.data || data.avatars || []
+      // Garantir que sempre retornamos um array
+      let avatars = data.data || data.avatars || data || []
+      
+      // Se não for um array, tentar converter
+      if (!Array.isArray(avatars)) {
+        console.warn('⚠️ listAvatars did not return an array:', typeof avatars, avatars)
+        // Se for um objeto, tentar extrair array de propriedades
+        if (typeof avatars === 'object' && avatars !== null) {
+          // Tentar encontrar array dentro do objeto
+          const keys = Object.keys(avatars)
+          for (const key of keys) {
+            if (Array.isArray(avatars[key])) {
+              avatars = avatars[key]
+              break
+            }
+          }
+        }
+        // Se ainda não for array, retornar vazio
+        if (!Array.isArray(avatars)) {
+          return []
+        }
+      }
+      
+      return avatars
     } catch (error) {
       console.error('Error listing avatars:', error)
       return []
@@ -307,14 +331,20 @@ export class HeyGenStreamingService {
           // Tentar listar avatares para verificar se o ID existe
           try {
             const avatars = await this.listAvatars()
-            const avatarExists = avatars.some(avatar => 
-              avatar.id === avatarId || 
-              avatar.avatar_id === avatarId ||
-              avatar.avatar_name === avatarId
-            )
-            if (!avatarExists) {
-              console.error('❌ Avatar ID not found in available avatars list')
-              throw new Error(`Avatar ID "${avatarId}" not found. Please use a valid avatar ID from the available avatars.`)
+            
+            // Garantir que avatars é um array antes de usar .some()
+            if (Array.isArray(avatars)) {
+              const avatarExists = avatars.some(avatar => 
+                avatar.id === avatarId || 
+                avatar.avatar_id === avatarId ||
+                avatar.avatar_name === avatarId
+              )
+              if (!avatarExists) {
+                console.error('❌ Avatar ID not found in available avatars list')
+                throw new Error(`Avatar ID "${avatarId}" not found. Please use a valid avatar ID from the available avatars.`)
+              }
+            } else {
+              console.warn('⚠️ Could not verify avatar - listAvatars did not return an array')
             }
           } catch (listError) {
             console.error('⚠️ Could not verify avatar in list:', listError)
