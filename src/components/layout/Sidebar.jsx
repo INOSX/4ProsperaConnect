@@ -457,7 +457,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                       {!sidebarKpiMinimized && (
                         <div className="mt-2 space-y-2">
                           {/* Vídeo do avatar ao vivo */}
-                          <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '120px' }}>
+                          <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '280px' }}>
                             <video
                               ref={videoRef}
                               autoPlay
