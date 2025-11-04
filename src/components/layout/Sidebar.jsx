@@ -225,9 +225,11 @@ const Sidebar = ({ isOpen, onClose }) => {
           try {
             setRecordingStatus('Inicializando assistente OpenAI...')
             const assistant = new OpenAIAssistantService(openaiApiKey)
-            await assistant.initialize()
+            // Usar o assistente existente com ID fixo
+            const assistantId = 'asst_MJtULsr0y9KFQx1fSoJaqwac'
+            await assistant.initialize(null, assistantId)
             setOpenaiAssistant(assistant)
-            console.log('✅ OpenAI Assistant initialized')
+            console.log('✅ OpenAI Assistant initialized with ID:', assistantId)
           } catch (error) {
             console.error('❌ Error initializing OpenAI Assistant:', error)
             // Continuar mesmo se falhar, o avatar ainda funcionará

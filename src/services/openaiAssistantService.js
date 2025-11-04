@@ -27,23 +27,29 @@ export class OpenAIAssistantService {
   /**
    * Inicializa o assistente OpenAI
    * @param {string} instructions - Instruções personalizadas para o assistente
+   * @param {string} assistantId - ID do assistente existente (opcional). Se fornecido, usa o assistente existente ao invés de criar um novo.
    */
-  async initialize(instructions = null) {
+  async initialize(instructions = null, assistantId = null) {
     const defaultInstructions = `Você é um assistente inteligente e amigável. 
     Responda perguntas de forma clara, concisa e natural em português, inglês ou espanhol.
     Seja educado, profissional e ajude o usuário da melhor forma possível.
     Mantenha suas respostas breves e diretas, adequadas para conversação por voz.`
 
     try {
-      // Criar um assistente
-      this.assistant = await this.client.beta.assistants.create({
-        name: 'Lucrax AI Assistant',
-        instructions: instructions || defaultInstructions,
-        tools: [],
-        model: 'gpt-4-turbo-preview',
-      })
-
-      console.log('✅ OpenAI Assistant created:', this.assistant.id)
+      // Se um assistantId foi fornecido, usar o assistente existente
+      if (assistantId) {
+        this.assistant = { id: assistantId }
+        console.log('✅ Using existing OpenAI Assistant:', this.assistant.id)
+      } else {
+        // Criar um novo assistente apenas se nenhum ID foi fornecido
+        this.assistant = await this.client.beta.assistants.create({
+          name: 'Lucrax AI Assistant',
+          instructions: instructions || defaultInstructions,
+          tools: [],
+          model: 'gpt-4-turbo-preview',
+        })
+        console.log('✅ OpenAI Assistant created:', this.assistant.id)
+      }
 
       // Criar uma thread
       this.thread = await this.client.beta.threads.create()
