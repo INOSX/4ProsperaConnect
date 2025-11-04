@@ -39,7 +39,17 @@ export class OpenAIAssistantService {
     - NUNCA mencione nomes de arquivos, datasets, vectorstores ou IDs técnicos nas suas respostas
     - NUNCA inclua referências como "vendas_padaria_agosto_2025.csv" ou similar
     - Responda naturalmente sobre os dados sem mencionar arquivos ou fontes técnicas
-    - Foque apenas no conteúdo e nas informações relevantes para o usuário`
+    - Foque apenas no conteúdo e nas informações relevantes para o usuário
+    
+    REGRAS SOBRE CÁLCULOS E FÓRMULAS:
+    - NUNCA recite fórmulas matemáticas detalhadas ou complexas na sua resposta
+    - NUNCA mencione equações como "y = mx + b" ou fórmulas similares
+    - Se precisar mencionar cálculos, faça apenas em ALTO NÍVEL usando linguagem natural
+    - Exemplos de como mencionar cálculos:
+      * BOM: "Calculei a média dos valores" ou "Somei todas as vendas do mês"
+      * BOM: "Fiz uma análise de tendência comparando os períodos"
+      * RUIM: "y = Σ(xi - μ)² / n" ou "f(x) = ax² + bx + c"
+    - Sempre descreva os cálculos em linguagem natural, como se estivesse explicando para alguém em uma conversa`
 
     try {
       // Se um assistantId foi fornecido, usar o assistente existente
@@ -98,7 +108,14 @@ INSTRUÇÕES CRÍTICAS:
 - NUNCA mencione termos técnicos como "dataset", "vectorstore" ou "arquivo"
 - Responda naturalmente como se estivesse falando sobre os dados diretamente
 - Se a pergunta não estiver relacionada ao arquivo, responda normalmente sem mencionar arquivos
-- Foque apenas nas informações e análises dos dados, nunca nas fontes ou arquivos técnicos`
+- Foque apenas nas informações e análises dos dados, nunca nas fontes ou arquivos técnicos
+
+REGRAS SOBRE CÁLCULOS E FÓRMULAS:
+- NUNCA recite fórmulas matemáticas detalhadas ou complexas
+- NUNCA mencione equações como "y = mx + b", "Σ(xi - μ)² / n" ou fórmulas similares
+- Se precisar mencionar cálculos, faça apenas em ALTO NÍVEL usando linguagem natural
+- Exemplos: "Calculei a média", "Somei os valores", "Comparei os períodos"
+- Sempre descreva os cálculos em linguagem natural, adequada para conversação por voz`
         console.log('🔵 Sending message with file context:', { fileName, userMessage })
       } else {
         console.log('🔵 Sending message to OpenAI Assistant:', userMessage)
@@ -152,6 +169,30 @@ INSTRUÇÕES CRÍTICAS:
             // Remover frases que começam com "no arquivo", "do arquivo", etc se ficarem vazias
             response = response.replace(/^(no|do|da|do arquivo|do dataset|no dataset)\s+[^a-záàâãéêíóôõúç]*/gi, '').trim()
           }
+          
+          // Remover fórmulas matemáticas complexas da resposta
+          // Padrões para detectar fórmulas matemáticas
+          const formulaPatterns = [
+            // Equações lineares: y = mx + b, f(x) = ax + b, etc
+            /\b[yf]\s*=\s*[a-z0-9\s*+\-()^]+/gi,
+            // Fórmulas com somatórios: Σ(xi), Σ(xi - μ)², etc
+            /[Σ∑]\s*\([^)]+\)/gi,
+            // Fórmulas estatísticas: μ = Σx/n, σ² = Σ(xi - μ)²/n, etc
+            /[μσ]\s*=\s*[^a-záàâãéêíóôõúç]+/gi,
+            // Fórmulas com frações complexas: (a+b)/(c+d), etc
+            /\([^)]+\)\s*\/\s*\([^)]+\)/g,
+            // Fórmulas com potências: x², x³, a²+b², etc (mas manter números simples como 2², 3³)
+            /\b[a-z]\s*[²³⁴⁵⁶⁷⁸⁹]+/gi,
+            // Fórmulas com subscritos: xi, x̄, etc
+            /\b[a-z]\s*[₀₁₂₃₄₅₆₇₈₉]+/gi,
+          ]
+          
+          formulaPatterns.forEach(pattern => {
+            response = response.replace(pattern, '')
+          })
+          
+          // Limpar espaços duplos novamente após remover fórmulas
+          response = response.replace(/\s+/g, ' ').trim()
           
           console.log('✅ OpenAI Assistant response:', response)
           return response
