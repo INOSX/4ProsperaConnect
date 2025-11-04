@@ -236,8 +236,31 @@ const Sidebar = ({ isOpen, onClose }) => {
       }
       
       // Passar videoElement diretamente para createSession para configurar listeners ANTES da sessão
-      // Usar o avatar Dexter conforme especificado
-      const dexterAvatarId = 'Dexter_Casual_Front_public'
+      // Buscar o avatar Dexter da lista de avatares disponíveis
+      let dexterAvatarId = null
+      try {
+        const avatars = await streamingService.listAvatars()
+        const dexterAvatar = avatars.find(avatar => 
+          avatar.name === 'Dexter' || 
+          avatar.avatar_name === 'Dexter' ||
+          avatar.id === '1732323365' ||
+          avatar.id === 'Dexter_Casual_Front_public'
+        )
+        if (dexterAvatar) {
+          // Usar o ID do avatar (que é o formato correto para o SDK)
+          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || '1732323365'
+          console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+        } else {
+          // Fallback para o ID conhecido do Dexter
+          dexterAvatarId = '1732323365'
+          console.log('⚠️ Dexter avatar not found in list, using fallback ID:', dexterAvatarId)
+        }
+      } catch (error) {
+        console.warn('⚠️ Error listing avatars, using fallback ID:', error)
+        // Fallback para o ID conhecido do Dexter
+        dexterAvatarId = '1732323365'
+      }
+      
       const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current)
       // Se chegou aqui, o stream está pronto
       setAvatarConnected(true)

@@ -265,10 +265,16 @@ export class HeyGenStreamingService {
 
       // Criar e iniciar sessão
       // O SDK gerencia automaticamente a conexão LiveKit
-      // O SDK aceita avatarName que pode ser o avatar_id ou avatar_name
+      // O SDK aceita avatarName que deve ser o avatar_id (não o nome)
       console.log('🔵 Creating session with avatarId:', avatarId)
+      
+      // Validar que temos um avatarId válido
+      if (!avatarId) {
+        throw new Error('Avatar ID is required. Please provide a valid avatar ID.')
+      }
+      
       const sessionConfig = {
-        avatarName: avatarId || 'default',
+        avatarName: avatarId, // Usar o ID do avatar diretamente
         quality: 'high',
       }
       console.log('🔵 Session config:', sessionConfig)
@@ -279,7 +285,44 @@ export class HeyGenStreamingService {
         console.log('🔵 Using knowledgeId for intelligent responses:', knowledgeId)
       }
 
-      const sessionData = await this.avatar.createStartAvatar(sessionConfig)
+      let sessionData
+      try {
+        sessionData = await this.avatar.createStartAvatar(sessionConfig)
+      } catch (error) {
+        // Log detalhado do erro para debug
+        console.error('❌ Error creating avatar session:', {
+          message: error.message,
+          avatarId: avatarId,
+          config: sessionConfig,
+          error: error
+        })
+        
+        // Se o erro for relacionado ao avatar, tentar verificar se existe
+        if (error.message?.includes('400') || error.message?.includes('Bad Request')) {
+          console.error('❌ 400 Bad Request - Possible causes:')
+          console.error('  1. Invalid avatar ID:', avatarId)
+          console.error('  2. Avatar not available in your plan')
+          console.error('  3. Avatar format incorrect')
+          
+          // Tentar listar avatares para verificar se o ID existe
+          try {
+            const avatars = await this.listAvatars()
+            const avatarExists = avatars.some(avatar => 
+              avatar.id === avatarId || 
+              avatar.avatar_id === avatarId ||
+              avatar.avatar_name === avatarId
+            )
+            if (!avatarExists) {
+              console.error('❌ Avatar ID not found in available avatars list')
+              throw new Error(`Avatar ID "${avatarId}" not found. Please use a valid avatar ID from the available avatars.`)
+            }
+          } catch (listError) {
+            console.error('⚠️ Could not verify avatar in list:', listError)
+          }
+        }
+        
+        throw error
+      }
 
       this.sessionId = sessionData.session_id
       console.log('✅ Session created with SDK:', this.sessionId)
