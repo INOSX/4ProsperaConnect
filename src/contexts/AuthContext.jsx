@@ -52,17 +52,42 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Validações básicas
+      if (!email || !email.includes('@')) {
+        const errorMsg = 'Email inválido'
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+      
+      if (!password) {
+        const errorMsg = 'Senha é obrigatória'
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+      
       const { data, error } = await auth.signIn(email, password)
       
       if (error) {
-        setError(error.message)
-        return { success: false, error: error.message }
+        // Traduzir mensagens de erro comuns do Supabase
+        let errorMessage = error.message
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = 'Email ou senha incorretos. Verifique suas credenciais.'
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = 'Por favor, confirme seu email antes de fazer login.'
+        } else if (error.message.includes('User not found')) {
+          errorMessage = 'Usuário não encontrado. Verifique seu email ou crie uma conta.'
+        }
+        
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
       }
       
       return { success: true, data }
     } catch (error) {
-      setError(error.message)
-      return { success: false, error: error.message }
+      const errorMessage = error.message || 'Erro ao fazer login. Tente novamente.'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
@@ -72,11 +97,35 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true)
       setError(null)
+      
+      // Validações básicas
+      if (!email || !email.includes('@')) {
+        const errorMsg = 'Email inválido'
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+      
+      if (!password || password.length < 6) {
+        const errorMsg = 'A senha deve ter pelo menos 6 caracteres'
+        setError(errorMsg)
+        return { success: false, error: errorMsg }
+      }
+      
       const { data, error } = await auth.signUp(email, password, userData)
       
       if (error) {
-        setError(error.message)
-        return { success: false, error: error.message }
+        // Traduzir mensagens de erro comuns do Supabase
+        let errorMessage = error.message
+        if (error.message.includes('already registered')) {
+          errorMessage = 'Este email já está cadastrado. Tente fazer login.'
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = 'Email inválido. Verifique o formato do email.'
+        } else if (error.message.includes('Password')) {
+          errorMessage = 'A senha não atende aos requisitos de segurança.'
+        }
+        
+        setError(errorMessage)
+        return { success: false, error: errorMessage }
       }
 
       // Se o usuário foi criado com sucesso, criar cliente automaticamente
@@ -100,8 +149,9 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, data }
     } catch (error) {
-      setError(error.message)
-      return { success: false, error: error.message }
+      const errorMessage = error.message || 'Erro ao criar conta. Tente novamente.'
+      setError(errorMessage)
+      return { success: false, error: errorMessage }
     } finally {
       setLoading(false)
     }
