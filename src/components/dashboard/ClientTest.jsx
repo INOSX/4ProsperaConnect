@@ -186,7 +186,7 @@ const ClientTest = () => {
       case 'error':
         return <AlertCircle className="h-5 w-5 text-red-600" />
       case 'testing':
-        return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+        return <Loader2 className="h-5 w-5 text-orange-600 animate-spin" />
       default:
         return <div className="h-5 w-5 rounded-full bg-gray-300" />
     }

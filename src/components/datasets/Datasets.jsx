@@ -382,7 +382,7 @@ const Datasets = () => {
                 <button
                   onClick={handleDownload}
                   disabled={isProcessing || Object.values(selected).filter(v => v === true).length === 0}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   Download
@@ -398,7 +398,7 @@ const Datasets = () => {
               </div>
             </div>
             {isProcessing && (
-              <div className="px-6 py-2 bg-blue-50 text-blue-700 text-sm">
+              <div className="px-6 py-2 bg-orange-50 text-orange-700 text-sm">
                 Processando... Por favor, aguarde.
               </div>
             )}

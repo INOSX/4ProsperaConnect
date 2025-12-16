@@ -46,7 +46,7 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
             <BarChart3 className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Lucrax.ai</h1>
+            <h1 className="text-xl font-bold text-gray-900">4Prospera Connect</h1>
             <p className="text-xs text-gray-500">Dashboard Inteligente</p>
           </div>
         </div>
