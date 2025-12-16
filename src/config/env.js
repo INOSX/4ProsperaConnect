@@ -4,8 +4,13 @@ export const config = {
     url: import.meta.env.SUPABASE_URL || '',
     anonKey: import.meta.env.SUPABASE_ANON_KEY || '',
   },
+  // OPENAI_API_KEY não deve estar no frontend - usar API routes do backend
+  // openai: {
+  //   apiKey: import.meta.env.OPENAI_API_KEY || '',
+  // }
+  // OpenAI Assistant ID fixo
   openai: {
-    apiKey: import.meta.env.OPENAI_API_KEY || '',
+    assistantId: 'asst_wC8j4cN0pgmVqEAgVNJbFgVy',
   }
 }
 

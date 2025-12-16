@@ -109,8 +109,8 @@ Armazena dados importados para cache.
 
 ### Projeto Supabase Ativo
 
-**Projeto**: `hwfnntgacsebqrprqzzm`  
-**URL**: `https://hwfnntgacsebqrprqzzm.supabase.co`  
+**Projeto**: `dytuwutsjjxxmyefrfed`  
+**URL**: `https://dytuwutsjjxxmyefrfed.supabase.co`  
 **Status**: ✅ **Tabelas criadas e funcionando**
 
 ### Variáveis de Ambiente
@@ -118,10 +118,10 @@ Armazena dados importados para cache.
 Configure as seguintes variáveis no Vercel:
 
 ```env
-# Projeto Supabase dataGPT
-SUPABASE_URL=https://hwfnntgacsebqrprqzzm.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Zm5udGdhY3NlYnFycHJxenptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NzI2MzgsImV4cCI6MjA3NzE0ODYzOH0.ywILG-tyRylzP6tZjzxD-y60OsInQ2GmH4qhbNG5FIg
-SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Zm5udGdhY3NlYnFycHJxenptIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTU3MjYzOCwiZXhwIjoyMDc3MTQ4NjM4fQ.3mo2wt6ew6x62W_hU9PMCmCEeHrrRQLaRGBguiEWK0M
+# Projeto Supabase 4Prospera Connect
+SUPABASE_URL=https://dytuwutsjjxxmyefrfed.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTU3MjUsImV4cCI6MjA4MTQ5MTcyNX0.RwG2Cb7EItvoQz_VLVDJ0Vqu4lkJ_yb5IN-JLIF-g7o
+SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ
 ```
 
 ### Cliente Supabase

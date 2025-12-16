@@ -59,7 +59,7 @@ export class OpenAIAssistantService {
       } else {
         // Criar um novo assistente apenas se nenhum ID foi fornecido
         this.assistant = await this.client.beta.assistants.create({
-          name: 'Lucrax AI Assistant',
+          name: '4Prospera Connect Assistant',
           instructions: instructions || defaultInstructions,
           tools: [],
           model: 'gpt-4-turbo-preview',

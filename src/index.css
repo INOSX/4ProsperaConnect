@@ -40,7 +40,7 @@
   }
   
   .kpi-card {
-    @apply card bg-gradient-to-br from-purple-500 to-blue-500 text-white;
+    @apply card bg-gradient-to-br from-orange-500 to-blue-500 text-white;
   }
   
   .sidebar {

@@ -27,8 +27,8 @@ class SupabaseClient:
     def _initialize_client(self):
         """Inicializa o cliente Supabase"""
         try:
-            url = os.getenv("SUPABASE_URL", "https://hwfnntgacsebqrprqzzm.supabase.co")
-            key = os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3Zm5udGdhY3NlYnFycHJxenptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1NzI2MzgsImV4cCI6MjA3NzE0ODYzOH0.ywILG-tyRylzP6tZjzxD-y60OsInQ2GmH4qhbNG5FIg")
+            url = os.getenv("SUPABASE_URL", "https://dytuwutsjjxxmyefrfed.supabase.co")
+            key = os.getenv("SUPABASE_ANON_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTU3MjUsImV4cCI6MjA4MTQ5MTcyNX0.RwG2Cb7EItvoQz_VLVDJ0Vqu4lkJ_yb5IN-JLIF-g7o")
             
             self.client = create_client(url, key)
             logging.info("Cliente Supabase inicializado com sucesso")

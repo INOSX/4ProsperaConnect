@@ -267,38 +267,31 @@ const Sidebar = ({ isOpen, onClose }) => {
       setRecordingStatus('Conectando avatar...')
       
       // Inicializar OpenAI Assistant primeiro (se ainda não inicializado)
+      // ⚠️ SEGURANÇA: Não usar chave API diretamente no frontend
+      // O OpenAI Assistant deve ser inicializado via API route no backend
       if (!openaiAssistant) {
-        const openaiApiKey = import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY
-        if (!openaiApiKey) {
-          console.warn('⚠️ OpenAI API key not found. Avatar will work but without AI responses.')
-          setRecordingStatus('Aviso: Chave OpenAI não encontrada')
-        } else {
-          try {
-            setRecordingStatus('Inicializando assistente OpenAI...')
-            // Buscar o assistente do usuário
-            const clientResult = await ClientService.getClientByUserId(user?.id)
-            let assistantId = null
-            
-            if (clientResult?.success && clientResult?.client?.openai_assistant_id) {
-              assistantId = clientResult.client.openai_assistant_id
-              console.log('✅ Found user assistant ID:', assistantId)
-            } else {
-              console.warn('⚠️ User assistant not found, user may need to complete registration')
-              setRecordingStatus('Assistente não encontrado. Verifique se a conta está completa.')
-              // Continuar sem assistente, o avatar ainda funcionará
-            }
-            
-            if (assistantId) {
-              const assistant = new OpenAIAssistantService(openaiApiKey)
-              await assistant.initialize(null, assistantId)
-              setOpenaiAssistant(assistant)
-              console.log('✅ OpenAI Assistant initialized with user ID:', assistantId)
-            }
-          } catch (error) {
-            console.error('❌ Error initializing OpenAI Assistant:', error)
-            setRecordingStatus('Erro ao inicializar assistente. Avatar funcionará sem IA.')
-            // Continuar mesmo se falhar, o avatar ainda funcionará
-          }
+        try {
+          setRecordingStatus('Inicializando assistente OpenAI...')
+          
+          // Usar assistant ID fixo da configuração
+          const { config } = await import('../../config/env.js')
+          const assistantId = config.openai?.assistantId || 'asst_wC8j4cN0pgmVqEAgVNJbFgVy'
+          
+          console.log('✅ Using fixed OpenAI Assistant ID:', assistantId)
+          
+          // ⚠️ ATENÇÃO: OpenAIAssistantService usa dangerouslyAllowBrowser: true
+          // Para produção, deve ser migrado para usar API route do backend
+          // Por enquanto, desabilitado por segurança - chave não deve estar no frontend
+          console.warn('⚠️ OpenAI Assistant initialization disabled for security. API key should not be in frontend.')
+          setRecordingStatus('Assistente OpenAI: Use API route do backend para segurança')
+          
+          // TODO: Migrar para API route /api/openai/assistant
+          // const assistant = await initializeAssistantViaAPI(assistantId)
+          // setOpenaiAssistant(assistant)
+        } catch (error) {
+          console.error('❌ Error initializing OpenAI Assistant:', error)
+          setRecordingStatus('Erro ao inicializar assistente. Avatar funcionará sem IA.')
+          // Continuar mesmo se falhar, o avatar ainda funcionará
         }
       }
       
@@ -485,7 +478,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 <BarChart3 className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900">Lucrax.ai</h2>
+                <h2 className="text-lg font-bold text-gray-900">4Prospera Connect</h2>
                 <p className="text-xs text-gray-500">Dashboard</p>
               </div>
             </div>

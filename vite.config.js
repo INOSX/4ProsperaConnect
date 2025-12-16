@@ -29,9 +29,11 @@ export default defineConfig({
   },
   define: {
     global: 'globalThis',
+    // Variáveis SEGURAS para expor no frontend (públicas)
     'import.meta.env.SUPABASE_URL': JSON.stringify(process.env.SUPABASE_URL),
     'import.meta.env.SUPABASE_ANON_KEY': JSON.stringify(process.env.SUPABASE_ANON_KEY),
-    'import.meta.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY),
-    'import.meta.env.HEYGEN_API_KEY': JSON.stringify(process.env.HEYGEN_API_KEY),
+    // NÃO expor OPENAI_API_KEY e HEYGEN_API_KEY no frontend - usar apenas no backend
+    // 'import.meta.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY), // REMOVIDO - usar API route
+    // 'import.meta.env.HEYGEN_API_KEY': JSON.stringify(process.env.HEYGEN_API_KEY), // REMOVIDO - usar API route
   },
 })
