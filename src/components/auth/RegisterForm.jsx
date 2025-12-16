@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { UserPlus, Mail, Lock, Eye, EyeOff, User } from 'lucide-react'
 
 const RegisterForm = () => {
-  const { signUp, loading, error, clearError } = useAuth()
+  const { signUp, loading, error, clearError, user, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -16,6 +17,13 @@ const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
+  // Se o usuário já estiver autenticado, redirecionar para o dashboard
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, user, navigate])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -26,56 +34,99 @@ const RegisterForm = () => {
     if (error) clearError()
   }
 
+  const [validationError, setValidationError] = useState(null)
+
   const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      return 'As senhas não coincidem'
+    setValidationError(null)
+    
+    if (!formData.fullName || formData.fullName.trim() === '') {
+      setValidationError('Nome completo é obrigatório')
+      return false
     }
+    
+    if (!formData.email || formData.email.trim() === '') {
+      setValidationError('Email é obrigatório')
+      return false
+    }
+    
+    if (!formData.email.includes('@')) {
+      setValidationError('Email inválido')
+      return false
+    }
+    
     if (formData.password.length < 6) {
-      return 'A senha deve ter pelo menos 6 caracteres'
+      setValidationError('A senha deve ter pelo menos 6 caracteres')
+      return false
     }
-    return null
+    
+    if (formData.password !== formData.confirmPassword) {
+      setValidationError('As senhas não coincidem')
+      return false
+    }
+    
+    return true
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    clearError()
+    setValidationError(null)
     
-    const validationError = validateForm()
-    if (validationError) {
-      clearError()
+    if (!validateForm()) {
       return
     }
 
     setIsLoading(true)
 
-    const result = await signUp(formData.email, formData.password, {
-      full_name: formData.fullName
-    })
-    
-    if (result.success) {
-      setSuccess(true)
+    try {
+      const result = await signUp(formData.email, formData.password, {
+        full_name: formData.fullName
+      })
+      
+      if (result.success) {
+        setSuccess(true)
+        
+        // Se o usuário foi autenticado automaticamente (sem confirmação de email)
+        // Aguardar um pouco para o AuthContext atualizar e então redirecionar
+        setTimeout(() => {
+          if (user) {
+            navigate('/', { replace: true })
+          }
+        }, 1000)
+      } else {
+        // O erro já será exibido pelo AuthContext
+        console.error('Erro ao criar conta:', result.error)
+      }
+    } catch (err) {
+      console.error('Erro inesperado ao criar conta:', err)
+      setValidationError(err.message || 'Erro ao criar conta. Tente novamente.')
+    } finally {
+      setIsLoading(false)
     }
-    
-    setIsLoading(false)
   }
 
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-xl">
           <div className="text-center">
-            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-green-100">
-              <UserPlus className="h-6 w-6 text-green-600" />
+            <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg">
+              <UserPlus className="h-7 w-7 text-white" />
             </div>
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-              Conta criada com sucesso!
+            <h2 className="mt-6 text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
+              Conta criada com sucesso! 🎉
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Verifique seu email para confirmar a conta e fazer login.
+              Sua conta foi criada. Você pode fazer login agora.
+            </p>
+            <p className="mt-2 text-xs text-gray-500">
+              Se a confirmação de email estiver ativada, verifique sua caixa de entrada.
             </p>
             <div className="mt-6">
               <Link
                 to="/login"
-                className="btn-primary"
+                className="w-full flex justify-center py-3 px-4 text-sm font-semibold rounded-xl bg-gradient-to-r from-orange-600 to-blue-600 text-white hover:from-orange-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition-all duration-200 shadow-lg hover:shadow-xl"
+                style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
               >
                 Ir para Login
               </Link>
@@ -116,9 +167,9 @@ const RegisterForm = () => {
         </div>
 
         <form className="mt-8 space-y-6 bg-white p-8 rounded-2xl shadow-xl" onSubmit={handleSubmit}>
-          {error && (
+          {(error || validationError) && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl">
-              {error}
+              {error || validationError}
             </div>
           )}
 
