@@ -40,36 +40,44 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-gradient-primary">
-            <LogIn className="h-6 w-6 text-white" />
+          {/* Logo/Nome da Aplicação */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', letterSpacing: '-0.02em' }}>
+              4Prospera Connect
+            </h1>
+            <p className="text-sm text-gray-500 font-medium">Dashboard Inteligente</p>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          
+          <div className="mx-auto h-14 w-14 flex items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-blue-500 shadow-lg">
+            <LogIn className="h-7 w-7 text-white" />
+          </div>
+          <h2 className="mt-6 text-center text-3xl font-bold text-gray-900" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
             Entre na sua conta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Ou{' '}
             <Link
               to="/register"
-              className="font-medium text-primary-600 hover:text-primary-500"
+              className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
             >
               crie uma nova conta
             </Link>
           </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6 bg-white p-8 rounded-2xl shadow-xl" onSubmit={handleSubmit}>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl">
               {error}
             </div>
           )}
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                 Email
               </label>
               <div className="mt-1 relative">
@@ -86,12 +94,13 @@ const LoginForm = () => {
                   onChange={handleChange}
                   className="input pl-10"
                   placeholder="seu@email.com"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}>
                 Senha
               </label>
               <div className="mt-1 relative">
@@ -108,6 +117,7 @@ const LoginForm = () => {
                   onChange={handleChange}
                   className="input pl-10 pr-10"
                   placeholder="Sua senha"
+                  style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
                 />
                 <button
                   type="button"
@@ -128,7 +138,7 @@ const LoginForm = () => {
             <div className="text-sm">
               <Link
                 to="/forgot-password"
-                className="font-medium text-primary-600 hover:text-primary-500"
+                className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
               >
                 Esqueceu sua senha?
               </Link>
@@ -139,7 +149,8 @@ const LoginForm = () => {
             <button
               type="submit"
               disabled={isLoading || loading}
-              className="btn-primary w-full flex justify-center py-3 px-4 text-sm font-medium"
+              className="w-full flex justify-center py-3 px-4 text-sm font-semibold rounded-xl bg-gradient-to-r from-orange-600 to-blue-600 text-white hover:from-orange-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl"
+              style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif' }}
             >
               {isLoading || loading ? (
                 <div className="flex items-center">
