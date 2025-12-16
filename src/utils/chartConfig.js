@@ -26,16 +26,20 @@ ChartJS.register(
   Filler
 )
 
-// Cores padrão do tema
+// Cores padrão do tema - Laranja e Azul
 export const chartColors = {
-  primary: '#8b5cf6',
-  secondary: '#3b82f6',
+  primary: '#f97316',      // Laranja principal
+  secondary: '#3b82f6',    // Azul principal
   success: '#10b981',
   warning: '#f59e0b',
   danger: '#ef4444',
   info: '#06b6d4',
-  purple: '#a855f7',
-  blue: '#2563eb',
+  orange: '#f97316',        // Laranja
+  orangeLight: '#fb923c',  // Laranja claro
+  orangeDark: '#ea580c',    // Laranja escuro
+  blue: '#2563eb',          // Azul
+  blueLight: '#60a5fa',     // Azul claro
+  blueDark: '#1d4ed8',      // Azul escuro
   green: '#059669',
   yellow: '#d97706',
   red: '#dc2626',
@@ -44,31 +48,31 @@ export const chartColors = {
   gray: '#6b7280'
 }
 
-// Paleta de cores para gráficos
+// Paleta de cores para gráficos - Laranja e Azul
 export const colorPalettes = {
   default: [
-    chartColors.primary,
-    chartColors.secondary,
+    chartColors.primary,    // Laranja
+    chartColors.secondary,  // Azul
     chartColors.success,
     chartColors.warning,
     chartColors.danger,
     chartColors.info
   ],
   gradient: [
-    '#8b5cf6',
-    '#3b82f6',
-    '#06b6d4',
-    '#10b981',
-    '#f59e0b',
-    '#ef4444'
+    '#f97316',  // Laranja
+    '#3b82f6',  // Azul
+    '#fb923c',  // Laranja claro
+    '#60a5fa',  // Azul claro
+    '#10b981',  // Verde
+    '#f59e0b'   // Amarelo
   ],
   pastel: [
-    '#a78bfa',
-    '#60a5fa',
-    '#34d399',
-    '#fbbf24',
-    '#f87171',
-    '#22d3ee'
+    '#fed7aa',  // Laranja pastel
+    '#bfdbfe',  // Azul pastel
+    '#34d399',  // Verde pastel
+    '#fbbf24',  // Amarelo pastel
+    '#f87171',  // Vermelho pastel
+    '#22d3ee'   // Ciano pastel
   ]
 }
 

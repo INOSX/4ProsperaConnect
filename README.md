@@ -44,7 +44,7 @@ O dataGPT v2.6 agora inclui persistência completa de dados usando Supabase:
 - ✅ **Cache inteligente** - Dados importados são armazenados
 - ✅ **Monitoramento** - Logs detalhados de uso e performance
 
-**Projeto Supabase**: `hwfnntgacsebqrprqzzm.supabase.co` ✅ **Ativo e funcionando**
+**Projeto Supabase**: `dytuwutsjjxxmyefrfed.supabase.co` ✅ **Ativo e funcionando**
 
 #### Opção de Mostrar Totais nos Gráficos
 

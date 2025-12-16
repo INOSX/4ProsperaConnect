@@ -22,8 +22,8 @@
 ## 🗄️ Banco de Dados Supabase
 
 ### Projeto Ativo
-- **Projeto ID**: `hwfnntgacsebqrprqzzm`
-- **URL**: `https://hwfnntgacsebqrprqzzm.supabase.co`
+- **Projeto ID**: `dytuwutsjjxxmyefrfed`
+- **URL**: `https://dytuwutsjjxxmyefrfed.supabase.co`
 - **Status**: ✅ **Tabelas criadas e funcionando**
 
 ### Tabelas Criadas
@@ -54,7 +54,7 @@
 ### Variáveis de Ambiente
 - ✅ **OpenAI API**: Configurada
 - ✅ **Supabase**: Configurado
-- ✅ **Projeto correto**: `hwfnntgacsebqrprqzzm`
+- ✅ **Projeto correto**: `dytuwutsjjxxmyefrfed`
 
 ---
 
