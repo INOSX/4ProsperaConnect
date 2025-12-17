@@ -13,19 +13,35 @@ export default async function handler(req, res) {
     return
   }
 
-  const heygenApiKey = process.env.HEYGEN_API_KEY
+  // Limpar espaços em branco da chave da API
+  const heygenApiKey = process.env.HEYGEN_API_KEY?.trim()
 
   console.log('HeyGen Proxy - Request received:', {
     method: req.method,
     action: req.body?.action,
     hasApiKey: !!heygenApiKey,
-    apiKeyPrefix: heygenApiKey ? heygenApiKey.substring(0, 10) + '...' : 'MISSING'
+    apiKeyLength: heygenApiKey?.length || 0,
+    apiKeyPrefix: heygenApiKey ? heygenApiKey.substring(0, 10) + '...' : 'MISSING',
+    apiKeySuffix: heygenApiKey && heygenApiKey.length > 10 ? '...' + heygenApiKey.substring(heygenApiKey.length - 5) : ''
   })
 
   if (!heygenApiKey) {
     console.error('HeyGen API key missing')
     return res.status(500).json({ error: 'HeyGen API key not configured' })
   }
+
+  // Verificar se a chave tem o formato esperado
+  if (heygenApiKey.length < 10) {
+    console.warn('⚠️ HeyGen API key seems too short:', heygenApiKey.length)
+  }
+  
+  // Log adicional para debug (sem expor a chave completa)
+  console.log('🔑 API Key validation:', {
+    hasValue: !!heygenApiKey,
+    length: heygenApiKey.length,
+    startsWith: heygenApiKey.substring(0, 3),
+    endsWith: heygenApiKey.substring(heygenApiKey.length - 3)
+  })
 
   const { action, ...params } = req.body || {}
 
