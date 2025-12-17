@@ -59,11 +59,25 @@ export default async function handler(req, res) {
       case 'getResponse': {
         const { threadId, assistantId, message, fileName } = params
 
+        console.log('🔵 getResponse - Received params:', {
+          threadId,
+          assistantId,
+          messageLength: message?.length,
+          fileName,
+          threadIdType: typeof threadId,
+          threadIdValue: threadId
+        })
+
         if (!threadId || !assistantId || !message) {
+          console.error('❌ Missing required params:', {
+            hasThreadId: !!threadId,
+            hasAssistantId: !!assistantId,
+            hasMessage: !!message
+          })
           return res.status(400).json({ error: 'threadId, assistantId, and message are required' })
         }
 
-        console.log('Getting response from OpenAI Assistant...', {
+        console.log('✅ Getting response from OpenAI Assistant...', {
           threadId,
           assistantId,
           messageLength: message.length,
@@ -95,40 +109,39 @@ Pergunta do usuário: ${message}`
         }
 
         // Adicionar mensagem do usuário à thread
+        console.log('🔵 Creating message in thread:', threadId)
         await openaiClient.beta.threads.messages.create(threadId, {
           role: 'user',
           content: contextualMessage
         })
+        console.log('✅ Message created')
 
-        // Executar o assistente
-        const run = await openaiClient.beta.threads.runs.create(threadId, {
+        // Executar o assistente usando createAndPoll para aguardar automaticamente
+        console.log('🔵 Creating run with assistant:', assistantId)
+        const run = await openaiClient.beta.threads.runs.createAndPoll(threadId, {
           assistant_id: assistantId,
         })
 
-        console.log('✅ Run created:', run.id)
+        console.log('✅ Run completed:', {
+          runId: run.id,
+          status: run.status
+        })
 
-        // Aguardar conclusão do run
-        let runStatus = await openaiClient.beta.threads.runs.retrieve(threadId, run.id)
-        let attempts = 0
-        const maxAttempts = 60 // 60 segundos máximo
-
-        while (runStatus.status === 'queued' || runStatus.status === 'in_progress') {
-          if (attempts >= maxAttempts) {
-            throw new Error('Timeout waiting for assistant response')
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000)) // Aguardar 1 segundo
-          runStatus = await openaiClient.beta.threads.runs.retrieve(threadId, run.id)
-          attempts++
+        // Verificar se o run foi bem-sucedido
+        if (run.status === 'failed') {
+          console.error('❌ Run failed:', run.last_error)
+          throw new Error(run.last_error?.message || 'Assistant run failed')
         }
 
-        if (runStatus.status === 'failed') {
-          console.error('Run failed:', runStatus.last_error)
-          throw new Error(runStatus.last_error?.message || 'Assistant run failed')
+        if (run.status !== 'completed') {
+          throw new Error(`Run status is ${run.status}, expected completed`)
         }
 
-        // Obter mensagens da thread
+        // Obter mensagens da thread (a última será a resposta do assistente)
+        console.log('🔵 Retrieving messages from thread:', threadId)
         const messages = await openaiClient.beta.threads.messages.list(threadId, {
-          limit: 1
+          limit: 1,
+          order: 'desc'
         })
 
         const assistantMessage = messages.data[0]

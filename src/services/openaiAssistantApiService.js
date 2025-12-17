@@ -41,21 +41,40 @@ export class OpenAIAssistantApiService {
    * @returns {Promise<string>} Resposta do assistente
    */
   async getResponse(userMessage, fileName = null) {
+    console.log('🔵 OpenAIAssistantApiService.getResponse called:', {
+      threadId: this.threadId,
+      assistantId: this.assistantId,
+      threadIdType: typeof this.threadId,
+      hasThreadId: !!this.threadId,
+      hasAssistantId: !!this.assistantId
+    })
+
     if (!this.threadId || !this.assistantId) {
+      console.error('❌ Assistant not initialized:', {
+        threadId: this.threadId,
+        assistantId: this.assistantId
+      })
       throw new Error('Assistant not initialized. Call initialize() first.')
     }
 
     try {
+      const requestBody = {
+        action: 'getResponse',
+        threadId: this.threadId,
+        assistantId: this.assistantId,
+        message: userMessage,
+        fileName: fileName
+      }
+      
+      console.log('🔵 Sending request to API:', {
+        ...requestBody,
+        message: requestBody.message.substring(0, 50) + '...'
+      })
+
       const response = await fetch('/api/openai/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'getResponse',
-          threadId: this.threadId,
-          assistantId: this.assistantId,
-          message: userMessage,
-          fileName: fileName
-        })
+        body: JSON.stringify(requestBody)
       })
 
       if (!response.ok) {
