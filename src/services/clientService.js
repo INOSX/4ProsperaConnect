@@ -85,34 +85,46 @@ export class ClientService {
       
       // Gerar código único do cliente
       const clientCode = this.generateClientCode()
-      
-      // Gerar nomes únicos (mesmo hash para ambos)
-      const { assistantName, vectorstoreName } = await this.generateUniqueNames(clientCode)
 
-      // 1) Criar assistente primeiro
-      const assistantResult = await OpenAIService.createAssistant(clientCode, assistantName)
-      if (assistantResult.error) {
-        return { success: false, error: `Erro ao criar assistente: ${assistantResult.error}` }
+      // Tentar provisionar recursos OpenAI, mas sem bloquear criação do cliente
+      let assistantId = null
+      let vectorstoreId = null
+
+      try {
+        // Gerar nomes únicos (mesmo hash para ambos)
+        const { assistantName, vectorstoreName } = await this.generateUniqueNames(clientCode)
+
+        // 1) Criar assistente primeiro
+        const assistantResult = await OpenAIService.createAssistant(clientCode, assistantName)
+        if (assistantResult.error) {
+          console.warn('Cliente criado sem assistente OpenAI (erro ao criar assistente):', assistantResult.error)
+        } else {
+          assistantId = assistantResult.assistantId
+        }
+
+        // 2) Criar vectorstore (sem vincular ainda)
+        if (assistantId) {
+          const vectorstoreResult = await OpenAIService.createVectorstore(clientCode, vectorstoreName)
+          if (vectorstoreResult.error) {
+            console.warn('Cliente criado sem vectorstore (erro ao criar vectorstore):', vectorstoreResult.error)
+          } else {
+            vectorstoreId = vectorstoreResult.vectorstoreId
+          }
+
+          // 3) Vincular vectorstore ao assistente, se ambos existirem
+          if (assistantId && vectorstoreId) {
+            const linkResult = await OpenAIService.linkVectorstoreToAssistant(assistantId, vectorstoreId)
+            if (linkResult.error) {
+              console.warn('Erro ao vincular vectorstore ao assistente. Cliente continuará sem vínculo automático:', linkResult.error)
+            }
+          }
+        }
+      } catch (openAiError) {
+        console.warn('Erro ao provisionar recursos OpenAI para cliente. Cliente será criado mesmo assim:', openAiError)
+        // Segue sem assistant/vectorstore; poderão ser provisionados depois
       }
 
-      // 2) Criar vectorstore (sem vincular ainda)
-      const vectorstoreResult = await OpenAIService.createVectorstore(clientCode, vectorstoreName)
-      if (vectorstoreResult.error) {
-        // rollback do assistente se vectorstore falhar
-        await OpenAIService.deleteAssistant(assistantResult.assistantId)
-        return { success: false, error: `Erro ao criar vectorstore: ${vectorstoreResult.error}` }
-      }
-
-      // 3) Vincular vectorstore ao assistente
-      const linkResult = await OpenAIService.linkVectorstoreToAssistant(assistantResult.assistantId, vectorstoreResult.vectorstoreId)
-      if (linkResult.error) {
-        // rollback: deletar vectorstore e assistente
-        await OpenAIService.deleteVectorstore(vectorstoreResult.vectorstoreId)
-        await OpenAIService.deleteAssistant(assistantResult.assistantId)
-        return { success: false, error: `Erro ao vincular vectorstore ao assistente: ${linkResult.error}` }
-      }
-
-      // Salvar cliente no Supabase
+      // Salvar cliente no Supabase (sempre, com ou sem recursos OpenAI)
       const { data, error } = await supabase
         .from('clients')
         .insert({
@@ -120,16 +132,13 @@ export class ClientService {
           client_code: clientCode,
           name,
           email,
-          openai_assistant_id: assistantResult.assistantId,
-          vectorstore_id: vectorstoreResult.vectorstoreId
+          openai_assistant_id: assistantId,
+          vectorstore_id: vectorstoreId
         })
         .select()
         .single()
 
       if (error) {
-        // Se falhar ao salvar no Supabase, deletar recursos OpenAI
-        await OpenAIService.deleteVectorstore(vectorstoreResult.vectorstoreId)
-        await OpenAIService.deleteAssistant(assistantResult.assistantId)
         return { success: false, error: `Erro ao salvar cliente: ${error.message}` }
       }
 
