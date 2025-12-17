@@ -13,7 +13,23 @@ function getAdminClient() {
                        process.env.SUPABASE_SERVICE_KEY ||
                        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
     
+    // Debug: verificar se as variáveis estão sendo lidas
+    console.log('Supabase Storage API - Debug:', {
+      hasUrl: !!url,
+      hasServiceKey: !!serviceKey,
+      urlLength: url?.length,
+      serviceKeyLength: serviceKey?.length,
+      envVars: {
+        SUPABASE_URL: !!process.env.SUPABASE_URL,
+        NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        SUPABASE_SERVICE_ROLE: !!process.env.SUPABASE_SERVICE_ROLE,
+        SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        SUPABASE_SERVICE_KEY: !!process.env.SUPABASE_SERVICE_KEY
+      }
+    })
+    
     if (!url || !serviceKey) {
+      console.error('Supabase credentials missing:', { url: !!url, serviceKey: !!serviceKey })
       throw new Error('Supabase admin credentials missing (SUPABASE_URL and SUPABASE_SERVICE_ROLE)')
     }
     
