@@ -25,7 +25,7 @@ import {
 import Card from '../ui/Card'
 import { AudioRecorder } from '../../services/audioHandler'
 import { HeyGenStreamingService } from '../../services/heygenStreamingService'
-import { OpenAIAssistantService } from '../../services/openaiAssistantService'
+import { OpenAIAssistantApiService } from '../../services/openaiAssistantApiService'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
@@ -279,15 +279,11 @@ const Sidebar = ({ isOpen, onClose }) => {
           
           console.log('✅ Using fixed OpenAI Assistant ID:', assistantId)
           
-          // ⚠️ ATENÇÃO: OpenAIAssistantService usa dangerouslyAllowBrowser: true
-          // Para produção, deve ser migrado para usar API route do backend
-          // Por enquanto, desabilitado por segurança - chave não deve estar no frontend
-          console.warn('⚠️ OpenAI Assistant initialization disabled for security. API key should not be in frontend.')
-          setRecordingStatus('Assistente OpenAI: Use API route do backend para segurança')
-          
-          // TODO: Migrar para API route /api/openai/assistant
-          // const assistant = await initializeAssistantViaAPI(assistantId)
-          // setOpenaiAssistant(assistant)
+          // Inicializar via API route (seguro - chave no backend)
+          const assistant = new OpenAIAssistantApiService(assistantId)
+          await assistant.initialize()
+          setOpenaiAssistant(assistant)
+          console.log('✅ OpenAI Assistant initialized via API route')
         } catch (error) {
           console.error('❌ Error initializing OpenAI Assistant:', error)
           setRecordingStatus('Erro ao inicializar assistente. Avatar funcionará sem IA.')
