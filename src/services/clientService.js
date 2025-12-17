@@ -142,6 +142,20 @@ export class ClientService {
         return { success: false, error: `Erro ao salvar cliente: ${error.message}` }
       }
 
+      // Criar bucket no Supabase Storage para o cliente (usando o ID do cliente)
+      // Isso é opcional - não falha a criação do cliente se o bucket não for criado
+      try {
+        const bucketResult = await this.createStorageBucket(data.id)
+        if (bucketResult.success) {
+          console.log('Bucket criado com sucesso para o cliente:', data.id)
+        } else {
+          console.warn('Cliente criado, mas falha ao criar bucket:', bucketResult.error)
+        }
+      } catch (bucketError) {
+        console.warn('Erro ao criar bucket após criação do cliente:', bucketError)
+        // Não falhar a criação do cliente por causa do bucket
+      }
+
       return { success: true, client: data }
     } catch (error) {
       console.error('Erro ao criar cliente:', error)
@@ -340,6 +354,45 @@ export class ClientService {
     } catch (error) {
       console.error('Erro ao deletar cliente:', error)
       return { success: false, error: error.message }
+    }
+  }
+
+  /**
+   * Cria um bucket no Supabase Storage para o cliente
+   * @param {string} clientId - ID do cliente (UUID)
+   * @returns {Promise<{success: boolean, bucket?: string, error?: string}>}
+   */
+  static async createStorageBucket(clientId) {
+    try {
+      const response = await fetch('/api/supabase/storage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'ensureBucket', 
+          userId: clientId 
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        return { 
+          success: false, 
+          error: errorData.error || `Erro HTTP ${response.status}` 
+        }
+      }
+
+      const result = await response.json()
+      return { 
+        success: true, 
+        bucket: result.bucket,
+        existed: result.existed || false
+      }
+    } catch (error) {
+      console.error('Erro ao criar bucket:', error)
+      return { 
+        success: false, 
+        error: error.message || 'Erro desconhecido ao criar bucket' 
+      }
     }
   }
 
