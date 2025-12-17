@@ -18,9 +18,24 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Obter sessão inicial
+    // Obter sessão inicial e processar tokens de confirmação de email
     const getInitialSession = async () => {
       try {
+        // Verificar se há um token na URL (confirmação de email)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+        const accessToken = hashParams.get('access_token')
+        const type = hashParams.get('type')
+        
+        // Processar token de confirmação se presente
+        if (accessToken && type === 'recovery') {
+          // Token de recuperação de senha
+          const { data, error } = await supabase.auth.getSession()
+          if (error) {
+            console.error('Erro ao processar token de recuperação:', error)
+          }
+        }
+
+        // Obter sessão atual
         const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null)
       } catch (error) {
@@ -40,6 +55,11 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
         
         if (event === 'SIGNED_OUT') {
+          setError(null)
+        }
+        
+        // Se o email foi confirmado, limpar erros
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setError(null)
         }
       }
@@ -128,7 +148,8 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: errorMessage }
       }
 
-      // Se o usuário foi criado com sucesso, criar cliente automaticamente
+      // Se o usuário foi criado com sucesso, tentar criar cliente automaticamente
+      // Isso é opcional - o registro não falha se a criação do cliente falhar
       if (data.user) {
         try {
           const clientResult = await ClientService.createClient({
@@ -140,10 +161,14 @@ export const AuthProvider = ({ children }) => {
           if (!clientResult.success) {
             console.warn('Usuário criado, mas falha ao criar cliente:', clientResult.error)
             // Não falhar o registro por causa do cliente, apenas logar o erro
+            // O usuário pode criar o cliente manualmente depois se necessário
+          } else {
+            console.log('Cliente criado com sucesso para o usuário:', data.user.id)
           }
         } catch (clientError) {
           console.warn('Erro ao criar cliente após registro:', clientError)
           // Não falhar o registro por causa do cliente
+          // Isso pode acontecer se a tabela clients não existir ainda
         }
       }
       

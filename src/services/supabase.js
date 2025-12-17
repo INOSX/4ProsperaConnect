@@ -10,11 +10,25 @@ if (!config.supabase.anonKey) {
   throw new Error('SUPABASE_ANON_KEY is required. Please check your environment variables.')
 }
 
+// Função para obter a URL de redirecionamento baseada no ambiente
+const getRedirectUrl = () => {
+  // No browser, usar a URL atual
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}/auth/callback`
+  }
+  // Fallback: usar variável de ambiente ou URL de produção padrão
+  return process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}/auth/callback`
+    : 'https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback'
+}
+
 export const supabase = createClient(config.supabase.url, config.supabase.anonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    // Configurar URL de redirecionamento (será usado se não estiver configurado no Supabase)
+    redirectTo: getRedirectUrl()
   }
 })
 
@@ -31,11 +45,17 @@ export const auth = {
 
   // Fazer cadastro
   signUp: async (email, password, userData = {}) => {
+    // Obter URL de redirecionamento baseada no ambiente atual
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.origin}/auth/callback`
+      : 'https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback'
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: userData
+        data: userData,
+        emailRedirectTo: redirectUrl
       }
     })
     return { data, error }
