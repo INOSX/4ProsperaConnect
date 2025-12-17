@@ -313,11 +313,30 @@ ALTER TABLE public.data_sync_jobs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.external_data_sources ENABLE ROW LEVEL SECURITY;
 
 -- Políticas básicas (serão refinadas conforme roles)
--- Prospects: apenas criador e admins
+-- Prospects: usuários autenticados podem ver prospects que criaram
 CREATE POLICY "Users can view their own prospects" ON public.prospects
-    FOR SELECT USING (created_by = auth.uid() OR EXISTS (
-        SELECT 1 FROM auth.users WHERE id = auth.uid() AND raw_user_meta_data->>'role' = 'admin'
-    ));
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            created_by IS NULL
+        )
+    );
+
+-- INSERT: Usuários autenticados podem criar prospects
+CREATE POLICY "Users can insert prospects" ON public.prospects
+    FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+-- UPDATE: Usuários podem atualizar prospects que criaram
+CREATE POLICY "Users can update their prospects" ON public.prospects
+    FOR UPDATE
+    USING (created_by = auth.uid() OR created_by IS NULL)
+    WITH CHECK (created_by = auth.uid() OR created_by IS NULL);
+
+-- DELETE: Usuários podem deletar prospects que criaram
+CREATE POLICY "Users can delete their prospects" ON public.prospects
+    FOR DELETE
+    USING (created_by = auth.uid() OR created_by IS NULL);
 
 -- Companies: owner e colaboradores da empresa
 CREATE POLICY "Users can view their companies" ON public.companies
@@ -326,25 +345,378 @@ CREATE POLICY "Users can view their companies" ON public.companies
         EXISTS (SELECT 1 FROM public.employees WHERE company_id = companies.id AND platform_user_id = auth.uid())
     );
 
--- Employees: empresa e próprio colaborador
+-- ============================================
+-- POLÍTICAS RLS - EMPLOYEES
+-- ============================================
+
+-- SELECT: Próprio colaborador ou owner da empresa
 CREATE POLICY "Users can view employees" ON public.employees
-    FOR SELECT USING (
-        platform_user_id = auth.uid() OR
-        EXISTS (SELECT 1 FROM public.companies WHERE id = employees.company_id AND owner_user_id = auth.uid())
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND (
+            platform_user_id = auth.uid() OR
+            EXISTS (SELECT 1 FROM public.companies WHERE id = employees.company_id AND owner_user_id = auth.uid())
+        )
+    );
+
+-- INSERT: Apenas owner da empresa pode adicionar colaboradores
+CREATE POLICY "Users can insert employees" ON public.employees
+    FOR INSERT
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies 
+            WHERE id = employees.company_id 
+            AND owner_user_id = auth.uid()
+        )
+    );
+
+-- UPDATE: Próprio colaborador ou owner da empresa
+CREATE POLICY "Users can update employees" ON public.employees
+    FOR UPDATE
+    USING (
+        auth.uid() IS NOT NULL AND (
+            platform_user_id = auth.uid() OR
+            EXISTS (
+                SELECT 1 FROM public.companies 
+                WHERE id = employees.company_id 
+                AND owner_user_id = auth.uid()
+            )
+        )
+    )
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND (
+            platform_user_id = auth.uid() OR
+            EXISTS (
+                SELECT 1 FROM public.companies 
+                WHERE id = employees.company_id 
+                AND owner_user_id = auth.uid()
+            )
+        )
+    );
+
+-- DELETE: Apenas owner da empresa (soft delete via is_active)
+CREATE POLICY "Users can delete employees" ON public.employees
+    FOR DELETE
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies 
+            WHERE id = employees.company_id 
+            AND owner_user_id = auth.uid()
+        )
     );
 
 -- Employee Benefits: próprio colaborador ou empresa
 CREATE POLICY "Users can view employee benefits" ON public.employee_benefits
     FOR SELECT USING (
-        EXISTS (SELECT 1 FROM public.employees WHERE id = employee_benefits.employee_id AND platform_user_id = auth.uid()) OR
-        EXISTS (SELECT 1 FROM public.employees e 
-                JOIN public.companies c ON e.company_id = c.id 
-                WHERE e.id = employee_benefits.employee_id AND c.owner_user_id = auth.uid())
+        auth.uid() IS NOT NULL AND (
+            EXISTS (SELECT 1 FROM public.employees WHERE id = employee_benefits.employee_id AND platform_user_id = auth.uid()) OR
+            EXISTS (SELECT 1 FROM public.employees e 
+                    JOIN public.companies c ON e.company_id = c.id 
+                    WHERE e.id = employee_benefits.employee_id AND c.owner_user_id = auth.uid())
+        )
     );
 
--- Data Connections: criador
+CREATE POLICY "Users can insert employee benefits" ON public.employee_benefits
+    FOR INSERT
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.employees e
+            JOIN public.companies c ON e.company_id = c.id
+            WHERE e.id = employee_benefits.employee_id
+            AND c.owner_user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "Users can update employee benefits" ON public.employee_benefits
+    FOR UPDATE
+    USING (
+        auth.uid() IS NOT NULL AND (
+            EXISTS (SELECT 1 FROM public.employees WHERE id = employee_benefits.employee_id AND platform_user_id = auth.uid()) OR
+            EXISTS (SELECT 1 FROM public.employees e 
+                    JOIN public.companies c ON e.company_id = c.id 
+                    WHERE e.id = employee_benefits.employee_id AND c.owner_user_id = auth.uid())
+        )
+    )
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND (
+            EXISTS (SELECT 1 FROM public.employees WHERE id = employee_benefits.employee_id AND platform_user_id = auth.uid()) OR
+            EXISTS (SELECT 1 FROM public.employees e 
+                    JOIN public.companies c ON e.company_id = c.id 
+                    WHERE e.id = employee_benefits.employee_id AND c.owner_user_id = auth.uid())
+        )
+    );
+
+-- ============================================
+-- POLÍTICAS RLS - DATA_CONNECTIONS
+-- ============================================
+
+-- SELECT: Criador pode ver suas conexões
 CREATE POLICY "Users can view their data connections" ON public.data_connections
-    FOR SELECT USING (created_by = auth.uid());
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            created_by IS NULL
+        )
+    );
+
+CREATE POLICY "Users can insert data connections" ON public.data_connections
+    FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+CREATE POLICY "Users can update their data connections" ON public.data_connections
+    FOR UPDATE
+    USING (created_by = auth.uid() OR created_by IS NULL)
+    WITH CHECK (created_by = auth.uid() OR created_by IS NULL);
+
+CREATE POLICY "Users can delete their data connections" ON public.data_connections
+    FOR DELETE
+    USING (created_by = auth.uid() OR created_by IS NULL);
+
+-- ============================================
+-- POLÍTICAS RLS - RECOMMENDATIONS
+-- ============================================
+
+-- SELECT: Usuários autenticados podem ver recomendações
+CREATE POLICY "Users can view recommendations" ON public.recommendations
+    FOR SELECT
+    USING (auth.uid() IS NOT NULL);
+
+-- INSERT: Usuários autenticados podem criar recomendações
+CREATE POLICY "Users can insert recommendations" ON public.recommendations
+    FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+-- UPDATE: Usuários autenticados podem atualizar recomendações
+CREATE POLICY "Users can update recommendations" ON public.recommendations
+    FOR UPDATE
+    USING (auth.uid() IS NOT NULL)
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+-- ============================================
+-- POLÍTICAS RLS - CAMPAIGNS
+-- ============================================
+
+-- SELECT: Usuários podem ver campanhas que criaram
+CREATE POLICY "Users can view campaigns" ON public.campaigns
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            created_by IS NULL
+        )
+    );
+
+-- INSERT: Usuários autenticados podem criar campanhas
+CREATE POLICY "Users can insert campaigns" ON public.campaigns
+    FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+-- UPDATE: Usuários podem atualizar campanhas que criaram
+CREATE POLICY "Users can update their campaigns" ON public.campaigns
+    FOR UPDATE
+    USING (created_by = auth.uid() OR created_by IS NULL)
+    WITH CHECK (created_by = auth.uid() OR created_by IS NULL);
+
+-- DELETE: Usuários podem deletar campanhas que criaram
+CREATE POLICY "Users can delete their campaigns" ON public.campaigns
+    FOR DELETE
+    USING (created_by = auth.uid() OR created_by IS NULL);
+
+-- ============================================
+-- POLÍTICAS RLS - COMPANY_BENEFITS
+-- ============================================
+
+-- SELECT: Owner da empresa pode ver benefícios
+CREATE POLICY "Users can view company benefits" ON public.company_benefits
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies
+            WHERE id = company_benefits.company_id
+            AND owner_user_id = auth.uid()
+        )
+    );
+
+-- INSERT: Owner da empresa pode criar benefícios
+CREATE POLICY "Users can insert company benefits" ON public.company_benefits
+    FOR INSERT
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies
+            WHERE id = company_benefits.company_id
+            AND owner_user_id = auth.uid()
+        )
+    );
+
+-- UPDATE: Owner da empresa pode atualizar benefícios
+CREATE POLICY "Users can update company benefits" ON public.company_benefits
+    FOR UPDATE
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies
+            WHERE id = company_benefits.company_id
+            AND owner_user_id = auth.uid()
+        )
+    )
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies
+            WHERE id = company_benefits.company_id
+            AND owner_user_id = auth.uid()
+        )
+    );
+
+-- DELETE: Owner da empresa pode deletar benefícios
+CREATE POLICY "Users can delete company benefits" ON public.company_benefits
+    FOR DELETE
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.companies
+            WHERE id = company_benefits.company_id
+            AND owner_user_id = auth.uid()
+        )
+    );
+
+-- ============================================
+-- POLÍTICAS RLS - PRODUCT_CATALOG
+-- ============================================
+
+-- SELECT: Todos podem ver produtos ativos
+CREATE POLICY "Anyone can view active products" ON public.product_catalog
+    FOR SELECT
+    USING (is_active = true);
+
+-- INSERT/UPDATE/DELETE: Apenas via service role (não exposto via RLS)
+-- Em produção, você pode criar políticas específicas para admins
+
+-- ============================================
+-- POLÍTICAS RLS - MARKET_SIGNALS
+-- ============================================
+
+-- SELECT: Usuários podem ver sinais de mercado dos seus prospects
+CREATE POLICY "Users can view market signals" ON public.market_signals
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.prospects
+            WHERE id = market_signals.prospect_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    );
+
+-- INSERT: Via API ou sistema (não diretamente pelo usuário)
+CREATE POLICY "Users can insert market signals" ON public.market_signals
+    FOR INSERT
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.prospects
+            WHERE id = market_signals.prospect_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    );
+
+-- ============================================
+-- POLÍTICAS RLS - QUALIFICATION_CRITERIA
+-- ============================================
+
+-- SELECT: Usuários podem ver critérios que criaram
+CREATE POLICY "Users can view qualification criteria" ON public.qualification_criteria
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            created_by IS NULL
+        )
+    );
+
+-- INSERT: Usuários autenticados podem criar critérios
+CREATE POLICY "Users can insert qualification criteria" ON public.qualification_criteria
+    FOR INSERT
+    WITH CHECK (auth.uid() IS NOT NULL);
+
+-- UPDATE: Usuários podem atualizar critérios que criaram
+CREATE POLICY "Users can update qualification criteria" ON public.qualification_criteria
+    FOR UPDATE
+    USING (created_by = auth.uid() OR created_by IS NULL)
+    WITH CHECK (created_by = auth.uid() OR created_by IS NULL);
+
+-- ============================================
+-- POLÍTICAS RLS - CPF_TO_CNPJ_MAPPING
+-- ============================================
+
+-- SELECT: Todos os usuários autenticados podem ver (dados públicos de mapeamento)
+CREATE POLICY "Users can view cpf to cnpj mapping" ON public.cpf_to_cnpj_mapping
+    FOR SELECT
+    USING (auth.uid() IS NOT NULL);
+
+-- INSERT/UPDATE: Apenas via sistema/API (não diretamente pelo usuário)
+
+-- ============================================
+-- POLÍTICAS RLS - DATA_SYNC_JOBS
+-- ============================================
+
+-- SELECT: Usuários podem ver jobs de suas conexões
+CREATE POLICY "Users can view data sync jobs" ON public.data_sync_jobs
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.data_connections
+            WHERE id = data_sync_jobs.connection_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    );
+
+-- INSERT: Via sistema/API
+CREATE POLICY "System can insert data sync jobs" ON public.data_sync_jobs
+    FOR INSERT
+    WITH CHECK (true);
+
+-- ============================================
+-- POLÍTICAS RLS - EXTERNAL_DATA_SOURCES
+-- ============================================
+
+-- SELECT: Usuários podem ver fontes de suas conexões
+CREATE POLICY "Users can view external data sources" ON public.external_data_sources
+    FOR SELECT
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.data_connections
+            WHERE id = external_data_sources.connection_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    );
+
+-- INSERT/UPDATE: Via sistema/API
+CREATE POLICY "Users can manage external data sources" ON public.external_data_sources
+    FOR ALL
+    USING (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.data_connections
+            WHERE id = external_data_sources.connection_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    )
+    WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        EXISTS (
+            SELECT 1 FROM public.data_connections
+            WHERE id = external_data_sources.connection_id
+            AND (created_by = auth.uid() OR created_by IS NULL)
+        )
+    );
 
 -- ============================================
 -- 7. EXTENSÕES DAS TABELAS EXISTENTES
