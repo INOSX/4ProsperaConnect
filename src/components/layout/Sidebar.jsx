@@ -273,11 +273,25 @@ const Sidebar = ({ isOpen, onClose }) => {
         try {
           setRecordingStatus('Inicializando assistente OpenAI...')
           
-          // Usar assistant ID fixo da configuração
-          const { config } = await import('../../config/env.js')
-          const assistantId = config.openai?.assistantId || 'asst_wC8j4cN0pgmVqEAgVNJbFgVy'
+          // Buscar o assistant ID do cliente do usuário
+          if (!user) {
+            throw new Error('Usuário não autenticado')
+          }
           
-          console.log('✅ Using fixed OpenAI Assistant ID:', assistantId)
+          const clientResult = await ClientService.getClientByUserId(user.id)
+          if (!clientResult.success || !clientResult.client) {
+            throw new Error('Cliente não encontrado. Por favor, faça logout e login novamente.')
+          }
+          
+          const client = clientResult.client
+          const assistantId = client.openai_assistant_id
+          
+          if (!assistantId) {
+            throw new Error('Assistant não configurado para este cliente. Por favor, entre em contato com o suporte.')
+          }
+          
+          console.log('✅ Using user\'s OpenAI Assistant ID:', assistantId)
+          console.log('✅ Client vectorstore ID:', client.vectorstore_id)
           
           // Inicializar via API route (seguro - chave no backend)
           const assistant = new OpenAIAssistantApiService(assistantId)
