@@ -7,25 +7,27 @@ const DEFAULT_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdX
 let supabaseAdmin
 function getAdminClient() {
   if (!supabaseAdmin) {
-    // Tentar diferentes nomes de variáveis de ambiente, com fallback para valores padrão
-    const url = (process.env.SUPABASE_URL || 
-                 process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                 DEFAULT_SUPABASE_URL).trim()
+    // SEMPRE usar valores padrão se variáveis de ambiente não estiverem disponíveis
+    const url = process.env.SUPABASE_URL || 
+                process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                DEFAULT_SUPABASE_URL
     
-    const serviceKey = (process.env.SUPABASE_SERVICE_ROLE || 
-                        process.env.SUPABASE_SERVICE_ROLE_KEY ||
-                        process.env.SUPABASE_SERVICE_KEY ||
-                        DEFAULT_SERVICE_KEY).trim()
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE || 
+                       process.env.SUPABASE_SERVICE_ROLE_KEY ||
+                       process.env.SUPABASE_SERVICE_KEY ||
+                       DEFAULT_SERVICE_KEY
+    
+    // Garantir que temos strings válidas (não undefined/null)
+    const finalUrl = String(url || DEFAULT_SUPABASE_URL).trim()
+    const finalServiceKey = String(serviceKey || DEFAULT_SERVICE_KEY).trim()
     
     // Debug: verificar se as variáveis estão sendo lidas
     console.log('Supabase Storage API - Debug:', {
-      hasUrl: !!url,
-      hasServiceKey: !!serviceKey,
-      urlLength: url?.length,
-      serviceKeyLength: serviceKey?.length,
+      finalUrl: finalUrl.substring(0, 50) + '...',
+      finalServiceKeyLength: finalServiceKey.length,
       usingDefaults: {
-        url: url === DEFAULT_SUPABASE_URL,
-        serviceKey: serviceKey === DEFAULT_SERVICE_KEY
+        url: finalUrl === DEFAULT_SUPABASE_URL,
+        serviceKey: finalServiceKey === DEFAULT_SERVICE_KEY
       },
       envVars: {
         SUPABASE_URL: !!process.env.SUPABASE_URL,
@@ -37,17 +39,18 @@ function getAdminClient() {
     })
     
     // Validação: garantir que temos valores válidos (não vazios)
-    if (!url || url.length === 0 || !serviceKey || serviceKey.length === 0) {
+    if (!finalUrl || finalUrl.length === 0 || !finalServiceKey || finalServiceKey.length === 0) {
       console.error('Supabase credentials missing:', { 
-        url: url || 'MISSING', 
-        urlLength: url?.length || 0,
-        serviceKey: serviceKey ? 'PRESENT' : 'MISSING',
-        serviceKeyLength: serviceKey?.length || 0
+        url: finalUrl || 'MISSING', 
+        urlLength: finalUrl?.length || 0,
+        serviceKey: finalServiceKey ? 'PRESENT' : 'MISSING',
+        serviceKeyLength: finalServiceKey?.length || 0
       })
       throw new Error('Supabase admin credentials missing (SUPABASE_URL and SUPABASE_SERVICE_ROLE)')
     }
     
-    supabaseAdmin = createClient(url, serviceKey)
+    supabaseAdmin = createClient(finalUrl, finalServiceKey)
+    console.log('Supabase admin client created successfully')
   }
   return supabaseAdmin
 }
