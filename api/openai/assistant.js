@@ -57,13 +57,16 @@ export default async function handler(req, res) {
       }
 
       case 'getResponse': {
-        const { threadId, assistantId, message, fileName } = params
+        const { threadId, assistantId, message, fileName, companyId, employeeId, contextType } = params
 
         console.log('🔵 getResponse - Received params:', {
           threadId,
           assistantId,
           messageLength: message?.length,
           fileName,
+          companyId,
+          employeeId,
+          contextType,
           threadIdType: typeof threadId,
           threadIdValue: threadId
         })
@@ -81,19 +84,74 @@ export default async function handler(req, res) {
           threadId,
           assistantId,
           messageLength: message.length,
-          fileName
+          fileName,
+          companyId,
+          employeeId
         })
 
-        // Construir mensagem com contexto do arquivo se fornecido
+        // Construir mensagem com contexto
         let contextualMessage = message
-        if (fileName) {
-          contextualMessage = `Você é um assistente especializado em análise de dados. O usuário está trabalhando com dados de um arquivo chamado "${fileName}".
+        let contextInfo = []
 
-INSTRUÇÕES CRÍTICAS:
+        // Adicionar contexto de empresa se fornecido
+        if (companyId) {
+          try {
+            const { createClient } = require('@supabase/supabase-js')
+            const supabaseUrl = process.env.SUPABASE_URL || 'https://dytuwutsjjxxmyefrfed.supabase.co'
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+            const supabaseAdmin = createClient(supabaseUrl, supabaseKey)
+
+            const { data: company } = await supabaseAdmin
+              .from('companies')
+              .select('*')
+              .eq('id', companyId)
+              .single()
+
+            if (company) {
+              contextInfo.push(`Contexto da Empresa: ${company.company_name} (${company.company_type}), ${company.employee_count} colaboradores`)
+            }
+          } catch (err) {
+            console.error('Error fetching company context:', err)
+          }
+        }
+
+        // Adicionar contexto de colaborador se fornecido
+        if (employeeId) {
+          try {
+            const { createClient } = require('@supabase/supabase-js')
+            const supabaseUrl = process.env.SUPABASE_URL || 'https://dytuwutsjjxxmyefrfed.supabase.co'
+            const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+            const supabaseAdmin = createClient(supabaseUrl, supabaseKey)
+
+            const { data: employee } = await supabaseAdmin
+              .from('employees')
+              .select('*, companies (*)')
+              .eq('id', employeeId)
+              .single()
+
+            if (employee) {
+              contextInfo.push(`Contexto do Colaborador: ${employee.name}, ${employee.position} na empresa ${employee.companies?.company_name}`)
+            }
+          } catch (err) {
+            console.error('Error fetching employee context:', err)
+          }
+        }
+
+        // Construir mensagem contextual
+        if (fileName || contextInfo.length > 0) {
+          let contextPrefix = 'Você é um assistente especializado em análise de dados e consultoria financeira para empresas.\n\n'
+
+          if (contextInfo.length > 0) {
+            contextPrefix += contextInfo.join('\n') + '\n\n'
+          }
+
+          if (fileName) {
+            contextPrefix += `O usuário está trabalhando com dados de um arquivo chamado "${fileName}".\n\n`
+          }
+
+          contextualMessage = contextPrefix + `INSTRUÇÕES CRÍTICAS:
 - Use os dados do vectorstore vinculado a este assistant para responder perguntas sobre os dados
-- NUNCA mencione o nome do arquivo "${fileName}" na sua resposta
-- NUNCA mencione extensões de arquivo como ".csv", ".xlsx" ou similares
-- NUNCA mencione termos técnicos como "dataset", "vectorstore" ou "arquivo"
+${fileName ? `- NUNCA mencione o nome do arquivo "${fileName}" na sua resposta\n- NUNCA mencione extensões de arquivo como ".csv", ".xlsx" ou similares\n- NUNCA mencione termos técnicos como "dataset", "vectorstore" ou "arquivo"` : ''}
 - Responda naturalmente como se estivesse falando sobre os dados diretamente
 - Se a pergunta for sobre gráficos, análises ou dados, use as informações do vectorstore para fornecer uma resposta precisa e útil
 - Foque apenas nas informações e análises dos dados, nunca nas fontes ou arquivos técnicos

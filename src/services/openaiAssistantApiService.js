@@ -38,9 +38,12 @@ export class OpenAIAssistantApiService {
    * Obtém uma resposta do assistente para uma mensagem do usuário
    * @param {string} userMessage - Mensagem do usuário
    * @param {string} fileName - Nome do arquivo/dataset selecionado (opcional)
+   * @param {string} companyId - ID da empresa (opcional)
+   * @param {string} employeeId - ID do colaborador (opcional)
+   * @param {string} contextType - Tipo de contexto (opcional)
    * @returns {Promise<string>} Resposta do assistente
    */
-  async getResponse(userMessage, fileName = null) {
+  async getResponse(userMessage, fileName = null, companyId = null, employeeId = null, contextType = null) {
     console.log('🔵 OpenAIAssistantApiService.getResponse called:', {
       threadId: this.threadId,
       assistantId: this.assistantId,
@@ -63,7 +66,10 @@ export class OpenAIAssistantApiService {
         threadId: this.threadId,
         assistantId: this.assistantId,
         message: userMessage,
-        fileName: fileName
+        fileName: fileName,
+        companyId: companyId,
+        employeeId: employeeId,
+        contextType: contextType
       }
       
       console.log('🔵 Sending request to API:', {

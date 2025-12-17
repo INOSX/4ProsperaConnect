@@ -16,7 +16,11 @@ import {
   Minus,
   DollarSign,
   Mic,
-  Loader2
+  Loader2,
+  Target,
+  Building2,
+  Users,
+  Database
 } from 'lucide-react'
 import Card from '../ui/Card'
 import { AudioRecorder } from '../../services/audioHandler'
@@ -136,11 +140,43 @@ const Sidebar = ({ isOpen, onClose }) => {
               try {
                 // Obter nome do arquivo selecionado do contexto
                 const fileName = getSelectedFileName()
+                
+                // Buscar contexto de empresa/colaborador
+                let companyId = null
+                let employeeId = null
+                let contextType = null
+                
+                try {
+                  const clientResult = await ClientService.getClientByUserId(user.id)
+                  if (clientResult.success && clientResult.client) {
+                    if (clientResult.client.company_id) {
+                      companyId = clientResult.client.company_id
+                      contextType = 'company'
+                    }
+                    // Verificar se é colaborador
+                    if (clientResult.client.user_type === 'employee') {
+                      // Buscar employee_id pelo user_id
+                      const { EmployeeService } = await import('../../services/employeeService')
+                      const empResult = await EmployeeService.getEmployeeByUserId(user.id)
+                      if (empResult.success && empResult.employee) {
+                        employeeId = empResult.employee.id
+                        companyId = empResult.employee.company_id
+                        contextType = 'employee'
+                      }
+                    }
+                  }
+                } catch (ctxError) {
+                  console.warn('⚠️ Error loading context:', ctxError)
+                  // Continuar sem contexto
+                }
+                
                 console.log('🔵 Getting response from OpenAI Assistant...')
                 console.log('🔵 Input text:', text)
                 console.log('🔵 Selected file:', fileName)
-                // Passar o nome do arquivo para o assistente
-                responseText = await assistant.getResponse(text, fileName)
+                console.log('🔵 Context:', { companyId, employeeId, contextType })
+                
+                // Passar o nome do arquivo e contexto para o assistente
+                responseText = await assistant.getResponse(text, fileName, companyId, employeeId, contextType)
                 console.log('✅ OpenAI Assistant response received:', responseText)
                 console.log('✅ Response type:', typeof responseText)
                 console.log('✅ Response length:', responseText?.length)
@@ -424,7 +460,26 @@ const Sidebar = ({ isOpen, onClose }) => {
       label: 'Meus Datasets',
       href: '/datasets'
     },
-    // Seção dinâmica virá aqui
+    {
+      icon: Target,
+      label: 'Prospecção',
+      href: '/prospecting'
+    },
+    {
+      icon: Building2,
+      label: 'Minha Empresa',
+      href: '/companies'
+    },
+    {
+      icon: Users,
+      label: 'Portal Colaborador',
+      href: '/employees'
+    },
+    {
+      icon: Database,
+      label: 'Integrações',
+      href: '/integrations'
+    },
     {
       icon: TrendingUp,
       label: 'Análises',
