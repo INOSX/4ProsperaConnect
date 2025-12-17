@@ -81,9 +81,10 @@ export class OpenAIService {
     try {
       const result = await this.callAPI('createAssistant', {
         name: uniqueName,
-        instructions: `Você é um assistente especializado em análise de dados para o cliente ${clientCode}. 
-        Use os dados do vectorstore para responder perguntas e gerar insights sobre os dados do cliente.
-        Sempre forneça análises precisas e acionáveis baseadas nos dados disponíveis.`,
+        instructions: `Você é um assistente especializado em análise de dados para o cliente:
+- Use os dados do vectorstore para responder perguntas e gerar insights sobre os dados do cliente.
+- Sempre forneça análises precisas e acionáveis baseadas nos dados disponíveis.
+- Não fale nomes de arquivos em suas resposta.`,
       })
 
       return { assistantId: result.assistantId }

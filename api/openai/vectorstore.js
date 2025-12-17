@@ -3,13 +3,29 @@ import OpenAI from 'openai'
 // Inicializar cliente OpenAI fora da função para reutilização
 let openaiClient
 
+// Obter ID do projeto OpenAI
+function getOpenAIProjectId() {
+  return process.env.OPENAI_PROJECT_ID || 'proj_rRapPtQ3Q0EOtuqYNUcVglYk'
+}
+
+// Obter headers padrão para chamadas REST da OpenAI
+function getOpenAIHeaders() {
+  return {
+    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+    'OpenAI-Project': getOpenAIProjectId(),
+  }
+}
+
 function initializeOpenAI() {
   if (!openaiClient) {
     try {
       openaiClient = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
+        defaultHeaders: {
+          'OpenAI-Project': getOpenAIProjectId(),
+        },
       })
-      console.log('Cliente OpenAI inicializado com sucesso')
+      console.log('Cliente OpenAI inicializado com sucesso (Projeto:', getOpenAIProjectId(), ')')
     } catch (error) {
       console.error('Erro ao inicializar cliente OpenAI:', error)
       return null
@@ -81,7 +97,7 @@ export default async function handler(req, res) {
           const response = await fetch('https://api.openai.com/v1/vector_stores', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              ...getOpenAIHeaders(),
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -104,10 +120,17 @@ export default async function handler(req, res) {
       case 'createAssistant':
         console.log('Criando assistente...', { name: params.name })
         
+        // Instruções padrão do sistema para todos os assistants
+        const defaultInstructions = `Você é um assistente especializado em análise de dados para o cliente:
+- Use os dados do vectorstore para responder perguntas e gerar insights sobre os dados do cliente.
+- Sempre forneça análises precisas e acionáveis baseadas nos dados disponíveis.
+- Não fale nomes de arquivos em suas resposta.`
+        
         // Criar assistente sem vectorstore inicialmente
+        // O projeto já está configurado no cliente OpenAI via defaultHeaders
         const assistant = await openaiClient.beta.assistants.create({
           name: params.name,
-          instructions: params.instructions,
+          instructions: params.instructions || defaultInstructions,
           model: "gpt-4o-mini",
           tools: [{ type: "file_search" }]
           // Não incluir tool_resources inicialmente
@@ -173,7 +196,7 @@ export default async function handler(req, res) {
           const uploadResp = await fetch('https://api.openai.com/v1/files', {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+              ...getOpenAIHeaders()
             },
             body: form
           })
@@ -199,7 +222,7 @@ export default async function handler(req, res) {
           const assocResp = await fetch(`https://api.openai.com/v1/vector_stores/${params.vectorstoreId}/files`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              ...getOpenAIHeaders(),
               'Content-Type': 'application/json',
               'OpenAI-Beta': 'assistants=v2'
             },
@@ -226,7 +249,7 @@ export default async function handler(req, res) {
           const response = await fetch(`https://api.openai.com/v1/vector_stores/${params.vectorstoreId}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              ...getOpenAIHeaders(),
               'OpenAI-Beta': 'assistants=v2'
             }
           })
@@ -252,7 +275,7 @@ export default async function handler(req, res) {
             const response = await fetch(`https://api.openai.com/v1/assistants/${params.assistantId}`, {
               method: 'DELETE',
               headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                ...getOpenAIHeaders(),
                 'OpenAI-Beta': 'assistants=v2'
               }
             })
@@ -293,7 +316,7 @@ export default async function handler(req, res) {
             // Fallback REST
             const response = await fetch(`https://api.openai.com/v1/vector_stores/${params.vectorstoreId}`, {
               headers: {
-                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                ...getOpenAIHeaders(),
                 'OpenAI-Beta': 'assistants=v2'
               }
             })
@@ -330,7 +353,7 @@ export default async function handler(req, res) {
 
           const filesResp = await fetch(url.toString(), {
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+              ...getOpenAIHeaders(),
               'OpenAI-Beta': 'assistants=v2'
             }
           })
@@ -347,7 +370,7 @@ export default async function handler(req, res) {
             try {
               const f = await fetch(`https://api.openai.com/v1/files/${item.file_id || item.id}`, {
                 headers: {
-                  'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+                  ...getOpenAIHeaders()
                 }
               })
               if (f.ok) {
@@ -381,7 +404,7 @@ export default async function handler(req, res) {
           if (!fileId) return res.status(400).json({ error: 'fileId é obrigatório' })
           const resp = await fetch(`https://api.openai.com/v1/files/${fileId}/content`, {
             headers: {
-              'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+              ...getOpenAIHeaders()
             }
           })
           if (!resp.ok) {
