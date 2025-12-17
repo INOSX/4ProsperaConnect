@@ -61,25 +61,42 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   const { action, userId } = req.body || {}
+  
+  console.log('Storage API called:', { action, userId, timestamp: new Date().toISOString() })
+  
   try {
     const admin = getAdminClient()
+    console.log('Admin client initialized successfully')
 
     switch (action) {
       case 'ensureBucket': {
         if (!userId) return res.status(400).json({ error: 'userId is required' })
+        
+        console.log('ensureBucket called for userId:', userId)
+        
         // Tentar obter bucket
         const { data: got, error: getErr } = await admin.storage.getBucket(userId)
+        console.log('getBucket result:', { got: !!got, error: getErr?.message })
+        
         if (got && !getErr) {
+          console.log('Bucket already exists:', userId)
           return res.status(200).json({ bucket: userId, existed: true })
         }
 
         // Criar bucket (público por enquanto; ajuste depois conforme regras)
+        console.log('Creating bucket:', userId)
         const { data: created, error: createErr } = await admin.storage.createBucket(userId, {
           public: true,
         })
+        
+        console.log('createBucket result:', { created: !!created, error: createErr?.message })
+        
         if (createErr && !String(createErr.message || '').toLowerCase().includes('already exists')) {
+          console.error('Error creating bucket:', createErr)
           throw createErr
         }
+        
+        console.log('Bucket created successfully:', userId)
         return res.status(200).json({ bucket: userId, existed: false })
       }
 
