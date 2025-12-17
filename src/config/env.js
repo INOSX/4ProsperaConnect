@@ -8,9 +8,13 @@ export const config = {
   // openai: {
   //   apiKey: import.meta.env.OPENAI_API_KEY || '',
   // }
-  // OpenAI Assistant ID fixo
+  // OpenAI Configuration
   openai: {
+    // IDs fixos (usados apenas como fallback ou referência)
     assistantId: 'asst_wC8j4cN0pgmVqEAgVNJbFgVy',
+    vectorstoreId: 'vs_6941c53700bc8191ba6cc545dcf788a2',
+    // Projeto OpenAI onde os recursos serão criados
+    projectId: 'proj_rRapPtQ3Q0EOtuqYNUcVglYk',
   }
 }
 

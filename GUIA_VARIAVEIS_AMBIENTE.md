@@ -129,6 +129,16 @@ HEYGEN_API_KEY=sua-chave-heygen-aqui
 - **⚠️ IMPORTANTE**: Esta variável só será acessível nas API Routes do Vercel (backend), não no frontend
 - Clique em **Save**
 
+**⚠️ OPENAI_PROJECT_ID** - NUNCA expor no frontend (opcional, mas recomendado)
+- **Name**: `OPENAI_PROJECT_ID`
+- **Value**: `proj_rRapPtQ3Q0EOtuqYNUcVglYk`
+- **Environment**: Marque **Production**, **Preview** e **Development**
+- **⚠️ IMPORTANTE**: 
+  - Esta variável especifica em qual projeto OpenAI os recursos (assistents, vectorstores) serão criados
+  - Se não configurada, o sistema usará o projeto padrão `proj_rRapPtQ3Q0EOtuqYNUcVglYk`
+  - Todos os assistentes e vectorstores criados serão associados a este projeto
+- Clique em **Save**
+
 **⚠️ OPENAI_API_KEY** - NUNCA expor no frontend
 - **Name**: `OPENAI_API_KEY`
 - **Value**: `sua-chave-openai-aqui` (obtenha em https://platform.openai.com/api-keys)
@@ -177,6 +187,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhY
 
 # OpenAI (opcional)
 OPENAI_API_KEY=sua-chave-openai-aqui
+OPENAI_PROJECT_ID=proj_rRapPtQ3Q0EOtuqYNUcVglYk
 OPENAI_MODEL=gpt-3.5-turbo
 OPENAI_MAX_TOKENS=1000
 OPENAI_TEMPERATURE=0.7

@@ -3,11 +3,20 @@ import { createClient } from '@supabase/supabase-js'
 let supabaseAdmin
 function getAdminClient() {
   if (!supabaseAdmin) {
-    const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE || process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Tentar diferentes nomes de variáveis de ambiente
+    const url = process.env.SUPABASE_URL || 
+                process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                'https://dytuwutsjjxxmyefrfed.supabase.co'
+    
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE || 
+                       process.env.SUPABASE_SERVICE_ROLE_KEY ||
+                       process.env.SUPABASE_SERVICE_KEY ||
+                       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+    
     if (!url || !serviceKey) {
       throw new Error('Supabase admin credentials missing (SUPABASE_URL and SUPABASE_SERVICE_ROLE)')
     }
+    
     supabaseAdmin = createClient(url, serviceKey)
   }
   return supabaseAdmin
