@@ -24,10 +24,13 @@ Configure as URLs no painel do Supabase. Isso é feito em **Authentication > URL
 A **Site URL** é a URL principal da sua aplicação. Configure para a URL de **Production**:
 
 ```
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app
+https://4prosperaconnect.vercel.app
 ```
 
-**⚠️ IMPORTANTE**: Não inclua a barra final (`/`) na URL.
+**⚠️ IMPORTANTE**: 
+- Não inclua a barra final (`/`) na URL
+- Esta é a URL que o Supabase usará como base para gerar os links de confirmação de email
+- Se estiver como `localhost:3000`, todos os emails terão links para localhost
 
 ### 3. Configure as Redirect URLs
 
@@ -37,8 +40,8 @@ As **Redirect URLs** são todas as URLs permitidas para redirecionamento após a
 
 #### URLs de Production:
 ```
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/**
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback
+https://4prosperaconnect.vercel.app/**
+https://4prosperaconnect.vercel.app/auth/callback
 ```
 
 #### URLs de Preview (Vercel):
@@ -63,13 +66,13 @@ http://localhost:5173/auth/callback
 
 **Site URL:**
 ```
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app
+https://4prosperaconnect.vercel.app
 ```
 
 **Redirect URLs (uma por linha):**
 ```
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/**
-https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback
+https://4prosperaconnect.vercel.app/**
+https://4prosperaconnect.vercel.app/auth/callback
 https://4prosperaconnect-*.vercel.app/**
 https://4prosperaconnect-*.vercel.app/auth/callback
 http://localhost:5173/**
@@ -199,7 +202,7 @@ export const supabase = createClient(config.supabase.url, config.supabase.anonKe
 ## 📌 URLs do Projeto
 
 **Production:**
-- URL: `https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app`
+- URL: `https://4prosperaconnect.vercel.app`
 
 **Preview (exemplo):**
 - URL: `https://4prosperaconnect-e1ddq8k4j-inosx.vercel.app`

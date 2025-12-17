@@ -9,6 +9,7 @@ import Layout from './components/layout/Layout'
 import Dashboard from './components/dashboard/Dashboard'
 import Settings from './components/settings/Settings'
 import Datasets from './components/datasets/Datasets'
+import UploadPage from './components/dashboard/UploadPage'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -39,6 +40,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Datasets />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/upload" element={
+              <ProtectedRoute>
+                <Layout>
+                  <UploadPage />
                 </Layout>
               </ProtectedRoute>
             } />

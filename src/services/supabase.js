@@ -19,7 +19,7 @@ const getRedirectUrl = () => {
   // Fallback: usar variável de ambiente ou URL de produção padrão
   return process.env.VERCEL_URL 
     ? `https://${process.env.VERCEL_URL}/auth/callback`
-    : 'https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback'
+    : 'https://4prosperaconnect.vercel.app/auth/callback'
 }
 
 export const supabase = createClient(config.supabase.url, config.supabase.anonKey, {
@@ -48,7 +48,7 @@ export const auth = {
     // Obter URL de redirecionamento baseada no ambiente atual
     const redirectUrl = typeof window !== 'undefined' 
       ? `${window.location.origin}/auth/callback`
-      : 'https://4prosperaconnect-2f0gzn9n6-inosx.vercel.app/auth/callback'
+      : 'https://4prosperaconnect.vercel.app/auth/callback'
     
     const { data, error } = await supabase.auth.signUp({
       email,
