@@ -1,17 +1,21 @@
 import { createClient } from '@supabase/supabase-js'
 
+// Valores padrão do projeto Supabase
+const DEFAULT_SUPABASE_URL = 'https://dytuwutsjjxxmyefrfed.supabase.co'
+const DEFAULT_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+
 let supabaseAdmin
 function getAdminClient() {
   if (!supabaseAdmin) {
-    // Tentar diferentes nomes de variáveis de ambiente
-    const url = process.env.SUPABASE_URL || 
-                process.env.NEXT_PUBLIC_SUPABASE_URL ||
-                'https://dytuwutsjjxxmyefrfed.supabase.co'
+    // Tentar diferentes nomes de variáveis de ambiente, com fallback para valores padrão
+    const url = (process.env.SUPABASE_URL || 
+                 process.env.NEXT_PUBLIC_SUPABASE_URL ||
+                 DEFAULT_SUPABASE_URL).trim()
     
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE || 
-                       process.env.SUPABASE_SERVICE_ROLE_KEY ||
-                       process.env.SUPABASE_SERVICE_KEY ||
-                       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+    const serviceKey = (process.env.SUPABASE_SERVICE_ROLE || 
+                        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+                        process.env.SUPABASE_SERVICE_KEY ||
+                        DEFAULT_SERVICE_KEY).trim()
     
     // Debug: verificar se as variáveis estão sendo lidas
     console.log('Supabase Storage API - Debug:', {
@@ -19,6 +23,10 @@ function getAdminClient() {
       hasServiceKey: !!serviceKey,
       urlLength: url?.length,
       serviceKeyLength: serviceKey?.length,
+      usingDefaults: {
+        url: url === DEFAULT_SUPABASE_URL,
+        serviceKey: serviceKey === DEFAULT_SERVICE_KEY
+      },
       envVars: {
         SUPABASE_URL: !!process.env.SUPABASE_URL,
         NEXT_PUBLIC_SUPABASE_URL: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -28,8 +36,14 @@ function getAdminClient() {
       }
     })
     
-    if (!url || !serviceKey) {
-      console.error('Supabase credentials missing:', { url: !!url, serviceKey: !!serviceKey })
+    // Validação: garantir que temos valores válidos (não vazios)
+    if (!url || url.length === 0 || !serviceKey || serviceKey.length === 0) {
+      console.error('Supabase credentials missing:', { 
+        url: url || 'MISSING', 
+        urlLength: url?.length || 0,
+        serviceKey: serviceKey ? 'PRESENT' : 'MISSING',
+        serviceKeyLength: serviceKey?.length || 0
+      })
       throw new Error('Supabase admin credentials missing (SUPABASE_URL and SUPABASE_SERVICE_ROLE)')
     }
     
