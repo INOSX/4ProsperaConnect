@@ -15,6 +15,13 @@ export default async function handler(req, res) {
 
   const heygenApiKey = process.env.HEYGEN_API_KEY
 
+  console.log('HeyGen Proxy - Request received:', {
+    method: req.method,
+    action: req.body?.action,
+    hasApiKey: !!heygenApiKey,
+    apiKeyPrefix: heygenApiKey ? heygenApiKey.substring(0, 10) + '...' : 'MISSING'
+  })
+
   if (!heygenApiKey) {
     console.error('HeyGen API key missing')
     return res.status(500).json({ error: 'HeyGen API key not configured' })
@@ -397,9 +404,15 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Error in HeyGen proxy:', error)
     console.error('Error stack:', error.stack)
+    console.error('Request body:', JSON.stringify(req.body, null, 2))
+    
+    // Retornar erro mais amigável sem expor stack trace em produção
+    const errorMessage = error.message || 'Failed to process request'
     return res.status(500).json({ 
-      error: error.message || 'Failed to process request',
-      details: error.stack
+      error: errorMessage,
+      action: req.body?.action,
+      // Incluir detalhes apenas se não for HTML (erro da API HeyGen)
+      details: errorMessage.includes('<!DOCTYPE') ? 'HeyGen API returned HTML error page' : error.stack?.substring(0, 500)
     })
   }
 }
