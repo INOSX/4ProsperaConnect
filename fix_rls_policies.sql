@@ -5,17 +5,21 @@
 -- CORRIGIR POLÍTICAS RLS PARA PROSPECTS
 -- ============================================
 
--- Remover políticas antigas que podem estar causando problemas
+-- Remover TODAS as políticas existentes de prospects (se existirem)
 DROP POLICY IF EXISTS "Users can view their own prospects" ON public.prospects;
+DROP POLICY IF EXISTS "Users can view prospects" ON public.prospects;
+DROP POLICY IF EXISTS "Users can insert prospects" ON public.prospects;
 DROP POLICY IF EXISTS "Users can insert their own prospects" ON public.prospects;
+DROP POLICY IF EXISTS "Users can update their prospects" ON public.prospects;
 DROP POLICY IF EXISTS "Users can update their own prospects" ON public.prospects;
-DROP POLICY IF EXISTS "Users can delete their own prospects" ON public.prospects;
+DROP POLICY IF EXISTS "Users can delete their prospects" ON public.prospects;
+DROP POLICY IF EXISTS "Users can delete prospects" ON public.prospects;
 
 -- Criar políticas mais permissivas para desenvolvimento
 -- (Em produção, você deve refinar essas políticas)
 
--- SELECT: Usuários autenticados podem ver prospects que criaram OU todos se forem admin
-CREATE POLICY "Users can view prospects" ON public.prospects
+-- SELECT: Usuários autenticados podem ver prospects que criaram
+CREATE POLICY "Users can view their own prospects" ON public.prospects
     FOR SELECT
     USING (
         auth.uid() IS NOT NULL AND (
