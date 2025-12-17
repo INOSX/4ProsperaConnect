@@ -60,6 +60,15 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
         </button>
 
+        {/* Settings button */}
+        <button
+          onClick={() => navigate('/settings')}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Configurações"
+        >
+          <Settings className="h-5 w-5 text-gray-600" />
+        </button>
+
         {/* User menu */}
         <div className="relative">
           <button
