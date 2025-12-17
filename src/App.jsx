@@ -10,6 +10,12 @@ import Dashboard from './components/dashboard/Dashboard'
 import Settings from './components/settings/Settings'
 import Datasets from './components/datasets/Datasets'
 import UploadPage from './components/dashboard/UploadPage'
+import ProspectingDashboard from './components/prospecting/ProspectingDashboard'
+import ProspectList from './components/prospecting/ProspectList'
+import ProspectDetail from './components/prospecting/ProspectDetail'
+import CompanyDashboard from './components/companies/CompanyDashboard'
+import EmployeePortal from './components/employees/EmployeePortal'
+import DataConnections from './components/integrations/DataConnections'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -47,6 +53,48 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <UploadPage />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prospecting" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProspectingDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prospecting/list" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProspectList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prospecting/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProspectDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/companies" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CompanyDashboard />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/employees" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EmployeePortal />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/integrations" element={
+              <ProtectedRoute>
+                <Layout>
+                  <DataConnections />
                 </Layout>
               </ProtectedRoute>
             } />
