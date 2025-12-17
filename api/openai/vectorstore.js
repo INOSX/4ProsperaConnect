@@ -241,7 +241,32 @@ export default async function handler(req, res) {
         return res.status(200).json({ success: true })
 
       case 'deleteAssistant':
-        await openaiClient.beta.assistants.del(params.assistantId)
+        console.log('Deletando assistente...', params.assistantId)
+        try {
+          // Tentar usar o método delete (correto)
+          if (openaiClient.beta.assistants.delete) {
+            await openaiClient.beta.assistants.delete(params.assistantId)
+            console.log('Assistente deletado via SDK')
+          } else {
+            // Fallback: usar API REST diretamente
+            const response = await fetch(`https://api.openai.com/v1/assistants/${params.assistantId}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                'OpenAI-Beta': 'assistants=v2'
+              }
+            })
+            
+            if (!response.ok) {
+              throw new Error(`API REST falhou: ${response.status} ${response.statusText}`)
+            }
+            
+            console.log('Assistente deletado via API REST')
+          }
+        } catch (error) {
+          console.error('Erro ao deletar assistente:', error)
+          throw error
+        }
         return res.status(200).json({ success: true })
 
       case 'checkAssistantExists':

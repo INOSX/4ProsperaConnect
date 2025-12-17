@@ -66,7 +66,7 @@ const SimpleTest = () => {
           .from('clients')
           .select('*')
           .eq('user_id', user.id)
-          .single()
+          .maybeSingle()
 
         results.userClient = {
           success: !userClientError,

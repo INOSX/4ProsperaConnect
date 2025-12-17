@@ -151,13 +151,15 @@ export class ClientService {
         .from('clients')
         .select('*')
         .eq('user_id', userId)
-        .single()
+        .maybeSingle()
 
       if (error) {
-        if (error.code === 'PGRST116') {
-          return { success: false, error: 'Cliente não encontrado' }
-        }
         return { success: false, error: error.message }
+      }
+
+      if (!data) {
+        // Nenhum cliente encontrado para este usuário (ainda)
+        return { success: false, error: 'Cliente não encontrado' }
       }
 
       return { success: true, client: data }
