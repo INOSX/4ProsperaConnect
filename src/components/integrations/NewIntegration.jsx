@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
 import Card from '../ui/Card'
@@ -27,11 +27,13 @@ const SYNC_FREQUENCIES = [
 
 const NewIntegration = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [errors, setErrors] = useState({})
+  const [initializedFromQuery, setInitializedFromQuery] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,6 +59,30 @@ const NewIntegration = () => {
     max_connections: '10',
     pool_size: '5',
   })
+
+  // Pré-preencher formulário quando vier da conexão Supabase principal
+  useEffect(() => {
+    if (initializedFromQuery) return
+
+    const searchParams = new URLSearchParams(location.search)
+    const from = searchParams.get('from')
+
+    if (from === 'supabase') {
+      setFormData(prev => ({
+        ...prev,
+        name: 'Supabase - Banco principal da plataforma',
+        engine: 'postgresql',
+        connection_type: 'database',
+        host: 'dytuwutsjjxxmyefrfed.supabase.co',
+        port: '5432',
+        database: 'postgres',
+        schema: 'public',
+        ssl: true,
+      }))
+    }
+
+    setInitializedFromQuery(true)
+  }, [location.search, initializedFromQuery])
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target

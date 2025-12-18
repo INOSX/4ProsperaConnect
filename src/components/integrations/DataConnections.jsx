@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw } from 'lucide-react'
+import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw, Settings } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const DataConnections = () => {
@@ -142,12 +142,14 @@ const DataConnections = () => {
               </h2>
               <p className="text-sm text-gray-600">
                 Esta é a conexão oficial usada pelo 4Prospera Connect para armazenar usuários, clientes,
-                dados financeiros e datasets. A configuração é gerenciada internamente e não pode ser
-                editada aqui.
+                dados financeiros e datasets.
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Você pode configurar esta conexão como um módulo na área de integrações para testes e documentação.
               </p>
             </div>
           </div>
-          <div className="flex flex-col items-start md:items-end space-y-2">
+          <div className="flex flex-col items-start md:items-end space-y-3">
             <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">
               <CheckCircle className="h-3 w-3 mr-1" />
               Ativo
@@ -157,6 +159,15 @@ const DataConnections = () => {
               <br />
               Tipo: Banco de dados gerenciado (Supabase / PostgreSQL)
             </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="flex items-center justify-center"
+              onClick={() => navigate('/integrations/new?from=supabase')}
+            >
+              <Settings className="h-3 w-3 mr-1" />
+              Editar conexão Supabase
+            </Button>
           </div>
         </div>
       </Card>
