@@ -178,5 +178,49 @@ export class DataIntegrationService {
       throw error
     }
   }
+
+  /**
+   * Buscar uma conexão por ID
+   * @param {string} connectionId - ID da conexão
+   * @returns {Promise<Object>} Conexão
+   */
+  static async getConnection(connectionId) {
+    try {
+      const response = await fetch(`/api/integrations/connections?id=${connectionId}`)
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching connection:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Deletar conexão
+   * @param {string} connectionId - ID da conexão
+   * @returns {Promise<Object>} Resultado da exclusão
+   */
+  static async deleteConnection(connectionId) {
+    try {
+      const response = await fetch(`/api/integrations/connections?id=${connectionId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error deleting connection:', error)
+      throw error
+    }
+  }
 }
 
