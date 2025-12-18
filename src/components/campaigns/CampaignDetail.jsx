@@ -192,6 +192,10 @@ const CampaignDetail = () => {
     loadCampaign()
   }
 
+  const handleEditCampaign = () => {
+    navigate(`/campaigns/edit/${id}`)
+  }
+
   const handleDeleteCampaign = async () => {
     if (window.confirm('Tem certeza que deseja excluir esta campanha? Esta ação não pode ser desfeita.')) {
       // TODO: Implementar excluir campanha
@@ -278,7 +282,7 @@ const CampaignDetail = () => {
               Retomar
             </Button>
           )}
-          <Button variant="secondary" onClick={() => navigate(`/campaigns/edit/${id}`)}>
+          <Button variant="secondary" onClick={handleEditCampaign}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
@@ -459,7 +463,7 @@ const CampaignDetail = () => {
                   <Send className="h-4 w-4 mr-2" />
                   Enviar Agora
                 </Button>
-                <Button variant="secondary" className="w-full" onClick={() => navigate(`/campaigns/edit/${id}`)}>
+                <Button variant="secondary" className="w-full" onClick={handleEditCampaign}>
                   <Edit className="h-4 w-4 mr-2" />
                   Editar Campanha
                 </Button>
