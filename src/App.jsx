@@ -21,6 +21,7 @@ import DataConnections from './components/integrations/DataConnections'
 import NewIntegration from './components/integrations/NewIntegration'
 import CampaignManagement from './components/campaigns/CampaignManagement'
 import CreateCampaign from './components/campaigns/CreateCampaign'
+import CampaignDetail from './components/campaigns/CampaignDetail'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -142,6 +143,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <CreateCampaign />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CampaignDetail />
                 </Layout>
               </ProtectedRoute>
             } />
