@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw, Settings } from 'lucide-react'
+import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw, Settings, Edit, Trash2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const DataConnections = () => {
@@ -67,6 +67,34 @@ const DataConnections = () => {
     } catch (error) {
       console.error('Error syncing connection:', error)
       alert('Erro ao iniciar sincronização')
+    }
+  }
+
+  const handleEditConnection = (connectionId) => {
+    navigate(`/integrations/edit/${connectionId}`)
+  }
+
+  const handleDeleteConnection = async (connectionId) => {
+    const connection = connections.find(c => c.id === connectionId)
+    if (!connection) return
+
+    const confirmed = window.confirm(
+      `Tem certeza que deseja excluir a conexão "${connection.name}"?\n\nEsta ação não pode ser desfeita.`
+    )
+
+    if (!confirmed) return
+
+    try {
+      const result = await DataIntegrationService.deleteConnection(connectionId)
+      if (result.success) {
+        alert('Conexão excluída com sucesso!')
+        await loadConnections()
+      } else {
+        alert(`Erro ao excluir conexão: ${result.error || 'Erro desconhecido'}`)
+      }
+    } catch (error) {
+      console.error('Error deleting connection:', error)
+      alert(`Erro ao excluir conexão: ${error.message || 'Erro desconhecido'}`)
     }
   }
 
@@ -227,24 +255,46 @@ const DataConnections = () => {
                   )}
                 </div>
 
-                <div className="flex space-x-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleTestConnection(connection.id)}
-                    className="flex-1"
-                  >
-                    Testar
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleSyncConnection(connection.id)}
-                    className="flex-1"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" />
-                    Sincronizar
-                  </Button>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleTestConnection(connection.id)}
+                      className="flex-1"
+                    >
+                      Testar
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleSyncConnection(connection.id)}
+                      className="flex-1"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Sincronizar
+                    </Button>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleEditConnection(connection.id)}
+                      className="flex-1"
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteConnection(connection.id)}
+                      className="flex-1"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Excluir
+                    </Button>
+                  </div>
                 </div>
               </Card>
             )

@@ -106,6 +106,13 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
+            <Route path="/integrations/edit/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <NewIntegration />
+                </Layout>
+              </ProtectedRoute>
+            } />
           </Routes>
           <Analytics />
         </div>

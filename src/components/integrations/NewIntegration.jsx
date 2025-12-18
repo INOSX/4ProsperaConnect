@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
 import Card from '../ui/Card'
@@ -28,12 +28,15 @@ const SYNC_FREQUENCIES = [
 const NewIntegration = () => {
   const navigate = useNavigate()
   const location = useLocation()
+  const { id } = useParams()
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [loadingConnection, setLoadingConnection] = useState(false)
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [errors, setErrors] = useState({})
   const [initializedFromQuery, setInitializedFromQuery] = useState(false)
+  const isEditing = !!id
 
   const [formData, setFormData] = useState({
     name: '',
@@ -60,29 +63,71 @@ const NewIntegration = () => {
     pool_size: '5',
   })
 
-  // Pré-preencher formulário quando vier da conexão Supabase principal
+  // Carregar dados da conexão se estiver editando
   useEffect(() => {
-    if (initializedFromQuery) return
+    if (isEditing && id && !initializedFromQuery) {
+      loadConnectionData()
+    } else if (!isEditing && !initializedFromQuery) {
+      // Pré-preencher formulário quando vier da conexão Supabase principal
+      const searchParams = new URLSearchParams(location.search)
+      const from = searchParams.get('from')
 
-    const searchParams = new URLSearchParams(location.search)
-    const from = searchParams.get('from')
+      if (from === 'supabase') {
+        setFormData(prev => ({
+          ...prev,
+          name: 'Supabase - Banco principal da plataforma',
+          engine: 'postgresql',
+          connection_type: 'database',
+          host: 'dytuwutsjjxxmyefrfed.supabase.co',
+          port: '5432',
+          database: 'postgres',
+          schema: 'public',
+          ssl: true,
+        }))
+      }
 
-    if (from === 'supabase') {
-      setFormData(prev => ({
-        ...prev,
-        name: 'Supabase - Banco principal da plataforma',
-        engine: 'postgresql',
-        connection_type: 'database',
-        host: 'dytuwutsjjxxmyefrfed.supabase.co',
-        port: '5432',
-        database: 'postgres',
-        schema: 'public',
-        ssl: true,
-      }))
+      setInitializedFromQuery(true)
     }
+  }, [id, isEditing, initializedFromQuery, location.search])
 
-    setInitializedFromQuery(true)
-  }, [location.search, initializedFromQuery])
+  const loadConnectionData = async () => {
+    if (!id) return
+
+    setLoadingConnection(true)
+    try {
+      const result = await DataIntegrationService.getConnection(id)
+      if (result.success && result.connection) {
+        const conn = result.connection
+        const config = conn.connection_config || {}
+        
+        setFormData({
+          name: conn.name || '',
+          connection_type: conn.connection_type || 'database',
+          engine: config.engine || 'postgresql',
+          sync_frequency: conn.sync_frequency || 'manual',
+          host: config.host || '',
+          port: config.port?.toString() || '',
+          database: config.database || '',
+          username: config.username || '',
+          password: '', // Não carregar senha por segurança
+          schema: config.schema || '',
+          ssl: config.ssl || false,
+          connection_string: config.connection_string || '',
+          file_path: config.file_path || '',
+          connection_timeout: config.connection_timeout?.toString() || '30',
+          max_connections: config.max_connections?.toString() || '10',
+          pool_size: config.pool_size?.toString() || '5',
+        })
+      }
+      setInitializedFromQuery(true)
+    } catch (error) {
+      console.error('Error loading connection:', error)
+      alert(`Erro ao carregar conexão: ${error.message || 'Erro desconhecido'}`)
+      navigate('/integrations')
+    } finally {
+      setLoadingConnection(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -133,7 +178,8 @@ const NewIntegration = () => {
       if (!formData.username.trim()) {
         newErrors.username = 'Usuário é obrigatório'
       }
-      if (!formData.password.trim()) {
+      // Senha só é obrigatória ao criar nova conexão, não ao editar
+      if (!isEditing && !formData.password.trim()) {
         newErrors.password = 'Senha é obrigatória'
       }
     }
@@ -183,6 +229,10 @@ const NewIntegration = () => {
     } else if (formData.engine === 'mongodb') {
       return null // MongoDB usa connection string
     } else {
+      // Se estiver editando e a senha estiver vazia, retornar null (não atualizar credenciais)
+      if (isEditing && !formData.password.trim()) {
+        return null
+      }
       return {
         username: formData.username,
         password: formData.password,
@@ -245,26 +295,51 @@ const NewIntegration = () => {
       const connectionConfig = buildConnectionConfig()
       const credentials = buildCredentials()
 
-      const result = await DataIntegrationService.createConnection({
-        name: formData.name,
-        // Tipo lógico na tabela (restrito ao enum: api, csv, excel, database, google_sheets)
-        connection_type: 'database',
-        connection_config: connectionConfig,
-        credentials,
-        sync_frequency: formData.sync_frequency,
-        created_by: user.id,
-      })
+      if (isEditing && id) {
+        // Atualizar conexão existente
+        const updates = {
+          name: formData.name,
+          connection_config: connectionConfig,
+          sync_frequency: formData.sync_frequency,
+        }
+        
+        // Incluir credenciais apenas se foram fornecidas (senha preenchida)
+        if (credentials) {
+          updates.credentials = credentials
+        }
 
-      if (result.success) {
-        navigate('/integrations', { 
-          state: { message: 'Conexão criada com sucesso!' } 
-        })
+        const result = await DataIntegrationService.updateConnection(id, updates)
+
+        if (result.success) {
+          navigate('/integrations', { 
+            state: { message: 'Conexão atualizada com sucesso!' } 
+          })
+        } else {
+          alert(`Erro ao atualizar conexão: ${result.error || 'Erro desconhecido'}`)
+        }
       } else {
-        alert(`Erro ao criar conexão: ${result.error || 'Erro desconhecido'}`)
+        // Criar nova conexão
+        const result = await DataIntegrationService.createConnection({
+          name: formData.name,
+          // Tipo lógico na tabela (restrito ao enum: api, csv, excel, database, google_sheets)
+          connection_type: 'database',
+          connection_config: connectionConfig,
+          credentials,
+          sync_frequency: formData.sync_frequency,
+          created_by: user.id,
+        })
+
+        if (result.success) {
+          navigate('/integrations', { 
+            state: { message: 'Conexão criada com sucesso!' } 
+          })
+        } else {
+          alert(`Erro ao criar conexão: ${result.error || 'Erro desconhecido'}`)
+        }
       }
     } catch (error) {
-      console.error('Error creating connection:', error)
-      alert(`Erro ao criar conexão: ${error.message || 'Erro desconhecido'}`)
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} connection:`, error)
+      alert(`Erro ao ${isEditing ? 'atualizar' : 'criar'} conexão: ${error.message || 'Erro desconhecido'}`)
     } finally {
       setLoading(false)
     }
@@ -300,10 +375,23 @@ const NewIntegration = () => {
           Voltar
         </Button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Nova Conexão de Dados</h1>
-          <p className="text-gray-600">Configure uma nova integração com banco de dados</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditing ? 'Editar Conexão de Dados' : 'Nova Conexão de Dados'}
+          </h1>
+          <p className="text-gray-600">
+            {isEditing ? 'Edite a configuração da integração com banco de dados' : 'Configure uma nova integração com banco de dados'}
+          </p>
         </div>
       </div>
+
+      {loadingConnection && (
+        <Card className="p-6">
+          <div className="flex items-center justify-center">
+            <Loader className="h-5 w-5 animate-spin mr-2" />
+            <span className="text-gray-600">Carregando dados da conexão...</span>
+          </div>
+        </Card>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="p-6">
@@ -524,7 +612,8 @@ const NewIntegration = () => {
                 {/* Password */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Senha *
+                    Senha {!isEditing && '*'}
+                    {isEditing && <span className="text-xs text-gray-500 font-normal">(deixe em branco para não alterar)</span>}
                   </label>
                   <input
                     type="password"
@@ -532,7 +621,7 @@ const NewIntegration = () => {
                     value={formData.password}
                     onChange={handleChange}
                     className={`input w-full ${errors.password ? 'border-red-500' : ''}`}
-                    placeholder="••••••••"
+                    placeholder={isEditing ? "Deixe em branco para manter a senha atual" : "••••••••"}
                   />
                   {errors.password && (
                     <p className="mt-1 text-sm text-red-600 flex items-center">
@@ -686,4 +775,5 @@ const NewIntegration = () => {
 }
 
 export default NewIntegration
+
 
