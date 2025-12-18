@@ -13,6 +13,7 @@ import UploadPage from './components/dashboard/UploadPage'
 import ProspectingDashboard from './components/prospecting/ProspectingDashboard'
 import ProspectList from './components/prospecting/ProspectList'
 import ProspectDetail from './components/prospecting/ProspectDetail'
+import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
 import EmployeePortal from './components/employees/EmployeePortal'
 import DataConnections from './components/integrations/DataConnections'
@@ -75,6 +76,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProspectDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prospecting/enrich" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EnrichmentWizard />
                 </Layout>
               </ProtectedRoute>
             } />

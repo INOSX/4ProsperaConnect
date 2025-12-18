@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ProspectingService } from '../../services/prospectingService'
 import { RecommendationService } from '../../services/recommendationService'
+import { ProspectEnrichmentService } from '../../services/ProspectEnrichmentService'
+import { AdvancedScoringService } from '../../services/AdvancedScoringService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { ArrowLeft, CheckCircle, XCircle, Clock, TrendingUp, Target } from 'lucide-react'
+import { ArrowLeft, CheckCircle, XCircle, Clock, TrendingUp, Target, Database, BarChart3, ExternalLink, RefreshCw } from 'lucide-react'
 
 const ProspectDetail = () => {
   const { id } = useParams()
@@ -13,13 +15,27 @@ const ProspectDetail = () => {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const [qualifying, setQualifying] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
+  const [enrichmentHistory, setEnrichmentHistory] = useState([])
+  const [dataSources, setDataSources] = useState([])
+  const [scoringMetrics, setScoringMetrics] = useState(null)
+  const [externalData, setExternalData] = useState(null)
 
   useEffect(() => {
     if (id) {
       loadProspect()
       loadRecommendations()
+      loadEnrichmentData()
+      loadScoringMetrics()
     }
   }, [id])
+
+  useEffect(() => {
+    if (prospect) {
+      loadExternalData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prospect])
 
   const loadProspect = async () => {
     setLoading(true)
@@ -43,6 +59,79 @@ const ProspectDetail = () => {
       }
     } catch (error) {
       console.error('Error loading recommendations:', error)
+    }
+  }
+
+  const loadEnrichmentData = async () => {
+    try {
+      const [historyResult, sourcesResult] = await Promise.all([
+        ProspectEnrichmentService.getEnrichmentHistory(id),
+        ProspectEnrichmentService.getProspectDataSources(id)
+      ])
+      if (historyResult.success) {
+        setEnrichmentHistory(historyResult.history || [])
+      }
+      if (sourcesResult.success) {
+        setDataSources(sourcesResult.dataSources || [])
+      }
+    } catch (error) {
+      console.error('Error loading enrichment data:', error)
+    }
+  }
+
+  const loadScoringMetrics = async () => {
+    try {
+      const { supabase } = await import('../../services/supabase.js')
+      const { data, error } = await supabase
+        .from('prospect_scoring_metrics')
+        .select('*')
+        .eq('prospect_id', id)
+        .single()
+
+      if (!error && data) {
+        setScoringMetrics(data)
+      }
+    } catch (error) {
+      console.error('Error loading scoring metrics:', error)
+    }
+  }
+
+  const loadExternalData = async () => {
+    try {
+      // Buscar dados de APIs externas (simulado)
+      if (prospect?.cpf || prospect?.cnpj) {
+        // Em produção, fazer chamadas reais às APIs
+        setExternalData({
+          receitaFederal: { situacao: 'ATIVA', data_abertura: '2020-01-15' },
+          serasa: { score_credito: 750, score_descricao: 'Bom' },
+          creditBureau: { capacidade_pagamento: 'ALTA' }
+        })
+      }
+    } catch (error) {
+      console.error('Error loading external data:', error)
+    }
+  }
+
+  const handleEnrichNow = () => {
+    navigate('/prospecting/enrich', { state: { prospectIds: [id] } })
+  }
+
+  const handleCalculateScore = async () => {
+    try {
+      const response = await fetch('/api/prospects/calculate-advanced-score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prospectIds: [id] })
+      })
+
+      if (response.ok) {
+        await loadScoringMetrics()
+        await loadProspect()
+        alert('Score calculado com sucesso!')
+      }
+    } catch (error) {
+      console.error('Error calculating score:', error)
+      alert('Erro ao calcular score')
     }
   }
 
@@ -118,9 +207,40 @@ const ProspectDetail = () => {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-4">
+          {[
+            { id: 'overview', label: 'Visão Geral', icon: Target },
+            { id: 'enrichment', label: 'Enriquecimento', icon: Database },
+            { id: 'scoring', label: 'Scoring Detalhado', icon: BarChart3 },
+            { id: 'external', label: 'Dados Externos', icon: ExternalLink }
+          ].map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.id
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+                  isActive
+                    ? 'border-primary-600 text-primary-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="font-medium">{tab.label}</span>
+              </button>
+            )
+          })}
+        </nav>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Informações Principais */}
+        {/* Conteúdo Principal */}
         <div className="lg:col-span-2 space-y-6">
+          {activeTab === 'overview' && (
+            <>
           {/* Dados Básicos */}
           <Card>
             <div className="p-6">
@@ -229,6 +349,176 @@ const ProspectDetail = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </Card>
+          )}
+            </>
+          )}
+
+          {activeTab === 'enrichment' && (
+            <div className="space-y-6">
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Fontes de Dados</h2>
+                    <Button onClick={handleEnrichNow} variant="secondary" size="sm">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Enriquecer Agora
+                    </Button>
+                  </div>
+                  {dataSources.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhuma fonte de dados vinculada</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {dataSources.map((source) => (
+                        <div key={source.id} className="p-3 bg-gray-50 rounded">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">{source.source_type}</p>
+                              <p className="text-sm text-gray-500">Status: {source.enrichment_status}</p>
+                            </div>
+                            {source.last_enriched_at && (
+                              <p className="text-xs text-gray-400">
+                                {new Date(source.last_enriched_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Card>
+
+              <Card>
+                <div className="p-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Histórico de Enriquecimento</h2>
+                  {enrichmentHistory.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum histórico de enriquecimento</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {enrichmentHistory.map((entry) => (
+                        <div key={entry.id} className="p-3 bg-gray-50 rounded">
+                          <div className="flex items-center justify-between mb-2">
+                            <p className="font-medium text-gray-900">{entry.enrichment_type}</p>
+                            <p className="text-xs text-gray-400">
+                              {new Date(entry.created_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                          {entry.enriched_fields && entry.enriched_fields.length > 0 && (
+                            <p className="text-sm text-gray-600">
+                              Campos enriquecidos: {entry.enriched_fields.join(', ')}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'scoring' && (
+            <div className="space-y-6">
+              <Card>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900">Métricas de Scoring</h2>
+                    <Button onClick={handleCalculateScore} variant="secondary" size="sm">
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Recalcular
+                    </Button>
+                  </div>
+                  {scoringMetrics ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-600">Probabilidade de Conversão</p>
+                        <p className="text-2xl font-bold text-primary-600">
+                          {Math.round(scoringMetrics.conversion_probability || 0)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">LTV Estimado</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          R$ {(scoringMetrics.ltv_estimate || 0).toLocaleString('pt-BR')}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Risco de Churn</p>
+                        <p className={`text-2xl font-bold ${
+                          (scoringMetrics.churn_risk || 0) < 30 ? 'text-green-600' :
+                          (scoringMetrics.churn_risk || 0) < 60 ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {Math.round(scoringMetrics.churn_risk || 0)}%
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Score Combinado</p>
+                        <p className="text-2xl font-bold text-primary-600">
+                          {Math.round(scoringMetrics.combined_score || 0)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Engagement Score</p>
+                        <p className="text-xl font-semibold text-gray-900">
+                          {Math.round(scoringMetrics.engagement_score || 0)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600">Saúde Financeira</p>
+                        <p className="text-xl font-semibold text-gray-900">
+                          {Math.round(scoringMetrics.financial_health_score || 0)}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm text-gray-500 mb-4">Nenhuma métrica calculada ainda</p>
+                      <Button onClick={handleCalculateScore}>Calcular Métricas</Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          )}
+
+          {activeTab === 'external' && (
+            <Card>
+              <div className="p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">Dados de APIs Externas</h2>
+                {externalData ? (
+                  <div className="space-y-4">
+                    {externalData.receitaFederal && (
+                      <div className="p-4 bg-gray-50 rounded">
+                        <h3 className="font-medium text-gray-900 mb-2">Receita Federal</h3>
+                        <div className="space-y-1 text-sm">
+                          <p><span className="text-gray-600">Situação:</span> {externalData.receitaFederal.situacao}</p>
+                          <p><span className="text-gray-600">Data de Abertura:</span> {externalData.receitaFederal.data_abertura}</p>
+                        </div>
+                      </div>
+                    )}
+                    {externalData.serasa && (
+                      <div className="p-4 bg-gray-50 rounded">
+                        <h3 className="font-medium text-gray-900 mb-2">Serasa</h3>
+                        <div className="space-y-1 text-sm">
+                          <p><span className="text-gray-600">Score de Crédito:</span> {externalData.serasa.score_credito}</p>
+                          <p><span className="text-gray-600">Descrição:</span> {externalData.serasa.score_descricao}</p>
+                        </div>
+                      </div>
+                    )}
+                    {externalData.creditBureau && (
+                      <div className="p-4 bg-gray-50 rounded">
+                        <h3 className="font-medium text-gray-900 mb-2">Bureau de Crédito</h3>
+                        <div className="space-y-1 text-sm">
+                          <p><span className="text-gray-600">Capacidade de Pagamento:</span> {externalData.creditBureau.capacidade_pagamento}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">Nenhum dado externo disponível</p>
+                )}
               </div>
             </Card>
           )}

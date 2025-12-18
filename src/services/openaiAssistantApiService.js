@@ -41,9 +41,10 @@ export class OpenAIAssistantApiService {
    * @param {string} companyId - ID da empresa (opcional)
    * @param {string} employeeId - ID do colaborador (opcional)
    * @param {string} contextType - Tipo de contexto (opcional)
+   * @param {Object} prospectingContext - Contexto de prospecção (opcional)
    * @returns {Promise<string>} Resposta do assistente
    */
-  async getResponse(userMessage, fileName = null, companyId = null, employeeId = null, contextType = null) {
+  async getResponse(userMessage, fileName = null, companyId = null, employeeId = null, contextType = null, prospectingContext = null) {
     console.log('🔵 OpenAIAssistantApiService.getResponse called:', {
       threadId: this.threadId,
       assistantId: this.assistantId,
@@ -69,7 +70,8 @@ export class OpenAIAssistantApiService {
         fileName: fileName,
         companyId: companyId,
         employeeId: employeeId,
-        contextType: contextType
+        contextType: contextType,
+        prospectingContext: prospectingContext
       }
       
       console.log('🔵 Sending request to API:', {
