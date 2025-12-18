@@ -230,29 +230,59 @@ const Sidebar = ({ isOpen, onClose }) => {
             } catch (sendError) {
               // Se o erro for de sessão desconectada (400 ou sessão inválida), tentar reconectar
               if (sendError.message?.includes('400') || 
+                  sendError.message?.includes('401') ||
                   sendError.message?.includes('disconnected') || 
                   sendError.message?.includes('not initialized')) {
                 console.warn('⚠️ Session error detected, attempting to reconnect...')
                 setAvatarConnected(false)
                 setRecordingStatus('Reconectando avatar...')
                 
-                // Tentar reconectar
+                // Tentar reconectar com retry e backoff exponencial
                 if (!isReconnectingRef.current && videoRef.current) {
                   isReconnectingRef.current = true
-                  try {
-                    await initializeAvatar()
-                    // Após reconectar, tentar enviar o texto novamente
-                    const retryResult = await streamingService.sendText(responseText)
-                    console.log('✅ Text sent successfully after reconnection!')
-                    setRecordingStatus('Avatar respondendo...')
-                    setTimeout(() => setRecordingStatus(''), 3000)
-                  } catch (reconnectError) {
-                    console.error('❌ Failed to reconnect and send text:', reconnectError)
-                    setRecordingStatus('Erro ao reconectar. Tente novamente.')
-                    setTimeout(() => setRecordingStatus(''), 5000)
-                  } finally {
-                    isReconnectingRef.current = false
+                  
+                  // Função de reconexão com retry
+                  const reconnectWithRetry = async (attempt = 1, maxAttempts = 3) => {
+                    try {
+                      // Limpar token antigo antes de reconectar
+                      streamingService.clearSessionToken()
+                      
+                      // Aguardar um pouco antes de tentar (backoff exponencial)
+                      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000)
+                      if (attempt > 1) {
+                        console.log(`🔄 Retry attempt ${attempt}/${maxAttempts} after ${delay}ms...`)
+                        await new Promise(resolve => setTimeout(resolve, delay))
+                      }
+                      
+                      // Forçar novo token na reconexão
+                      await initializeAvatar(true)
+                      
+                      // Aguardar um pouco para garantir que a sessão está estável
+                      await new Promise(resolve => setTimeout(resolve, 1000))
+                      
+                      // Após reconectar, tentar enviar o texto novamente
+                      const retryResult = await streamingService.sendText(responseText)
+                      console.log('✅ Text sent successfully after reconnection!')
+                      setRecordingStatus('Avatar respondendo...')
+                      setTimeout(() => setRecordingStatus(''), 3000)
+                      isReconnectingRef.current = false
+                    } catch (reconnectError) {
+                      console.error(`❌ Reconnection attempt ${attempt} failed:`, reconnectError)
+                      
+                      if (attempt < maxAttempts) {
+                        // Tentar novamente
+                        return reconnectWithRetry(attempt + 1, maxAttempts)
+                      } else {
+                        // Todas as tentativas falharam
+                        console.error('❌ All reconnection attempts failed')
+                        setRecordingStatus('Erro ao reconectar. Tente novamente.')
+                        setTimeout(() => setRecordingStatus(''), 5000)
+                        isReconnectingRef.current = false
+                      }
+                    }
                   }
+                  
+                  reconnectWithRetry()
                 } else {
                   setRecordingStatus('Erro: Avatar desconectado. Aguarde reconexão...')
                   setTimeout(() => setRecordingStatus(''), 5000)
@@ -309,12 +339,25 @@ const Sidebar = ({ isOpen, onClose }) => {
   }, [avatarConnected, streamingService])
 
   // Função para inicializar o avatar (chamada na primeira interação do usuário)
-  const initializeAvatar = async () => {
+  const initializeAvatar = async (forceNewToken = false) => {
     if (!videoRef.current) return
     
-    if (avatarConnected) {
-      // Avatar já está conectado
+    if (avatarConnected && !forceNewToken) {
+      // Avatar já está conectado e não estamos forçando novo token
       return
+    }
+    
+    // Se forçar novo token, desconectar primeiro
+    if (forceNewToken && avatarConnected) {
+      console.log('🔄 Force reconnection: disconnecting current session...')
+      try {
+        streamingService.disconnect()
+      } catch (e) {
+        console.warn('⚠️ Error disconnecting:', e)
+      }
+      setAvatarConnected(false)
+      // Limpar token antigo
+      streamingService.clearSessionToken()
     }
 
     try {
@@ -401,6 +444,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         console.log('⚠️ Avatar disconnected, updating state...')
         setAvatarConnected(false)
         
+        // Limpar token antigo quando desconectar
+        streamingService.clearSessionToken()
+        
         // Evitar múltiplas reconexões simultâneas
         if (isReconnectingRef.current) {
           console.log('⚠️ Reconnection already in progress, skipping...')
@@ -413,9 +459,12 @@ const Sidebar = ({ isOpen, onClose }) => {
           if (videoRef.current && !avatarConnectedRef.current && !isReconnectingRef.current) {
             isReconnectingRef.current = true
             console.log('🔄 Attempting to reconnect avatar...')
-            initializeAvatar()
+            // Forçar novo token na reconexão
+            initializeAvatar(true)
               .then(() => {
                 isReconnectingRef.current = false
+                setRecordingStatus('Avatar reconectado!')
+                setTimeout(() => setRecordingStatus(''), 2000)
               })
               .catch(err => {
                 isReconnectingRef.current = false
@@ -427,7 +476,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         }, 2000)
       }
       
-      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current, null, handleDisconnect)
+      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current, null, handleDisconnect, forceNewToken)
       // Se chegou aqui, o stream está pronto
       setAvatarConnected(true)
       isReconnectingRef.current = false // Resetar flag de reconexão
