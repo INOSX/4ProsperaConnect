@@ -13,6 +13,7 @@ import UploadPage from './components/dashboard/UploadPage'
 import ProspectingDashboard from './components/prospecting/ProspectingDashboard'
 import ProspectList from './components/prospecting/ProspectList'
 import ProspectDetail from './components/prospecting/ProspectDetail'
+import CPFClientDetail from './components/prospecting/CPFClientDetail'
 import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
 import EmployeePortal from './components/employees/EmployeePortal'
@@ -76,6 +77,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <ProspectDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/prospecting/cpf/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CPFClientDetail />
                 </Layout>
               </ProtectedRoute>
             } />
