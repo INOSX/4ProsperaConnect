@@ -175,8 +175,30 @@ const Sidebar = ({ isOpen, onClose }) => {
                 console.log('🔵 Selected file:', fileName)
                 console.log('🔵 Context:', { companyId, employeeId, contextType })
                 
+                // Detectar contexto de prospecção
+                let prospectingContext = null
+                try {
+                  const { useLocation } = await import('react-router-dom')
+                  // Usar window.location como fallback já que não podemos usar hooks aqui
+                  const currentPath = window.location.pathname
+                  if (currentPath.startsWith('/prospecting')) {
+                    const { ProspectingContextService } = await import('../../services/ProspectingContextService.js')
+                    const prospectId = currentPath.match(/\/prospecting\/([^\/]+)/)?.[1]
+                    const pageType = currentPath.includes('/list') ? 'list' : 
+                                    prospectId ? 'detail' : 'dashboard'
+                    prospectingContext = await ProspectingContextService.getProspectingContext(
+                      user.id,
+                      pageType,
+                      prospectId
+                    )
+                    console.log('🔵 Prospecting context loaded:', prospectingContext)
+                  }
+                } catch (ctxError) {
+                  console.warn('⚠️ Error loading prospecting context:', ctxError)
+                }
+                
                 // Passar o nome do arquivo e contexto para o assistente
-                responseText = await assistant.getResponse(text, fileName, companyId, employeeId, contextType)
+                responseText = await assistant.getResponse(text, fileName, companyId, employeeId, contextType, prospectingContext)
                 console.log('✅ OpenAI Assistant response received:', responseText)
                 console.log('✅ Response type:', typeof responseText)
                 console.log('✅ Response length:', responseText?.length)

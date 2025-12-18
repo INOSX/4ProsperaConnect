@@ -57,7 +57,7 @@ export default async function handler(req, res) {
       }
 
       case 'getResponse': {
-        const { threadId, assistantId, message, fileName, companyId, employeeId, contextType } = params
+        const { threadId, assistantId, message, fileName, companyId, employeeId, contextType, prospectingContext } = params
 
         console.log('🔵 getResponse - Received params:', {
           threadId,
@@ -67,6 +67,7 @@ export default async function handler(req, res) {
           companyId,
           employeeId,
           contextType,
+          hasProspectingContext: !!prospectingContext,
           threadIdType: typeof threadId,
           threadIdValue: threadId
         })
@@ -92,6 +93,17 @@ export default async function handler(req, res) {
         // Construir mensagem com contexto
         let contextualMessage = message
         let contextInfo = []
+
+        // Adicionar contexto de prospecção se fornecido
+        if (prospectingContext) {
+          try {
+            const { ProspectingContextService } = await import('../../src/services/ProspectingContextService.js')
+            const prospectingContextText = ProspectingContextService.formatContextForAssistant(prospectingContext)
+            contextInfo.push(prospectingContextText)
+          } catch (err) {
+            console.error('Error formatting prospecting context:', err)
+          }
+        }
 
         // Adicionar contexto de empresa se fornecido
         if (companyId) {
