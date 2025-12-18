@@ -4,7 +4,10 @@ import { useNavigate } from 'react-router-dom'
 import { ProspectingService } from '../../services/prospectingService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3 } from 'lucide-react'
+import LineChart from '../dashboard/charts/LineChart'
+import BarChart from '../dashboard/charts/BarChart'
+import PieChartComponent from '../dashboard/charts/PieChart'
+import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3, PieChart, Info } from 'lucide-react'
 
 const ProspectingDashboard = () => {
   const { user } = useAuth()
@@ -22,6 +25,8 @@ const ProspectingDashboard = () => {
   const [recentProspects, setRecentProspects] = useState([])
   const [loading, setLoading] = useState(true)
   const [scoreDistribution, setScoreDistribution] = useState([])
+  const [chartType, setChartType] = useState('bar')
+  const [chartData, setChartData] = useState([])
 
   useEffect(() => {
     loadDashboardData()
@@ -68,6 +73,16 @@ const ProspectingDashboard = () => {
           else distribution[4]++
         })
         setScoreDistribution(distribution)
+
+        // Preparar dados para gráficos
+        const chartDataFormatted = [
+          { range: '0-20', count: distribution[0] },
+          { range: '21-40', count: distribution[1] },
+          { range: '41-60', count: distribution[2] },
+          { range: '61-80', count: distribution[3] },
+          { range: '81-100', count: distribution[4] }
+        ]
+        setChartData(chartDataFormatted)
 
         setStats({
           total: prospects.length,
@@ -130,70 +145,161 @@ const ProspectingDashboard = () => {
 
       {/* KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total de Prospects</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Total de Prospects</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Número total de prospects cadastrados no sistema
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
             <Users className="h-8 w-8 text-primary-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Qualificados</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Qualificados</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Prospects que foram qualificados e estão prontos para abordagem comercial
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-green-600">{stats.qualified}</p>
             </div>
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Pendentes</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Pendentes</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Prospects aguardando análise ou qualificação
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
             </div>
             <Clock className="h-8 w-8 text-yellow-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Rejeitados</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Rejeitados</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Prospects que não atendem aos critérios de qualificação
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
             </div>
             <XCircle className="h-8 w-8 text-red-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Score Médio</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Score Médio</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Média de scores de todos os prospects (escala 0-100). Quanto maior, melhor a qualidade do pipeline.
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-primary-600">{stats.averageScore}</p>
             </div>
             <TrendingUp className="h-8 w-8 text-primary-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">LTV Médio</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">LTV Médio</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg">
+                      Lifetime Value médio estimado. Valor que cada prospect pode gerar ao longo do tempo.
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className="text-2xl font-bold text-green-600">R$ {(stats.averageLTV / 1000).toFixed(0)}k</p>
             </div>
             <DollarSign className="h-8 w-8 text-green-600" />
           </div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Risco Churn Médio</p>
+              <div className="flex items-center space-x-1">
+                <p className="text-sm text-gray-600">Risco Churn Médio</p>
+                <div className="relative">
+                  <Info className="h-4 w-4 text-gray-400 cursor-help" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-10">
+                    <div className="bg-gray-900 text-white text-xs rounded py-2 px-3 whitespace-nowrap shadow-lg max-w-xs">
+                      Risco médio de perda de cliente. Quanto menor, melhor. Verde: &lt;30% (baixo), Amarelo: 30-60% (médio), Vermelho: &gt;60% (alto)
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
+                        <div className="border-4 border-transparent border-t-gray-900"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <p className={`text-2xl font-bold ${
                 stats.averageChurnRisk < 30 ? 'text-green-600' :
                 stats.averageChurnRisk < 60 ? 'text-yellow-600' : 'text-red-600'
@@ -214,35 +320,67 @@ const ProspectingDashboard = () => {
         {/* Distribuição de Scores */}
         <Card>
           <div className="p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Distribuição de Scores</h2>
-            <div className="space-y-2">
-              {[
-                { label: '0-20', count: scoreDistribution[0], color: 'bg-red-500' },
-                { label: '21-40', count: scoreDistribution[1], color: 'bg-orange-500' },
-                { label: '41-60', count: scoreDistribution[2], color: 'bg-yellow-500' },
-                { label: '61-80', count: scoreDistribution[3], color: 'bg-green-500' },
-                { label: '81-100', count: scoreDistribution[4], color: 'bg-primary-600' }
-              ].map((range, index) => {
-                const maxCount = Math.max(...scoreDistribution, 1)
-                const percentage = maxCount > 0 ? (range.count / maxCount) * 100 : 0
-                return (
-                  <div key={index} className="flex items-center space-x-3">
-                    <div className="w-16 text-sm text-gray-600">{range.label}</div>
-                    <div className="flex-1">
-                      <div className="h-6 bg-gray-200 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full ${range.color} transition-all`}
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-12 text-sm font-medium text-gray-900 text-right">
-                      {range.count}
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Distribuição de Scores</h2>
+              <div className="flex space-x-1">
+                {[
+                  { id: 'bar', name: 'Barras', icon: BarChart3 },
+                  { id: 'line', name: 'Linha', icon: TrendingUp },
+                  { id: 'pie', name: 'Pizza', icon: PieChart }
+                ].map((type) => {
+                  const Icon = type.icon
+                  return (
+                    <button
+                      key={type.id}
+                      onClick={() => setChartType(type.id)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        chartType === type.id
+                          ? 'bg-primary-100 text-primary-700'
+                          : 'text-gray-500 hover:bg-gray-100'
+                      }`}
+                      title={type.name}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </button>
+                  )
+                })}
+              </div>
             </div>
+            {chartData.length > 0 ? (
+              <div style={{ height: '300px' }}>
+                {chartType === 'bar' && (
+                  <BarChart
+                    data={chartData}
+                    xColumn="range"
+                    yColumn="count"
+                    title="Distribuição de Scores"
+                    height={300}
+                  />
+                )}
+                {chartType === 'line' && (
+                  <LineChart
+                    data={chartData}
+                    xColumn="range"
+                    yColumn="count"
+                    title="Distribuição de Scores"
+                    height={300}
+                  />
+                )}
+                {chartType === 'pie' && (
+                  <PieChartComponent
+                    data={chartData}
+                    labelColumn="range"
+                    valueColumn="count"
+                    title="Distribuição de Scores"
+                    height={300}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-500">
+                <p>Nenhum dado disponível</p>
+              </div>
+            )}
           </div>
         </Card>
 
@@ -299,8 +437,12 @@ const ProspectingDashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {recentProspects.map((prospect) => (
-                    <tr key={prospect.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-900">{prospect.name}</td>
+                    <tr 
+                      key={prospect.id} 
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => navigate(`/prospecting/${prospect.id}`)}
+                    >
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{prospect.name}</td>
                       <td className="px-4 py-3 text-sm text-gray-600">{prospect.cpf}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={`font-medium ${
