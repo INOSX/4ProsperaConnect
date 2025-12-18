@@ -16,6 +16,7 @@ import ProspectDetail from './components/prospecting/ProspectDetail'
 import CompanyDashboard from './components/companies/CompanyDashboard'
 import EmployeePortal from './components/employees/EmployeePortal'
 import DataConnections from './components/integrations/DataConnections'
+import NewIntegration from './components/integrations/NewIntegration'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -95,6 +96,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <DataConnections />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/integrations/new" element={
+              <ProtectedRoute>
+                <Layout>
+                  <NewIntegration />
                 </Layout>
               </ProtectedRoute>
             } />
