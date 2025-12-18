@@ -7,7 +7,8 @@ import Button from '../ui/Button'
 import LineChart from '../dashboard/charts/LineChart'
 import BarChart from '../dashboard/charts/BarChart'
 import PieChartComponent from '../dashboard/charts/PieChart'
-import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3, PieChart, Info } from 'lucide-react'
+import CPFToCNPJTab from './CPFToCNPJTab'
+import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3, PieChart, Info, UserPlus } from 'lucide-react'
 
 const ProspectingDashboard = () => {
   const { user } = useAuth()
@@ -27,6 +28,7 @@ const ProspectingDashboard = () => {
   const [scoreDistribution, setScoreDistribution] = useState([])
   const [chartType, setChartType] = useState('bar')
   const [chartData, setChartData] = useState([])
+  const [activeTab, setActiveTab] = useState('cnpj') // 'cnpj' ou 'cpf'
 
   useEffect(() => {
     loadDashboardData()
@@ -126,25 +128,62 @@ const ProspectingDashboard = () => {
           <p className="text-gray-600">Identifique e qualifique potenciais clientes CNPJ</p>
         </div>
         <div className="flex space-x-2">
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/prospecting/enrich')}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Enriquecer Prospects
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => navigate('/prospecting/list')}
-          >
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Ver Lista Completa
-          </Button>
+          {activeTab === 'cnpj' && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => navigate('/prospecting/enrich')}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Enriquecer Prospects
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => navigate('/prospecting/list')}
+              >
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Ver Lista Completa
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-4">
+          <button
+            onClick={() => setActiveTab('cnpj')}
+            className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'cnpj'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Target className="h-4 w-4" />
+            <span className="font-medium">Prospecção CNPJ</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('cpf')}
+            className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'cpf'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <UserPlus className="h-4 w-4" />
+            <span className="font-medium">CPF → CNPJ</span>
+          </button>
+        </nav>
+      </div>
+
+      {/* Conteúdo das Tabs */}
+      {activeTab === 'cpf' ? (
+        <CPFToCNPJTab />
+      ) : (
+        <>
+          {/* KPIs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
         <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
@@ -479,6 +518,8 @@ const ProspectingDashboard = () => {
           )}
         </div>
       </Card>
+        </>
+      )}
     </div>
   )
 }
