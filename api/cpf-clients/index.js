@@ -69,6 +69,21 @@ export default async function handler(req, res) {
 
       if (error) {
         console.error('Supabase error:', error)
+        console.error('Error code:', error.code)
+        console.error('Error message:', error.message)
+        console.error('Error details:', error.details)
+        console.error('Error hint:', error.hint)
+        
+        // Se a tabela não existe, retornar erro mais claro
+        if (error.code === '42P01' || error.message?.includes('does not exist')) {
+          return res.status(500).json({
+            success: false,
+            error: 'Table cpf_clients does not exist. Please run create_cpf_clients_table.sql first.',
+            code: error.code,
+            details: error.details
+          })
+        }
+        
         throw error
       }
 
