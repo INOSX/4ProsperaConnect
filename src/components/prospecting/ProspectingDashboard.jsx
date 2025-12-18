@@ -8,7 +8,8 @@ import LineChart from '../dashboard/charts/LineChart'
 import BarChart from '../dashboard/charts/BarChart'
 import PieChartComponent from '../dashboard/charts/PieChart'
 import CPFToCNPJTab from './CPFToCNPJTab'
-import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3, PieChart, Info, UserPlus } from 'lucide-react'
+import UnbankedCompaniesTab from './UnbankedCompaniesTab'
+import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, AlertTriangle, RefreshCw, BarChart3, PieChart, Info, UserPlus, Building2 } from 'lucide-react'
 
 const ProspectingDashboard = () => {
   const { user } = useAuth()
@@ -28,7 +29,7 @@ const ProspectingDashboard = () => {
   const [scoreDistribution, setScoreDistribution] = useState([])
   const [chartType, setChartType] = useState('bar')
   const [chartData, setChartData] = useState([])
-  const [activeTab, setActiveTab] = useState('cnpj') // 'cnpj' ou 'cpf'
+  const [activeTab, setActiveTab] = useState('cnpj') // 'cnpj', 'cpf', ou 'unbanked'
 
   useEffect(() => {
     loadDashboardData()
@@ -174,12 +175,25 @@ const ProspectingDashboard = () => {
             <UserPlus className="h-4 w-4" />
             <span className="font-medium">CPF → CNPJ</span>
           </button>
+          <button
+            onClick={() => setActiveTab('unbanked')}
+            className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'unbanked'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Building2 className="h-4 w-4" />
+            <span className="font-medium">CNPJ → Cliente</span>
+          </button>
         </nav>
       </div>
 
       {/* Conteúdo das Tabs */}
       {activeTab === 'cpf' ? (
         <CPFToCNPJTab />
+      ) : activeTab === 'unbanked' ? (
+        <UnbankedCompaniesTab />
       ) : (
         <>
           {/* KPIs */}
