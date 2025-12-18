@@ -19,6 +19,8 @@ import CompanyDashboard from './components/companies/CompanyDashboard'
 import EmployeePortal from './components/employees/EmployeePortal'
 import DataConnections from './components/integrations/DataConnections'
 import NewIntegration from './components/integrations/NewIntegration'
+import CampaignManagement from './components/campaigns/CampaignManagement'
+import CreateCampaign from './components/campaigns/CreateCampaign'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -126,6 +128,20 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <NewIntegration />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CampaignManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/campaigns/create" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CreateCampaign />
                 </Layout>
               </ProtectedRoute>
             } />

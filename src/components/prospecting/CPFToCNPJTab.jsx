@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { CPFClientService } from '../../services/CPFClientService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Search, Filter, Eye, CheckCircle, XCircle, RefreshCw, TrendingUp, Users, Target, BarChart3, PieChart } from 'lucide-react'
+import { Search, Filter, Eye, CheckCircle, XCircle, RefreshCw, TrendingUp, Users, Target, BarChart3, PieChart, Mail, Phone, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 import LineChart from '../dashboard/charts/LineChart'
 import BarChart from '../dashboard/charts/BarChart'
 import PieChartComponent from '../dashboard/charts/PieChart'
@@ -27,6 +27,8 @@ const CPFToCNPJTab = () => {
   const [scoreDistribution, setScoreDistribution] = useState([])
   const [chartType, setChartType] = useState('bar')
   const [chartData, setChartData] = useState([])
+  const [pageSize, setPageSize] = useState(25)
+  const [currentPage, setCurrentPage] = useState(1)
 
   useEffect(() => {
     loadClients()
@@ -397,10 +399,19 @@ const CPFToCNPJTab = () => {
         </div>
       </Card>
 
-      {/* Tabela de Clientes */}
+      {/* Botão de Campanhas e Tabela de Clientes */}
       <Card>
         <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Clientes CPF com Potencial de Conversão</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">Clientes CPF com Potencial de Conversão</h2>
+            <Button
+              variant="primary"
+              onClick={() => navigate('/campaigns', { state: { selectedClients } })}
+            >
+              <Mail className="h-4 w-4 mr-2" />
+              Campanhas
+            </Button>
+          </div>
           
           {filteredClients.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
@@ -436,7 +447,12 @@ const CPFToCNPJTab = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredClients.map((client) => (
+                  {filteredClients
+                    .slice(
+                      pageSize === -1 ? 0 : (currentPage - 1) * pageSize,
+                      pageSize === -1 ? filteredClients.length : currentPage * pageSize
+                    )
+                    .map((client) => (
                     <tr 
                       key={client.id} 
                       className="hover:bg-gray-50 cursor-pointer"
@@ -521,6 +537,51 @@ const CPFToCNPJTab = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          
+          {/* Paginação */}
+          {filteredClients.length > 0 && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">Mostrar:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value))
+                    setCurrentPage(1)
+                  }}
+                  className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={-1}>Todos</option>
+                </select>
+                <span className="text-sm text-gray-600">
+                  de {filteredClients.length} registros
+                </span>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  Página {currentPage} de {Math.ceil(filteredClients.length / (pageSize === -1 ? filteredClients.length : pageSize))}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredClients.length / (pageSize === -1 ? filteredClients.length : pageSize)), prev + 1))}
+                  disabled={currentPage >= Math.ceil(filteredClients.length / (pageSize === -1 ? filteredClients.length : pageSize))}
+                  className="p-2 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
         </div>

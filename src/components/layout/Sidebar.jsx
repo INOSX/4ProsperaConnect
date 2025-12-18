@@ -20,7 +20,8 @@ import {
   Target,
   Building2,
   Users,
-  Database
+  Database,
+  Mail
 } from 'lucide-react'
 import Card from '../ui/Card'
 import { AudioRecorder } from '../../services/audioHandler'
@@ -550,6 +551,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       icon: Database,
       label: 'Integrações',
       href: '/integrations'
+    },
+    {
+      icon: Mail,
+      label: 'Campanhas',
+      href: '/campaigns'
     },
     {
       icon: TrendingUp,
