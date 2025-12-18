@@ -1,13 +1,29 @@
-import { supabase } from '../../../src/services/supabase'
+const DEFAULT_SUPABASE_URL = 'https://dytuwutsjjxxmyefrfed.supabase.co'
+const DEFAULT_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+
+function getAdminClient() {
+  const { createClient } = require('@supabase/supabase-js')
+  const url = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || DEFAULT_SERVICE_KEY
+  return createClient(url, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export default async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       const { id, minScore, status, priority, limit = 50, offset = 0, orderBy = 'conversion_potential_score', orderDirection = 'desc' } = req.query
+      const userId = req.headers['x-user-id']
+
+      const adminClient = getAdminClient()
 
       // Se buscar por ID específico
       if (id) {
-        const { data, error } = await supabase
+        const { data, error } = await adminClient
           .from('cpf_clients')
           .select('*')
           .eq('id', id)
@@ -19,9 +35,14 @@ export default async function handler(req, res) {
       }
 
       // Construir query com filtros
-      let query = supabase
+      let query = adminClient
         .from('cpf_clients')
         .select('*', { count: 'exact' })
+
+      // Filtrar por usuário se fornecido (para RLS)
+      if (userId) {
+        query = query.eq('created_by', userId)
+      }
 
       // Aplicar filtros
       if (minScore) {
@@ -46,7 +67,10 @@ export default async function handler(req, res) {
 
       const { data, error, count } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
 
       return res.status(200).json({
         success: true,
@@ -57,9 +81,17 @@ export default async function handler(req, res) {
       })
     } catch (error) {
       console.error('Error fetching CPF clients:', error)
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      })
       return res.status(500).json({
         success: false,
-        error: error.message || 'Failed to fetch CPF clients'
+        error: error.message || 'Failed to fetch CPF clients',
+        details: error.details || error.hint || null,
+        code: error.code || null
       })
     }
   }
@@ -79,8 +111,10 @@ export default async function handler(req, res) {
           })
         }
 
+        const adminClient = getAdminClient()
+
         // Buscar clientes
-        const { data: clients, error: fetchError } = await supabase
+        const { data: clients, error: fetchError } = await adminClient
           .from('cpf_clients')
           .select('*')
           .in('id', clientIds)
@@ -111,7 +145,7 @@ export default async function handler(req, res) {
         }))
 
         const updatePromises = updates.map(update =>
-          supabase
+          adminClient
             .from('cpf_clients')
             .update({
               conversion_potential_score: update.conversion_potential_score,
@@ -142,7 +176,10 @@ export default async function handler(req, res) {
         })
       }
 
-      const { data, error } = await supabase
+      const adminClient = getAdminClient()
+      const userId = req.headers['x-user-id']
+
+      const { data, error } = await adminClient
         .from('cpf_clients')
         .insert([{
           cpf,
@@ -150,6 +187,7 @@ export default async function handler(req, res) {
           email,
           phone,
           ...otherData,
+          created_by: userId,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
@@ -182,7 +220,9 @@ export default async function handler(req, res) {
         })
       }
 
-      const { data, error } = await supabase
+      const adminClient = getAdminClient()
+
+      const { data, error } = await adminClient
         .from('cpf_clients')
         .update({
           ...updates,
@@ -218,7 +258,9 @@ export default async function handler(req, res) {
         })
       }
 
-      const { error } = await supabase
+      const adminClient = getAdminClient()
+
+      const { error } = await adminClient
         .from('cpf_clients')
         .delete()
         .eq('id', id)
