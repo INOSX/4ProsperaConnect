@@ -13,11 +13,20 @@ export class HeyGenStreamingService {
   }
 
   /**
+   * Limpa o session token em cache (útil para reconexão)
+   */
+  clearSessionToken() {
+    this.sessionToken = null
+    console.log('🔄 Session token cleared')
+  }
+
+  /**
    * Obtém o session token do backend (proxy)
+   * @param {boolean} forceRefresh - Se true, força a obtenção de um novo token mesmo se já existir um em cache
    * @returns {Promise<string>} Session token
    */
-  async getSessionToken() {
-    if (this.sessionToken) {
+  async getSessionToken(forceRefresh = false) {
+    if (this.sessionToken && !forceRefresh) {
       return this.sessionToken
     }
 
@@ -43,7 +52,8 @@ export class HeyGenStreamingService {
         hasAccessToken: !!data.access_token,
         hasSessionToken: !!data.session_token,
         hasDataToken: !!data.data?.token,
-        keys: Object.keys(data)
+        keys: Object.keys(data),
+        forceRefresh
       })
       
       // O token pode estar em diferentes campos dependendo da resposta
@@ -271,10 +281,15 @@ export class HeyGenStreamingService {
    * @param {Function} onDisconnectCallback - Callback chamado quando desconectar (opcional)
    * @returns {Promise<Object>} Session data
    */
-  async createSession(avatarId = null, videoElement = null, knowledgeId = null, onDisconnectCallback = null) {
+  async createSession(avatarId = null, videoElement = null, knowledgeId = null, onDisconnectCallback = null, forceNewToken = false) {
     try {
-      // Obter session token primeiro
-      const token = await this.getSessionToken()
+      // Se forçar novo token, limpar o cache primeiro
+      if (forceNewToken) {
+        this.clearSessionToken()
+      }
+      
+      // Obter session token primeiro (forçar refresh se necessário)
+      const token = await this.getSessionToken(forceNewToken)
       
       // Buscar avatar padrão se não fornecido
       if (!avatarId) {
@@ -480,6 +495,13 @@ export class HeyGenStreamingService {
     } catch (error) {
       console.error('Error stopping session:', error)
     }
+
+    // Limpar token ao desconectar
+    this.clearSessionToken()
+    
+    // Limpar estado
+    this.avatar = null
+    this.sessionId = null
 
     if (this.videoElement) {
       this.videoElement.srcObject = null
