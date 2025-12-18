@@ -89,6 +89,24 @@ const DataConnections = () => {
     }
   }
 
+  const getConnectionTypeLabel = (connection) => {
+    const engine = connection?.connection_config?.engine
+    if (connection.connection_type === 'database' && engine) {
+      switch (engine) {
+        case 'postgresql': return 'PostgreSQL'
+        case 'mysql': return 'MySQL'
+        case 'mariadb': return 'MariaDB'
+        case 'sqlserver': return 'SQL Server'
+        case 'oracle': return 'Oracle'
+        case 'mongodb': return 'MongoDB'
+        case 'redis': return 'Redis'
+        case 'sqlite': return 'SQLite'
+        default: return 'Banco de Dados'
+      }
+    }
+    return connection.connection_type
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -110,6 +128,38 @@ const DataConnections = () => {
           Nova Conexão
         </Button>
       </div>
+
+      {/* Conexão fixa: Supabase atual da plataforma */}
+      <Card className="p-6 border border-primary-100 bg-gradient-to-r from-primary-50 to-secondary-50">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-white rounded-xl shadow-sm">
+              <Database className="h-6 w-6 text-primary-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Supabase - Banco principal da plataforma
+              </h2>
+              <p className="text-sm text-gray-600">
+                Esta é a conexão oficial usada pelo 4Prospera Connect para armazenar usuários, clientes,
+                dados financeiros e datasets. A configuração é gerenciada internamente e não pode ser
+                editada aqui.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col items-start md:items-end space-y-2">
+            <span className="inline-flex items-center rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-semibold">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Ativo
+            </span>
+            <div className="text-xs text-gray-500 text-left md:text-right max-w-xs">
+              Projeto: <span className="font-mono break-all">dytuwutsjjxxmyefrfed</span>
+              <br />
+              Tipo: Banco de dados gerenciado (Supabase / PostgreSQL)
+            </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Lista de Conexões */}
       {connections.length === 0 ? (
@@ -139,7 +189,7 @@ const DataConnections = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900">{connection.name}</h3>
-                      <p className="text-sm text-gray-500 capitalize">{connection.connection_type}</p>
+                      <p className="text-sm text-gray-500">{getConnectionTypeLabel(connection)}</p>
                     </div>
                   </div>
                   <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(connection.status)}`}>

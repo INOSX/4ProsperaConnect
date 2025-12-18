@@ -35,7 +35,10 @@ const NewIntegration = () => {
 
   const [formData, setFormData] = useState({
     name: '',
-    connection_type: 'postgresql',
+    // Tipo lógico da conexão na tabela (sempre 'database' para este formulário)
+    connection_type: 'database',
+    // Engine específica do banco (Postgres, MySQL, etc.)
+    engine: 'postgresql',
     sync_frequency: 'manual',
     // PostgreSQL, MySQL, MariaDB, SQL Server, Oracle
     host: '',
@@ -82,11 +85,11 @@ const NewIntegration = () => {
       newErrors.name = 'Nome da conexão é obrigatório'
     }
 
-    if (formData.connection_type === 'sqlite') {
+    if (formData.engine === 'sqlite') {
       if (!formData.file_path.trim()) {
         newErrors.file_path = 'Caminho do arquivo é obrigatório'
       }
-    } else if (formData.connection_type === 'mongodb') {
+    } else if (formData.engine === 'mongodb') {
       if (!formData.connection_string.trim()) {
         newErrors.connection_string = 'String de conexão é obrigatória'
       }
@@ -115,12 +118,12 @@ const NewIntegration = () => {
 
   const buildConnectionConfig = () => {
     const config = {
-      connection_type: formData.connection_type,
+      engine: formData.engine,
     }
 
-    if (formData.connection_type === 'sqlite') {
+    if (formData.engine === 'sqlite') {
       config.file_path = formData.file_path
-    } else if (formData.connection_type === 'mongodb') {
+    } else if (formData.engine === 'mongodb') {
       config.connection_string = formData.connection_string
     } else {
       // PostgreSQL, MySQL, MariaDB, SQL Server, Oracle
@@ -149,9 +152,9 @@ const NewIntegration = () => {
   }
 
   const buildCredentials = () => {
-    if (formData.connection_type === 'sqlite') {
+    if (formData.engine === 'sqlite') {
       return null // SQLite não precisa de credenciais
-    } else if (formData.connection_type === 'mongodb') {
+    } else if (formData.engine === 'mongodb') {
       return null // MongoDB usa connection string
     } else {
       return {
@@ -174,7 +177,8 @@ const NewIntegration = () => {
       const credentials = buildCredentials()
 
       const result = await DataIntegrationService.testConnection({
-        connectionType: formData.connection_type,
+        // Para bancos de dados usamos o tipo lógico 'database' e a engine vai dentro do config
+        connectionType: 'database',
         connectionConfig,
         credentials,
       })
@@ -217,7 +221,8 @@ const NewIntegration = () => {
 
       const result = await DataIntegrationService.createConnection({
         name: formData.name,
-        connection_type: formData.connection_type,
+        // Tipo lógico na tabela (restrito ao enum: api, csv, excel, database, google_sheets)
+        connection_type: 'database',
         connection_config: connectionConfig,
         credentials,
         sync_frequency: formData.sync_frequency,
@@ -240,7 +245,7 @@ const NewIntegration = () => {
   }
 
   const getDefaultPort = () => {
-    switch (formData.connection_type) {
+    switch (formData.engine) {
       case 'postgresql': return '5432'
       case 'mysql': return '3306'
       case 'mariadb': return '3306'
@@ -252,8 +257,8 @@ const NewIntegration = () => {
     }
   }
 
-  const isConnectionStringBased = formData.connection_type === 'mongodb'
-  const isFileBased = formData.connection_type === 'sqlite'
+  const isConnectionStringBased = formData.engine === 'mongodb'
+  const isFileBased = formData.engine === 'sqlite'
   const isStandardDB = !isConnectionStringBased && !isFileBased
 
   return (
@@ -305,16 +310,21 @@ const NewIntegration = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {DATABASE_TYPES.map((db) => {
                 const Icon = db.icon
+                const isActive = formData.engine === db.value
                 return (
                   <button
                     key={db.value}
                     type="button"
                     onClick={() => {
-                      setFormData(prev => ({ ...prev, connection_type: db.value, port: getDefaultPort() }))
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        engine: db.value, 
+                        port: getDefaultPort() 
+                      }))
                       setTestResult(null)
                     }}
                     className={`p-4 border-2 rounded-xl transition-all ${
-                      formData.connection_type === db.value
+                      isActive
                         ? 'border-primary-500 bg-primary-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
