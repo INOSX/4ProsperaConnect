@@ -32,10 +32,10 @@ function App() {
   return (
     <AuthProvider>
       <DatasetProvider>
-        <ModuleProvider>
-          <BrowserRouter>
-          <div className="min-h-screen bg-gray-50">
-            <Routes>
+        <BrowserRouter>
+          <ModuleProvider>
+            <div className="min-h-screen bg-gray-50">
+              <Routes>
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
@@ -177,11 +177,11 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
-            </Routes>
-            <Analytics />
-          </div>
+              </Routes>
+              <Analytics />
+            </div>
+          </ModuleProvider>
         </BrowserRouter>
-        </ModuleProvider>
       </DatasetProvider>
     </AuthProvider>
   )
