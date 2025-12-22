@@ -226,7 +226,7 @@ const CompanyDashboard = () => {
 
       {/* Ações Rápidas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/companies/employees'}>
+        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/employees'}>
           <div className="flex items-center space-x-4">
             <Users className="h-8 w-8 text-primary-600" />
             <div>
@@ -236,7 +236,7 @@ const CompanyDashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/companies/benefits'}>
+        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/benefits'}>
           <div className="flex items-center space-x-4">
             <Package className="h-8 w-8 text-primary-600" />
             <div>
