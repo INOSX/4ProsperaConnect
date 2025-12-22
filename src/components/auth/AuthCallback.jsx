@@ -45,7 +45,7 @@ const AuthCallback = () => {
           window.history.replaceState({}, document.title, window.location.pathname)
           
           setTimeout(() => {
-            navigate('/', { replace: true })
+            navigate('/modules', { replace: true })
           }, 2000)
           return
         }
@@ -61,7 +61,7 @@ const AuthCallback = () => {
             setMessage('Email confirmado com sucesso! Redirecionando...')
             window.history.replaceState({}, document.title, window.location.pathname)
             setTimeout(() => {
-              navigate('/', { replace: true })
+              navigate('/modules', { replace: true })
             }, 2000)
             return
           }
