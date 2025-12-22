@@ -20,6 +20,11 @@ import UnbankedCompanyDetail from './components/prospecting/UnbankedCompanyDetai
 import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
 import EmployeePortal from './components/employees/EmployeePortal'
+import EmployeeList from './components/people/EmployeeList'
+import EmployeeDetail from './components/people/EmployeeDetail'
+import EmployeeForm from './components/people/EmployeeForm'
+import BenefitsManagement from './components/people/BenefitsManagement'
+import BenefitForm from './components/people/BenefitForm'
 import DataConnections from './components/integrations/DataConnections'
 import NewIntegration from './components/integrations/NewIntegration'
 import CampaignManagement from './components/campaigns/CampaignManagement'
@@ -125,6 +130,55 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <EmployeePortal />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/employees" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EmployeeList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/employees/new" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EmployeeForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/employees/:id" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EmployeeDetail />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/employees/:id/edit" element={
+              <ProtectedRoute>
+                <Layout>
+                  <EmployeeForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/benefits" element={
+              <ProtectedRoute>
+                <Layout>
+                  <BenefitsManagement />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/benefits/new" element={
+              <ProtectedRoute>
+                <Layout>
+                  <BenefitForm />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/people/benefits/:id/edit" element={
+              <ProtectedRoute>
+                <Layout>
+                  <BenefitForm />
                 </Layout>
               </ProtectedRoute>
             } />
