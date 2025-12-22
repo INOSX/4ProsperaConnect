@@ -81,6 +81,22 @@ export class ProductService {
 
       if (error) throw error
 
+      // Buscar dados do colaborador separadamente se necessário
+      if (data && data.length > 0) {
+        try {
+          const { EmployeeService } = await import('./employeeService.js')
+          const employeeResult = await EmployeeService.getEmployee(employeeId)
+          if (employeeResult.success && employeeResult.employee) {
+            // Adicionar dados do colaborador a cada produto
+            data.forEach(ep => {
+              ep.employees = employeeResult.employee
+            })
+          }
+        } catch (err) {
+          console.warn('Could not fetch employee data:', err)
+        }
+      }
+
       return { success: true, employeeProducts: data || [] }
     } catch (error) {
       console.error('Error fetching employee products:', error)
