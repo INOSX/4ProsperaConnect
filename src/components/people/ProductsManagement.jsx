@@ -239,13 +239,22 @@ const ProductsManagement = () => {
           <h1 className="text-2xl font-bold text-gray-900">Produtos Bancários</h1>
           <p className="text-gray-600">Produtos contratados pelos colaboradores de {company.company_name}</p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => navigate('/people/products/assign')}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Atribuir Produto
-        </Button>
+        <div className="flex space-x-2">
+          <Button
+            variant="secondary"
+            onClick={() => navigate('/people/products/catalog')}
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Ver Catálogo
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => navigate('/people/products/assign')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Atribuir Produto
+          </Button>
+        </div>
       </div>
 
       {/* Estatísticas */}
