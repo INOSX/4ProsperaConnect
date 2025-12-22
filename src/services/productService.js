@@ -167,12 +167,24 @@ export class ProductService {
         })
         .select(`
           *,
-          employees (*),
           product_catalog (*)
         `)
         .single()
 
       if (error) throw error
+
+      // Buscar dados do colaborador separadamente se necessário
+      if (data && data.employee_id) {
+        try {
+          const { EmployeeService } = await import('./employeeService.js')
+          const employeeResult = await EmployeeService.getEmployee(data.employee_id)
+          if (employeeResult.success && employeeResult.employee) {
+            data.employees = employeeResult.employee
+          }
+        } catch (err) {
+          console.warn('Could not fetch employee data:', err)
+        }
+      }
 
       return { success: true, employeeProduct: data }
     } catch (error) {
@@ -195,10 +207,24 @@ export class ProductService {
         .eq('id', id)
         .select(`
           *,
-          employees (*),
           product_catalog (*)
         `)
         .single()
+
+      if (error) throw error
+
+      // Buscar dados do colaborador separadamente se necessário
+      if (data && data.employee_id) {
+        try {
+          const { EmployeeService } = await import('./employeeService.js')
+          const employeeResult = await EmployeeService.getEmployee(data.employee_id)
+          if (employeeResult.success && employeeResult.employee) {
+            data.employees = employeeResult.employee
+          }
+        } catch (err) {
+          console.warn('Could not fetch employee data:', err)
+        }
+      }
 
       if (error) throw error
 
