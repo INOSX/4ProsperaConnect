@@ -95,33 +95,57 @@ export class ProductService {
    */
   static async getCompanyEmployeeProducts(companyId) {
     try {
-      // Primeiro buscar IDs dos colaboradores da empresa
-      const { data: employees, error: employeesError } = await supabase
-        .from('employees')
-        .select('id')
-        .eq('company_id', companyId)
-        .eq('is_active', true)
-
-      if (employeesError) throw employeesError
-
-      if (!employees || employees.length === 0) {
-        return { success: true, employeeProducts: [] }
-      }
-
-      const employeeIds = employees.map(e => e.id)
-
-      // Buscar produtos dos colaboradores
+      // Buscar produtos dos colaboradores usando JOIN através do relacionamento
+      // Isso evita a recursão infinita na política RLS de employees
       const { data, error } = await supabase
         .from('employee_products')
         .select(`
           *,
-          employees (*),
+          employees!inner (
+            id,
+            name,
+            email,
+            position,
+            department,
+            company_id
+          ),
           product_catalog (*)
         `)
-        .in('employee_id', employeeIds)
+        .eq('employees.company_id', companyId)
+        .eq('employees.is_active', true)
         .order('contract_date', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        // Se o JOIN não funcionar, tentar abordagem alternativa
+        console.warn('Error with JOIN approach, trying alternative:', error)
+        
+        // Buscar produtos diretamente e filtrar depois
+        const { data: allProducts, error: allProductsError } = await supabase
+          .from('employee_products')
+          .select(`
+            *,
+            employees (
+              id,
+              name,
+              email,
+              position,
+              department,
+              company_id
+            ),
+            product_catalog (*)
+          `)
+          .order('contract_date', { ascending: false })
+
+        if (allProductsError) throw allProductsError
+
+        // Filtrar produtos de colaboradores da empresa
+        const filteredProducts = (allProducts || []).filter(ep => {
+          const employee = ep.employees
+          return employee && employee.company_id === companyId && employee.is_active !== false
+        })
+
+        return { success: true, employeeProducts: filteredProducts }
+      }
 
       return { success: true, employeeProducts: data || [] }
     } catch (error) {
