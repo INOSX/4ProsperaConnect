@@ -7,7 +7,7 @@ const LoginForm = () => {
   const { signIn, loading, error, clearError } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const from = location.state?.from?.pathname || '/'
+  const from = location.state?.from?.pathname || '/modules'
   const [formData, setFormData] = useState({
     email: '',
     password: ''

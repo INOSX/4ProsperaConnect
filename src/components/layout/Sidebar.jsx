@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useDataset } from '../../contexts/DatasetContext'
+import { useModule } from '../../contexts/ModuleContext'
 import { ClientService } from '../../services/clientService'
 import { OpenAIService } from '../../services/openaiService'
 import { supabase } from '../../services/supabase'
@@ -21,7 +23,8 @@ import {
   Building2,
   Users,
   Database,
-  Mail
+  Mail,
+  Grid3x3
 } from 'lucide-react'
 import Card from '../ui/Card'
 import { AudioRecorder } from '../../services/audioHandler'
@@ -31,6 +34,8 @@ import { OpenAIAssistantApiService } from '../../services/openaiAssistantApiServ
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
   const { getSelectedFileName } = useDataset()
+  const navigate = useNavigate()
+  const { getCurrentModule } = useModule()
   const [vectorFiles, setVectorFiles] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [error, setError] = useState(null)
@@ -713,6 +718,16 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           {/* Bottom section */}
           <div className="p-4 border-t border-gray-200 space-y-2">
+            <button
+              onClick={() => {
+                navigate('/modules')
+                onClose()
+              }}
+              className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-primary-600 hover:bg-primary-50 transition-colors font-medium"
+            >
+              <Grid3x3 className="h-5 w-5" />
+              <span>Trocar Módulo</span>
+            </button>
             <a
               href="/settings"
               className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"
