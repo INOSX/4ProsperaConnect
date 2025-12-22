@@ -246,12 +246,12 @@ const CompanyDashboard = () => {
           </div>
         </Card>
 
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/companies/products'}>
+        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/products'}>
           <div className="flex items-center space-x-4">
             <Briefcase className="h-8 w-8 text-primary-600" />
             <div>
               <p className="font-medium text-gray-900">Produtos Financeiros</p>
-              <p className="text-sm text-gray-600">Ver produtos contratados</p>
+              <p className="text-sm text-gray-600">Ver produtos dos colaboradores</p>
             </div>
           </div>
         </Card>
