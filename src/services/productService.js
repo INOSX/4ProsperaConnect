@@ -95,59 +95,49 @@ export class ProductService {
    */
   static async getCompanyEmployeeProducts(companyId) {
     try {
-      // Buscar produtos dos colaboradores usando JOIN através do relacionamento
-      // Isso evita a recursão infinita na política RLS de employees
-      const { data, error } = await supabase
+      // Buscar apenas employee_products e product_catalog (sem JOIN com employees)
+      // para evitar recursão infinita na política RLS
+      const { data: employeeProducts, error: productsError } = await supabase
         .from('employee_products')
         .select(`
           *,
-          employees!inner (
-            id,
-            name,
-            email,
-            position,
-            department,
-            company_id
-          ),
           product_catalog (*)
         `)
-        .eq('employees.company_id', companyId)
-        .eq('employees.is_active', true)
         .order('contract_date', { ascending: false })
 
-      if (error) {
-        // Se o JOIN não funcionar, tentar abordagem alternativa
-        console.warn('Error with JOIN approach, trying alternative:', error)
-        
-        // Buscar produtos diretamente e filtrar depois
-        const { data: allProducts, error: allProductsError } = await supabase
-          .from('employee_products')
-          .select(`
-            *,
-            employees (
-              id,
-              name,
-              email,
-              position,
-              department,
-              company_id
-            ),
-            product_catalog (*)
-          `)
-          .order('contract_date', { ascending: false })
+      if (productsError) throw productsError
 
-        if (allProductsError) throw allProductsError
-
-        // Filtrar produtos de colaboradores da empresa
-        const filteredProducts = (allProducts || []).filter(ep => {
-          const employee = ep.employees
-          return employee && employee.company_id === companyId && employee.is_active !== false
-        })
-
-        return { success: true, employeeProducts: filteredProducts }
+      if (!employeeProducts || employeeProducts.length === 0) {
+        return { success: true, employeeProducts: [] }
       }
 
-      return { success: true, employeeProducts: data || [] }
+      // Buscar colaboradores da empresa separadamente usando EmployeeService
+      // Isso evita a recursão porque EmployeeService usa API que não tem problema de RLS
+      const { EmployeeService } = await import('./employeeService.js')
+      const employeesResult = await EmployeeService.getCompanyEmployees(companyId)
+
+      if (!employeesResult.success || !employeesResult.employees) {
+        return { success: true, employeeProducts: [] }
+      }
+
+      const employeeIds = new Set(employeesResult.employees.map(e => e.id))
+
+      // Filtrar produtos de colaboradores da empresa e enriquecer com dados dos colaboradores
+      const enrichedProducts = employeeProducts
+        .filter(ep => {
+          const epEmployeeId = typeof ep.employee_id === 'string' ? ep.employee_id : ep.employee_id?.id || ep.employee_id
+          return employeeIds.has(epEmployeeId)
+        })
+        .map(ep => {
+          const epEmployeeId = typeof ep.employee_id === 'string' ? ep.employee_id : ep.employee_id?.id || ep.employee_id
+          const employee = employeesResult.employees.find(e => e.id === epEmployeeId)
+          return {
+            ...ep,
+            employees: employee || null
+          }
+        })
+
+      return { success: true, employeeProducts: enrichedProducts }
     } catch (error) {
       console.error('Error fetching company employee products:', error)
       throw error
