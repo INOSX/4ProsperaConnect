@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2 } from 'lucide-react'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
@@ -52,6 +52,22 @@ const ModuleTopMenu = () => {
     }
   ]
 
+  // Submenu para Campanhas de Marketing
+  const marketingSubmenu = [
+    {
+      label: 'Gerenciamento de Campanhas',
+      route: '/campaigns',
+      icon: Settings,
+      description: 'Visualize e gerencie todas as campanhas'
+    },
+    {
+      label: 'Criar Campanha',
+      route: '/campaigns/create',
+      icon: Plus,
+      description: 'Criar uma nova campanha de marketing'
+    }
+  ]
+
   const moduleItems = [
     {
       id: modules.PEOPLE.id,
@@ -83,7 +99,8 @@ const ModuleTopMenu = () => {
       color: 'text-purple-600',
       activeColor: 'bg-purple-50 text-purple-700 border-purple-200',
       hoverColor: 'hover:bg-purple-50 hover:text-purple-700',
-      hasSubmenu: false
+      hasSubmenu: true,
+      submenu: marketingSubmenu
     }
   ]
 
