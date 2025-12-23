@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, BarChart3, RefreshCw, Building2, FileText } from 'lucide-react'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2 } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
@@ -34,21 +34,21 @@ const ModuleTopMenu = () => {
   const prospectingSubmenu = [
     {
       label: 'Prospecção CNPJ',
-      route: '/prospecting',
+      route: '/prospecting?tab=cnpj',
       icon: Target,
-      description: 'Dashboard de prospecção de empresas'
+      description: 'Dashboard de prospecção de empresas CNPJ'
     },
     {
-      label: 'Lista de Prospects',
-      route: '/prospecting/list',
-      icon: BarChart3,
-      description: 'Ver todos os prospects cadastrados'
+      label: 'CPF → CNPJ',
+      route: '/prospecting?tab=cpf',
+      icon: UserPlus,
+      description: 'Identificar empresas a partir de CPFs'
     },
     {
-      label: 'Enriquecer Dados',
-      route: '/prospecting/enrich',
-      icon: RefreshCw,
-      description: 'Enriquecer prospects com dados externos'
+      label: 'CNPJ → Cliente',
+      route: '/prospecting?tab=unbanked',
+      icon: Building2,
+      description: 'Empresas não bancarizadas ou subexploradas'
     }
   ]
 
