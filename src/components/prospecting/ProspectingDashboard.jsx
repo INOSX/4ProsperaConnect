@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ProspectingService } from '../../services/prospectingService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
@@ -14,6 +14,7 @@ import { TrendingUp, Users, Target, CheckCircle, Clock, XCircle, DollarSign, Ale
 const ProspectingDashboard = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [stats, setStats] = useState({
     total: 0,
     qualified: 0,
@@ -29,7 +30,18 @@ const ProspectingDashboard = () => {
   const [scoreDistribution, setScoreDistribution] = useState([])
   const [chartType, setChartType] = useState('bar')
   const [chartData, setChartData] = useState([])
-  const [activeTab, setActiveTab] = useState('cnpj') // 'cnpj', 'cpf', ou 'unbanked'
+  
+  // Ler a aba ativa da URL ou usar 'cnpj' como padrão
+  const tabFromUrl = searchParams.get('tab') || 'cnpj'
+  const [activeTab, setActiveTab] = useState(tabFromUrl) // 'cnpj', 'cpf', ou 'unbanked'
+  
+  // Atualizar aba quando a URL mudar
+  useEffect(() => {
+    const tab = searchParams.get('tab') || 'cnpj'
+    if (tab !== activeTab && ['cnpj', 'cpf', 'unbanked'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [searchParams, activeTab])
 
   useEffect(() => {
     loadDashboardData()
@@ -154,7 +166,10 @@ const ProspectingDashboard = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-4">
           <button
-            onClick={() => setActiveTab('cnpj')}
+            onClick={() => {
+              setActiveTab('cnpj')
+              setSearchParams({ tab: 'cnpj' })
+            }}
             className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
               activeTab === 'cnpj'
                 ? 'border-primary-600 text-primary-600'
@@ -165,7 +180,10 @@ const ProspectingDashboard = () => {
             <span className="font-medium">Prospecção CNPJ</span>
           </button>
           <button
-            onClick={() => setActiveTab('cpf')}
+            onClick={() => {
+              setActiveTab('cpf')
+              setSearchParams({ tab: 'cpf' })
+            }}
             className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
               activeTab === 'cpf'
                 ? 'border-primary-600 text-primary-600'
@@ -176,7 +194,10 @@ const ProspectingDashboard = () => {
             <span className="font-medium">CPF → CNPJ</span>
           </button>
           <button
-            onClick={() => setActiveTab('unbanked')}
+            onClick={() => {
+              setActiveTab('unbanked')
+              setSearchParams({ tab: 'unbanked' })
+            }}
             className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
               activeTab === 'unbanked'
                 ? 'border-primary-600 text-primary-600'
