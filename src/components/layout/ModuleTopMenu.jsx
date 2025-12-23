@@ -1,9 +1,34 @@
-import React from 'react'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail } from 'lucide-react'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
+  const navigate = useNavigate()
+  const [hoveredModule, setHoveredModule] = useState(null)
+
+  // Submenu para Gestão de Pessoas
+  const peopleSubmenu = [
+    {
+      label: 'Gerenciar Colaboradores',
+      route: '/people/employees',
+      icon: UserPlus,
+      description: 'Adicionar e gerenciar sua equipe'
+    },
+    {
+      label: 'Gerenciar Benefícios',
+      route: '/people/benefits',
+      icon: Package,
+      description: 'Configurar benefícios para colaboradores'
+    },
+    {
+      label: 'Produtos Financeiros',
+      route: '/people/products',
+      icon: Briefcase,
+      description: 'Ver produtos dos colaboradores'
+    }
+  ]
 
   const moduleItems = [
     {
@@ -13,7 +38,9 @@ const ModuleTopMenu = () => {
       route: modules.PEOPLE.defaultRoute,
       color: 'text-blue-600',
       activeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      hoverColor: 'hover:bg-blue-50 hover:text-blue-700'
+      hoverColor: 'hover:bg-blue-50 hover:text-blue-700',
+      hasSubmenu: true,
+      submenu: peopleSubmenu
     },
     {
       id: modules.PROSPECTING.id,
@@ -22,7 +49,8 @@ const ModuleTopMenu = () => {
       route: modules.PROSPECTING.defaultRoute,
       color: 'text-green-600',
       activeColor: 'bg-green-50 text-green-700 border-green-200',
-      hoverColor: 'hover:bg-green-50 hover:text-green-700'
+      hoverColor: 'hover:bg-green-50 hover:text-green-700',
+      hasSubmenu: false
     },
     {
       id: modules.MARKETING.id,
@@ -31,39 +59,86 @@ const ModuleTopMenu = () => {
       route: modules.MARKETING.defaultRoute,
       color: 'text-purple-600',
       activeColor: 'bg-purple-50 text-purple-700 border-purple-200',
-      hoverColor: 'hover:bg-purple-50 hover:text-purple-700'
+      hoverColor: 'hover:bg-purple-50 hover:text-purple-700',
+      hasSubmenu: false
     }
   ]
 
   const handleModuleClick = (moduleId, route) => {
     selectModule(moduleId)
+    navigate(route)
+  }
+
+  const handleSubmenuClick = (route) => {
+    navigate(route)
+    setHoveredModule(null)
   }
 
   return (
     <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
-        <nav className="flex items-center justify-center space-x-1 py-3">
+        <nav className="flex items-center justify-center space-x-1 py-3 relative">
           {moduleItems.map((item) => {
             const Icon = item.icon
             const isActive = activeModule === item.id
+            const isHovered = hoveredModule === item.id
             
             return (
-              <button
+              <div
                 key={item.id}
-                onClick={() => handleModuleClick(item.id, item.route)}
-                className={`
-                  flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium
-                  transition-all duration-200 border
-                  ${isActive 
-                    ? `${item.activeColor} border-2 shadow-sm` 
-                    : `text-gray-600 border-transparent ${item.hoverColor}`
-                  }
-                `}
-                title={item.name}
+                className="relative"
+                onMouseEnter={() => item.hasSubmenu && setHoveredModule(item.id)}
+                onMouseLeave={() => setHoveredModule(null)}
               >
-                <Icon className={`h-4 w-4 ${isActive ? '' : item.color}`} />
-                <span className="hidden sm:inline">{item.name}</span>
-              </button>
+                <button
+                  onClick={() => handleModuleClick(item.id, item.route)}
+                  className={`
+                    flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium
+                    transition-all duration-200 border
+                    ${isActive 
+                      ? `${item.activeColor} border-2 shadow-sm` 
+                      : `text-gray-600 border-transparent ${item.hoverColor}`
+                    }
+                  `}
+                  title={item.name}
+                >
+                  <Icon className={`h-4 w-4 ${isActive ? '' : item.color}`} />
+                  <span className="hidden sm:inline">{item.name}</span>
+                  {item.hasSubmenu && (
+                    <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${isHovered ? 'rotate-180' : ''}`} />
+                  )}
+                </button>
+
+                {/* Submenu Dropdown */}
+                {item.hasSubmenu && isHovered && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    {item.submenu.map((subItem, index) => {
+                      const SubIcon = subItem.icon
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => handleSubmenuClick(subItem.route)}
+                          className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 group"
+                        >
+                          <div className="flex items-start space-x-3">
+                            <div className="mt-0.5">
+                              <SubIcon className="h-5 w-5 text-blue-600 group-hover:text-blue-700" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700">
+                                {subItem.label}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {subItem.description}
+                              </p>
+                            </div>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )
           })}
         </nav>
