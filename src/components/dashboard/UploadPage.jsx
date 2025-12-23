@@ -12,12 +12,12 @@ const UploadPage = () => {
     // Atualizar o contexto compartilhado
     setSelectedDataset(newDataset)
     // Redirecionar para o dashboard após upload bem-sucedido
-    navigate('/', { replace: true })
+    navigate('/dashboard', { replace: true })
   }
 
   const handleClose = () => {
     // Se fechar sem fazer upload, voltar para o dashboard
-    navigate('/', { replace: true })
+    navigate('/dashboard', { replace: true })
   }
 
   return (

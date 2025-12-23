@@ -47,12 +47,17 @@ function App() {
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <ModuleSelector />
+                </ProtectedRoute>
+              } />
               <Route path="/modules" element={
                 <ProtectedRoute>
                   <ModuleSelector />
                 </ProtectedRoute>
               } />
-              <Route path="/" element={
+              <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Layout>
                     <Dashboard />

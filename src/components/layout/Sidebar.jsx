@@ -69,7 +69,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     {
       icon: BarChart3,
       label: 'Dashboard',
-      href: '/',
+      href: '/dashboard',
       active: true
     },
     {
