@@ -31,7 +31,7 @@ SELECT
   '33445566000177',
   'Agência Digital Marketing Pro ME',
   'Marketing Pro',
-  'ME',
+  'PME',
   'contato@marketingpro.com.br',
   '(11) 3456-7895',
   '{"street": "Rua Oscar Freire, 300", "city": "São Paulo", "state": "SP", "zipcode": "01426-001"}'::jsonb,
