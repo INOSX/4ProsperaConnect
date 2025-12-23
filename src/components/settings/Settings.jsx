@@ -9,7 +9,7 @@ import SimpleTest from '../dashboard/SimpleTest'
 import DebugTest from '../dashboard/DebugTest'
 import DataConnections from '../integrations/DataConnections'
 
-const Settings = () => {
+const Settings = ({ initialTab }) => {
   const location = useLocation()
   const navigate = useNavigate()
   const [showClientTest, setShowClientTest] = useState(false)
@@ -17,8 +17,9 @@ const Settings = () => {
   const [showSimpleTest, setShowSimpleTest] = useState(false)
   const [showDebugTest, setShowDebugTest] = useState(false)
   
-  // Detectar tab da URL ou usar 'smtp' como padrão
+  // Detectar tab da URL, prop initialTab, ou usar 'smtp' como padrão
   const getInitialTab = () => {
+    if (initialTab) return initialTab
     const params = new URLSearchParams(location.search)
     const tab = params.get('tab')
     return tab || 'smtp'

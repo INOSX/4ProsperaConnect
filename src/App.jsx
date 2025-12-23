@@ -223,7 +223,7 @@ function App() {
             <Route path="/integrations" element={
               <ProtectedRoute>
                 <Layout>
-                  <Settings />
+                  <Settings initialTab="integrations" />
                 </Layout>
               </ProtectedRoute>
             } />
