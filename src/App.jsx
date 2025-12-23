@@ -20,6 +20,7 @@ import UnbankedCompanyDetail from './components/prospecting/UnbankedCompanyDetai
 import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
 import CompanyList from './components/companies/CompanyList'
+import UserProfile from './components/profile/UserProfile'
 import EmployeePortal from './components/employees/EmployeePortal'
 import EmployeeList from './components/people/EmployeeList'
 import EmployeeDetail from './components/people/EmployeeDetail'
@@ -69,6 +70,13 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <Settings />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <Layout>
+                  <UserProfile />
                 </Layout>
               </ProtectedRoute>
             } />
