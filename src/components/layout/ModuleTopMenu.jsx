@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase } from 'lucide-react'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, BarChart3, RefreshCw, Building2, FileText } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
@@ -30,6 +30,28 @@ const ModuleTopMenu = () => {
     }
   ]
 
+  // Submenu para Prospecção de Clientes
+  const prospectingSubmenu = [
+    {
+      label: 'Prospecção CNPJ',
+      route: '/prospecting',
+      icon: Target,
+      description: 'Dashboard de prospecção de empresas'
+    },
+    {
+      label: 'Lista de Prospects',
+      route: '/prospecting/list',
+      icon: BarChart3,
+      description: 'Ver todos os prospects cadastrados'
+    },
+    {
+      label: 'Enriquecer Dados',
+      route: '/prospecting/enrich',
+      icon: RefreshCw,
+      description: 'Enriquecer prospects com dados externos'
+    }
+  ]
+
   const moduleItems = [
     {
       id: modules.PEOPLE.id,
@@ -50,7 +72,8 @@ const ModuleTopMenu = () => {
       color: 'text-green-600',
       activeColor: 'bg-green-50 text-green-700 border-green-200',
       hoverColor: 'hover:bg-green-50 hover:text-green-700',
-      hasSubmenu: false
+      hasSubmenu: true,
+      submenu: prospectingSubmenu
     },
     {
       id: modules.MARKETING.id,
@@ -114,18 +137,25 @@ const ModuleTopMenu = () => {
                   <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
                     {item.submenu.map((subItem, index) => {
                       const SubIcon = subItem.icon
+                      // Determinar cores baseadas no módulo
+                      const isPeople = item.id === modules.PEOPLE.id
+                      const isProspecting = item.id === modules.PROSPECTING.id
+                      const iconColor = isPeople ? 'text-blue-600' : isProspecting ? 'text-green-600' : 'text-purple-600'
+                      const hoverBg = isPeople ? 'hover:bg-blue-50' : isProspecting ? 'hover:bg-green-50' : 'hover:bg-purple-50'
+                      const hoverText = isPeople ? 'group-hover:text-blue-700' : isProspecting ? 'group-hover:text-green-700' : 'group-hover:text-purple-700'
+                      
                       return (
                         <button
                           key={index}
                           onClick={() => handleSubmenuClick(subItem.route)}
-                          className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors duration-150 group"
+                          className={`w-full px-4 py-3 text-left transition-colors duration-150 group ${hoverBg}`}
                         >
                           <div className="flex items-start space-x-3">
                             <div className="mt-0.5">
-                              <SubIcon className="h-5 w-5 text-blue-600 group-hover:text-blue-700" />
+                              <SubIcon className={`h-5 w-5 ${iconColor}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 group-hover:text-blue-700">
+                              <p className={`text-sm font-medium text-gray-900 ${hoverText}`}>
                                 {subItem.label}
                               </p>
                               <p className="text-xs text-gray-500 mt-0.5">
