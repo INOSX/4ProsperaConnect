@@ -266,5 +266,54 @@ export class ProductService {
       throw error
     }
   }
+
+  /**
+   * Criar novo produto no catálogo
+   * @param {Object} productData - Dados do produto
+   * @returns {Promise<Object>} Produto criado
+   */
+  static async createProduct(productData) {
+    try {
+      const { data, error } = await supabase
+        .from('product_catalog')
+        .insert(productData)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return { success: true, product: data }
+    } catch (error) {
+      console.error('Error creating product:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Atualizar produto no catálogo
+   * @param {string} productId - ID do produto
+   * @param {Object} updates - Dados para atualizar
+   * @returns {Promise<Object>} Produto atualizado
+   */
+  static async updateProduct(productId, updates) {
+    try {
+      const { data, error } = await supabase
+        .from('product_catalog')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', productId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      return { success: true, product: data }
+    } catch (error) {
+      console.error('Error updating product:', error)
+      throw error
+    }
+  }
 }
 
