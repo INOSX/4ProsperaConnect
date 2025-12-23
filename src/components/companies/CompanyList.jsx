@@ -14,6 +14,7 @@ const CompanyList = () => {
   const [companiesWithStats, setCompaniesWithStats] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     if (user) {
