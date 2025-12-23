@@ -45,13 +45,19 @@ export class CompanyService {
   }
 
   /**
-   * Listar empresas do usuário
+   * Listar empresas do usuário (ou todas se for admin)
    * @param {string} ownerUserId - ID do dono
+   * @param {boolean} isAdmin - Se o usuário é admin
    * @returns {Promise<Object>} Lista de empresas
    */
-  static async getUserCompanies(ownerUserId) {
+  static async getUserCompanies(ownerUserId, isAdmin = false) {
     try {
-      const response = await fetch(`/api/companies?ownerUserId=${ownerUserId}`)
+      // Se for admin, buscar todas as empresas
+      const url = isAdmin 
+        ? '/api/companies' // Buscar todas
+        : `/api/companies?ownerUserId=${ownerUserId}` // Buscar apenas do usuário
+      
+      const response = await fetch(url)
       
       if (!response.ok) {
         const error = await response.json().catch(() => ({}))

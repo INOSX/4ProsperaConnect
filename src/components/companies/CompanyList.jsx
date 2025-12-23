@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
+import { ClientService } from '../../services/clientService'
 import Card from '../ui/Card'
-import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, CheckCircle } from 'lucide-react'
+import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, CheckCircle, Shield } from 'lucide-react'
 
 const CompanyList = () => {
   const { user } = useAuth()
@@ -25,7 +26,19 @@ const CompanyList = () => {
 
     setLoading(true)
     try {
-      const result = await CompanyService.getUserCompanies(user.id)
+      // Verificar se o usuário é admin
+      let userIsAdmin = false
+      try {
+        const clientResult = await ClientService.getClientByUserId(user.id)
+        if (clientResult.success && clientResult.client) {
+          userIsAdmin = clientResult.client.role === 'admin'
+          setIsAdmin(userIsAdmin)
+        }
+      } catch (e) {
+        console.warn('Error checking admin status:', e)
+      }
+      
+      const result = await CompanyService.getUserCompanies(user.id, userIsAdmin)
       if (result.success && result.companies) {
         const companiesList = result.companies || []
         setCompanies(companiesList)
@@ -108,9 +121,24 @@ const CompanyList = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Gestão de Pessoas</h1>
-        <p className="text-gray-600">Selecione uma empresa para gerenciar colaboradores e benefícios</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold text-gray-900">Gestão de Pessoas</h1>
+            {isAdmin && (
+              <span className="px-2 py-1 text-xs font-medium bg-primary-600 text-white rounded flex items-center space-x-1">
+                <Shield className="h-3 w-3" />
+                <span>Admin</span>
+              </span>
+            )}
+          </div>
+          <p className="text-gray-600">
+            {isAdmin 
+              ? 'Visualizando todas as empresas cadastradas no sistema'
+              : 'Selecione uma empresa para gerenciar colaboradores e benefícios'
+            }
+          </p>
+        </div>
       </div>
 
       {/* Busca */}
