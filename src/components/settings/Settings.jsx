@@ -1,18 +1,44 @@
 import React, { useState, useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Database, User, Wrench, Bug, X, Mail, Server, Save, CheckCircle, AlertCircle } from 'lucide-react'
+import { Database, User, Wrench, Bug, X, Mail, Server, Save, CheckCircle, AlertCircle, Plug } from 'lucide-react'
 import ClientTest from '../dashboard/ClientTest'
 import AuthTest from '../dashboard/AuthTest'
 import SimpleTest from '../dashboard/SimpleTest'
 import DebugTest from '../dashboard/DebugTest'
+import DataConnections from '../integrations/DataConnections'
 
 const Settings = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [showClientTest, setShowClientTest] = useState(false)
   const [showAuthTest, setShowAuthTest] = useState(false)
   const [showSimpleTest, setShowSimpleTest] = useState(false)
   const [showDebugTest, setShowDebugTest] = useState(false)
-  const [activeTab, setActiveTab] = useState('smtp')
+  
+  // Detectar tab da URL ou usar 'smtp' como padrão
+  const getInitialTab = () => {
+    const params = new URLSearchParams(location.search)
+    const tab = params.get('tab')
+    return tab || 'smtp'
+  }
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab())
+  
+  // Atualizar tab quando a URL mudar
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const tab = params.get('tab')
+    if (tab) {
+      setActiveTab(tab)
+    }
+  }, [location.search])
+  
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    navigate(`/settings?tab=${tab}`, { replace: true })
+  }
   
   // SMTP Settings
   const [smtpSettings, setSmtpSettings] = useState({
@@ -106,7 +132,7 @@ const Settings = () => {
       <div className="border-b border-gray-200">
         <nav className="flex space-x-4">
           <button
-            onClick={() => setActiveTab('smtp')}
+            onClick={() => handleTabChange('smtp')}
             className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
               activeTab === 'smtp'
                 ? 'border-primary-600 text-primary-600'
@@ -117,7 +143,18 @@ const Settings = () => {
             <span className="font-medium">Configurações SMTP</span>
           </button>
           <button
-            onClick={() => setActiveTab('tests')}
+            onClick={() => handleTabChange('integrations')}
+            className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'integrations'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Plug className="h-4 w-4" />
+            <span className="font-medium">Integrações</span>
+          </button>
+          <button
+            onClick={() => handleTabChange('tests')}
             className={`flex items-center space-x-2 px-4 py-2 border-b-2 transition-colors ${
               activeTab === 'tests'
                 ? 'border-primary-600 text-primary-600'
@@ -312,6 +349,12 @@ const Settings = () => {
             </div>
           </div>
         </Card>
+      )}
+
+      {activeTab === 'integrations' && (
+        <div>
+          <DataConnections />
+        </div>
       )}
 
       {activeTab === 'tests' && (

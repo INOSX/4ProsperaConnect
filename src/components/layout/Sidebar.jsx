@@ -88,11 +88,6 @@ const Sidebar = ({ isOpen, onClose }) => {
       href: '/companies'
     },
     {
-      icon: Database,
-      label: 'Integrações',
-      href: '/integrations'
-    },
-    {
       icon: TrendingUp,
       label: 'Análises',
       href: '/analyses'
