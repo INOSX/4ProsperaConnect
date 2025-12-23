@@ -12,7 +12,8 @@ import {
   DollarSign, 
   Mic, 
   Loader2, 
-  Users 
+  Users,
+  GripVertical
 } from 'lucide-react'
 
 const FloatingSpecialist = () => {
@@ -30,6 +31,12 @@ const FloatingSpecialist = () => {
   const openaiAssistantRef = useRef(null)
   const videoRef = useRef(null)
   const isReconnectingRef = useRef(false)
+  
+  // Estados para drag and drop
+  const [position, setPosition] = useState({ x: 0, y: 0 })
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const widgetRef = useRef(null)
 
   // Sincronizar refs com state
   useEffect(() => {
@@ -361,31 +368,110 @@ const FloatingSpecialist = () => {
     }
   }
 
+  // Handlers para drag and drop
+  const handleMouseDown = (e) => {
+    if (e.target.closest('button') || e.target.closest('video')) {
+      return // Não iniciar drag se clicar em botões ou vídeo
+    }
+    setIsDragging(true)
+    const rect = widgetRef.current?.getBoundingClientRect()
+    if (rect) {
+      setDragStart({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      })
+    }
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isDragging) return
+      
+      const newX = e.clientX - dragStart.x
+      const newY = e.clientY - dragStart.y
+      
+      // Limitar aos limites da viewport
+      const maxX = window.innerWidth - (widgetRef.current?.offsetWidth || 320)
+      const maxY = window.innerHeight - (widgetRef.current?.offsetHeight || 400)
+      
+      setPosition({
+        x: Math.max(0, Math.min(newX, maxX)),
+        y: Math.max(0, Math.min(newY, maxY))
+      })
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.userSelect = 'none' // Prevenir seleção de texto durante drag
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.userSelect = ''
+    }
+  }, [isDragging, dragStart])
+
   if (isHidden) return null
 
+  // Calcular posição inicial se ainda não foi definida
+  const initialPosition = position.x === 0 && position.y === 0
+    ? { x: window.innerWidth - 336, y: window.innerHeight - 400 } // bottom-4 right-4 equivalente
+    : position
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 w-80">
+    <div 
+      ref={widgetRef}
+      className="fixed z-50 w-80"
+      style={{
+        left: initialPosition.x,
+        top: initialPosition.y,
+        cursor: isDragging ? 'grabbing' : 'default'
+      }}
+    >
       <Card className="relative overflow-hidden group shadow-2xl" padding="none">
-        {/* Botões no canto superior direito (estilo Windows) */}
-        <div className="absolute top-0 right-0 z-10 flex items-center bg-white rounded-bl-lg border-l border-b border-gray-200 shadow-sm">
-          {/* Ícone do KPI */}
-          <div className="h-5 w-5 bg-gradient-primary rounded-sm flex items-center justify-center mr-0.5">
-            <DollarSign className="h-3 w-3 text-white" />
+        {/* Header arrastável */}
+        <div 
+          className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200 cursor-move select-none"
+          onMouseDown={handleMouseDown}
+        >
+          <div className="flex items-center space-x-2 flex-1">
+            <GripVertical className="h-4 w-4 text-gray-400" />
+            <p className="text-sm font-medium text-gray-600">Especialista</p>
           </div>
-          <button
-            onClick={() => setIsMinimized(!isMinimized)}
-            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
-            title={isMinimized ? 'Expandir' : 'Minimizar'}
-          >
-            <Minus className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => setIsHidden(true)}
-            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-            title="Fechar"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+          
+          {/* Botões no canto superior direito (estilo Windows) */}
+          <div className="flex items-center bg-white rounded-lg border border-gray-200 shadow-sm">
+            {/* Ícone do KPI */}
+            <div className="h-5 w-5 bg-gradient-primary rounded-sm flex items-center justify-center mr-0.5">
+              <DollarSign className="h-3 w-3 text-white" />
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsMinimized(!isMinimized)
+              }}
+              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              title={isMinimized ? 'Expandir' : 'Minimizar'}
+            >
+              <Minus className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsHidden(true)
+              }}
+              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Fechar"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Conteúdo do card */}
