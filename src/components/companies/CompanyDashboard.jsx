@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
@@ -19,98 +19,96 @@ const CompanyDashboard = () => {
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (user) {
-      // Limpar estado anterior quando companyId mudar
-      setCompany(null)
-      setEmployees([])
-      setBenefits([])
-      setRecommendations([])
-      loadCompanyData()
-    }
-  }, [user, companyId])
-
-  const loadCompanyData = async () => {
-    if (!user) return
-
-    setLoading(true)
+  const loadEmployees = useCallback(async (companyIdParam) => {
     try {
-      let targetCompany = null
-      
-      // Se há um ID na URL, buscar empresa específica
-      if (companyId) {
-        console.log('🔵 Loading company with ID from URL:', companyId)
-        const companyResult = await CompanyService.getCompany(companyId)
-        if (companyResult.success && companyResult.company) {
-          targetCompany = companyResult.company
-          console.log('✅ Company loaded:', targetCompany.company_name, 'ID:', targetCompany.id)
-        } else {
-          console.error('❌ Company not found for ID:', companyId)
-        }
-      } else {
-        // Caso contrário, buscar primeira empresa do usuário (comportamento antigo)
-        console.log('⚠️ No companyId in URL, loading first user company')
-        const companyResult = await CompanyService.getUserCompanies(user.id)
-        if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
-          targetCompany = companyResult.companies[0]
-        }
-      }
-      
-      if (targetCompany) {
-        setCompany(targetCompany)
-        console.log('🔵 Loading employees for company:', targetCompany.id, targetCompany.company_name)
-
-        // Carregar dados relacionados usando o ID da empresa carregada
-        await Promise.all([
-          loadEmployees(targetCompany.id),
-          loadBenefits(targetCompany.id),
-          loadRecommendations(targetCompany.id)
-        ])
-      }
-    } catch (error) {
-      console.error('Error loading company data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadEmployees = async (companyId) => {
-    try {
-      console.log('🔵 loadEmployees called with companyId:', companyId)
-      const result = await EmployeeService.getCompanyEmployees(companyId)
+      console.log('🔵 loadEmployees called with companyId:', companyIdParam)
+      const result = await EmployeeService.getCompanyEmployees(companyIdParam)
       if (result.success) {
         const employeesList = result.employees || []
-        console.log('✅ Employees loaded:', employeesList.length, 'for company:', companyId)
-        setEmployees(employeesList)
+        console.log('✅ Employees loaded:', employeesList.length, 'for company:', companyIdParam)
+        // Verificar se o companyId ainda é o mesmo antes de atualizar
+        if (companyIdParam === companyId) {
+          setEmployees(employeesList)
+        } else {
+          console.warn('⚠️ Company ID changed during load, ignoring results')
+        }
       } else {
         console.error('❌ Failed to load employees:', result.error)
       }
     } catch (error) {
       console.error('Error loading employees:', error)
     }
-  }
+  }, [companyId])
 
-  const loadBenefits = async (companyId) => {
+  const loadBenefits = useCallback(async (companyIdParam) => {
     try {
-      const result = await BenefitService.getCompanyBenefits(companyId)
-      if (result.success) {
+      const result = await BenefitService.getCompanyBenefits(companyIdParam)
+      if (result.success && companyIdParam === companyId) {
         setBenefits(result.benefits || [])
       }
     } catch (error) {
       console.error('Error loading benefits:', error)
     }
-  }
+  }, [companyId])
 
-  const loadRecommendations = async (companyId) => {
+  const loadRecommendations = useCallback(async (companyIdParam) => {
     try {
-      const result = await RecommendationService.getRecommendations('company', companyId)
-      if (result.success) {
+      const result = await RecommendationService.getRecommendations('company', companyIdParam)
+      if (result.success && companyIdParam === companyId) {
         setRecommendations(result.recommendations || [])
       }
     } catch (error) {
       console.error('Error loading recommendations:', error)
     }
-  }
+  }, [companyId])
+
+  const loadCompanyData = useCallback(async () => {
+    if (!user || !companyId) return
+
+    setLoading(true)
+    try {
+      // Limpar estado anterior
+      setCompany(null)
+      setEmployees([])
+      setBenefits([])
+      setRecommendations([])
+      
+      console.log('🔵 Loading company with ID from URL:', companyId)
+      const companyResult = await CompanyService.getCompany(companyId)
+      
+      if (companyResult.success && companyResult.company) {
+        const targetCompany = companyResult.company
+        console.log('✅ Company loaded:', targetCompany.company_name, 'ID:', targetCompany.id)
+        
+        // Verificar se o companyId ainda é o mesmo antes de atualizar
+        if (companyId === targetCompany.id) {
+          setCompany(targetCompany)
+
+          // Carregar dados relacionados usando o ID da empresa carregada
+          await Promise.all([
+            loadEmployees(targetCompany.id),
+            loadBenefits(targetCompany.id),
+            loadRecommendations(targetCompany.id)
+          ])
+        } else {
+          console.warn('⚠️ Company ID mismatch, ignoring results')
+        }
+      } else {
+        console.error('❌ Company not found for ID:', companyId)
+      }
+    } catch (error) {
+      console.error('Error loading company data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [user, companyId, loadEmployees, loadBenefits, loadRecommendations])
+
+  useEffect(() => {
+    if (user && companyId) {
+      loadCompanyData()
+    }
+  }, [user, companyId, loadCompanyData])
+
 
   if (loading) {
     return (
