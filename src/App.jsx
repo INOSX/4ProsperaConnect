@@ -19,6 +19,7 @@ import CPFClientDetail from './components/prospecting/CPFClientDetail'
 import UnbankedCompanyDetail from './components/prospecting/UnbankedCompanyDetail'
 import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
+import CompanyList from './components/companies/CompanyList'
 import EmployeePortal from './components/employees/EmployeePortal'
 import EmployeeList from './components/people/EmployeeList'
 import EmployeeDetail from './components/people/EmployeeDetail'
@@ -128,6 +129,13 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/companies" element={
+              <ProtectedRoute>
+                <Layout>
+                  <CompanyList />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/companies/:id" element={
               <ProtectedRoute>
                 <Layout>
                   <CompanyDashboard />

@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
 import { BenefitService } from '../../services/benefitService'
 import { RecommendationService } from '../../services/recommendationService'
 import Card from '../ui/Card'
-import { Users, Building2, TrendingUp, DollarSign, Package, Briefcase } from 'lucide-react'
+import { Users, Building2, TrendingUp, DollarSign, Package, Briefcase, ArrowLeft } from 'lucide-react'
+import Button from '../ui/Button'
 
 const CompanyDashboard = () => {
   const { user } = useAuth()
+  const { id: companyId } = useParams()
+  const navigate = useNavigate()
   const [company, setCompany] = useState(null)
   const [employees, setEmployees] = useState([])
   const [benefits, setBenefits] = useState([])
@@ -19,24 +23,37 @@ const CompanyDashboard = () => {
     if (user) {
       loadCompanyData()
     }
-  }, [user])
+  }, [user, companyId])
 
   const loadCompanyData = async () => {
     if (!user) return
 
     setLoading(true)
     try {
-      // Buscar empresa do usuário
-      const companyResult = await CompanyService.getUserCompanies(user.id)
-      if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
-        const userCompany = companyResult.companies[0]
-        setCompany(userCompany)
+      let targetCompany = null
+      
+      // Se há um ID na URL, buscar empresa específica
+      if (companyId) {
+        const companyResult = await CompanyService.getCompany(companyId)
+        if (companyResult.success && companyResult.company) {
+          targetCompany = companyResult.company
+        }
+      } else {
+        // Caso contrário, buscar primeira empresa do usuário (comportamento antigo)
+        const companyResult = await CompanyService.getUserCompanies(user.id)
+        if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
+          targetCompany = companyResult.companies[0]
+        }
+      }
+      
+      if (targetCompany) {
+        setCompany(targetCompany)
 
         // Carregar dados relacionados
         await Promise.all([
-          loadEmployees(userCompany.id),
-          loadBenefits(userCompany.id),
-          loadRecommendations(userCompany.id)
+          loadEmployees(targetCompany.id),
+          loadBenefits(targetCompany.id),
+          loadRecommendations(targetCompany.id)
         ])
       }
     } catch (error) {
@@ -91,8 +108,16 @@ const CompanyDashboard = () => {
     return (
       <div className="text-center py-8">
         <Building2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-500">Nenhuma empresa encontrada</p>
-        <p className="text-sm text-gray-400 mt-2">Entre em contato com o suporte para configurar sua empresa</p>
+        <p className="text-gray-500">Empresa não encontrada</p>
+        <p className="text-sm text-gray-400 mt-2">A empresa solicitada não existe ou você não tem permissão para acessá-la</p>
+        <Button
+          variant="secondary"
+          onClick={() => navigate('/companies')}
+          className="mt-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Voltar para Lista de Empresas
+        </Button>
       </div>
     )
   }
