@@ -21,6 +21,11 @@ const CompanyDashboard = () => {
 
   useEffect(() => {
     if (user) {
+      // Limpar estado anterior quando companyId mudar
+      setCompany(null)
+      setEmployees([])
+      setBenefits([])
+      setRecommendations([])
       loadCompanyData()
     }
   }, [user, companyId])
@@ -34,12 +39,17 @@ const CompanyDashboard = () => {
       
       // Se há um ID na URL, buscar empresa específica
       if (companyId) {
+        console.log('🔵 Loading company with ID from URL:', companyId)
         const companyResult = await CompanyService.getCompany(companyId)
         if (companyResult.success && companyResult.company) {
           targetCompany = companyResult.company
+          console.log('✅ Company loaded:', targetCompany.company_name, 'ID:', targetCompany.id)
+        } else {
+          console.error('❌ Company not found for ID:', companyId)
         }
       } else {
         // Caso contrário, buscar primeira empresa do usuário (comportamento antigo)
+        console.log('⚠️ No companyId in URL, loading first user company')
         const companyResult = await CompanyService.getUserCompanies(user.id)
         if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
           targetCompany = companyResult.companies[0]
@@ -48,8 +58,9 @@ const CompanyDashboard = () => {
       
       if (targetCompany) {
         setCompany(targetCompany)
+        console.log('🔵 Loading employees for company:', targetCompany.id, targetCompany.company_name)
 
-        // Carregar dados relacionados
+        // Carregar dados relacionados usando o ID da empresa carregada
         await Promise.all([
           loadEmployees(targetCompany.id),
           loadBenefits(targetCompany.id),
@@ -65,9 +76,14 @@ const CompanyDashboard = () => {
 
   const loadEmployees = async (companyId) => {
     try {
+      console.log('🔵 loadEmployees called with companyId:', companyId)
       const result = await EmployeeService.getCompanyEmployees(companyId)
       if (result.success) {
-        setEmployees(result.employees || [])
+        const employeesList = result.employees || []
+        console.log('✅ Employees loaded:', employeesList.length, 'for company:', companyId)
+        setEmployees(employeesList)
+      } else {
+        console.error('❌ Failed to load employees:', result.error)
       }
     } catch (error) {
       console.error('Error loading employees:', error)
