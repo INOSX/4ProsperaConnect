@@ -109,8 +109,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'roberto.silva@financeiraconsultoria.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '11122233344')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Analista Financeiro
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -125,8 +125,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'patricia.costa@financeiraconsultoria.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '22233344455')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Consultor Sênior
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -141,8 +141,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'carlos.mendes@financeiraconsultoria.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '33344455566')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
   END IF;
 END $$;
 
@@ -169,8 +169,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'ana.santos@marketingpro.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '44455566677')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Designer Gráfico
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -185,8 +185,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'lucas.oliveira@marketingpro.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '55566677788')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
   END IF;
 END $$;
 
@@ -213,8 +213,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'fernando.almeida@horizonteconstrucoes.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '66677788899')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Arquiteto
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -229,8 +229,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'mariana.ferreira@horizonteconstrucoes.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '77788899900')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Mestre de Obras
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -245,8 +245,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'joao.batista@horizonteconstrucoes.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '88899900011')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
   END IF;
 END $$;
 
@@ -273,8 +273,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'ricardo.sousa@saborbrasileiro.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '99900011122')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
     
     -- Garçom
     INSERT INTO public.employees (name, email, cpf, position, department, hire_date, salary, is_active, company_id, platform_user_id)
@@ -289,8 +289,8 @@ BEGIN
       true,
       company_id_var,
       user_id_var
-    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE email = 'juliana.rocha@saborbrasileiro.com.br')
-    ON CONFLICT (email) DO NOTHING;
+    WHERE NOT EXISTS (SELECT 1 FROM public.employees WHERE company_id = company_id_var AND cpf = '00011122233')
+    ON CONFLICT (company_id, cpf) DO NOTHING;
   END IF;
 END $$;
 
