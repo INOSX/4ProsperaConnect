@@ -20,7 +20,7 @@ const RegisterForm = () => {
   // Se o usuário já estiver autenticado, redirecionar para o dashboard
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate('/', { replace: true })
+      navigate('/modules', { replace: true })
     }
   }, [isAuthenticated, user, navigate])
 
@@ -90,7 +90,7 @@ const RegisterForm = () => {
         // Aguardar um pouco para o AuthContext atualizar e então redirecionar
         setTimeout(() => {
           if (user) {
-            navigate('/', { replace: true })
+            navigate('/modules', { replace: true })
           }
         }, 1000)
       } else {

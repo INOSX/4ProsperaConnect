@@ -326,7 +326,7 @@ const Datasets = () => {
       return
     }
     // Enviar nomes/ids para o Dashboard via state de navegação
-    navigate('/', {
+    navigate('/dashboard', {
       state: {
         selectedFiles: selectedItems.map(it => ({ id: it.id, filename: it.filename }))
       }
