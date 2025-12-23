@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus } from 'lucide-react'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus, UserCircle } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
@@ -27,6 +27,12 @@ const ModuleTopMenu = () => {
       route: '/people/products',
       icon: Briefcase,
       description: 'Ver produtos dos colaboradores'
+    },
+    {
+      label: 'Portal do Colaborador',
+      route: '/employees',
+      icon: UserCircle,
+      description: 'Visualizar dashboard dos colaboradores'
     }
   ]
 
