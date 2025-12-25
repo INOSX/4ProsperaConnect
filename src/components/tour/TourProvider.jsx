@@ -149,24 +149,36 @@ const TourProvider = ({ children }) => {
       return
     }
 
-    // CRÍTICO: Atualizar stepIndex para TODOS os eventos que tenham um index válido
-    // O react-joyride com continuous=true gerencia o stepIndex internamente,
-    // mas precisamos sincronizar nosso estado através do callback
-    if (typeof index === 'number' && index >= 0 && index < steps.length) {
-      console.log(`📊 [TourProvider] Updating stepIndex from ${stepIndex} to ${index}`)
-      // Usar setStepIndex diretamente para garantir atualização imediata
-      setStepIndex(index)
-      console.log(`✅ [TourProvider] stepIndex updated to: ${index}`)
-    } else {
-      console.warn('⚠️ [TourProvider] Invalid index received:', index, 'Current stepIndex:', stepIndex)
+    // CRÍTICO: Quando o usuário clica em "Next" ou "Prev", precisamos incrementar/decrementar manualmente
+    // porque estamos controlando o stepIndex e o react-joyride não incrementa automaticamente
+    if (action === 'next') {
+      const nextIndex = stepIndex + 1
+      if (nextIndex < steps.length) {
+        console.log(`➡️ [TourProvider] Next clicked: moving from step ${stepIndex} to ${nextIndex}`)
+        setStepIndex(nextIndex)
+      } else {
+        console.log('🛑 [TourProvider] Last step reached, finishing tour')
+        handleTourEnd(data)
+      }
+      return
     }
 
-    // Tratamento adicional para eventos específicos de navegação
-    if (type === 'step:after' || action === 'next' || action === 'prev') {
-      console.log(`🔄 [TourProvider] Navigation event: ${type || action}, index: ${index}`)
-      if (typeof index === 'number' && index >= 0 && index < steps.length) {
-        console.log(`📝 [TourProvider] Setting stepIndex to ${index} via navigation handler`)
+    if (action === 'prev') {
+      const prevIndex = stepIndex - 1
+      if (prevIndex >= 0) {
+        console.log(`⬅️ [TourProvider] Prev clicked: moving from step ${stepIndex} to ${prevIndex}`)
+        setStepIndex(prevIndex)
+      }
+      return
+    }
+
+    // Para outros eventos, atualizar stepIndex se o index for válido e diferente
+    if (typeof index === 'number' && index >= 0 && index < steps.length) {
+      // Só atualizar se o index for diferente do atual (evitar loops)
+      if (index !== stepIndex) {
+        console.log(`📊 [TourProvider] Updating stepIndex from ${stepIndex} to ${index}`)
         setStepIndex(index)
+        console.log(`✅ [TourProvider] stepIndex updated to: ${index}`)
       }
     }
   }
