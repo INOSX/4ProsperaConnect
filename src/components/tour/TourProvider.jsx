@@ -85,31 +85,47 @@ const TourProvider = ({ children }) => {
     loadStepsForRoute()
   }, [location.pathname, setSteps])
 
-  // Verificar se elementos existem antes de iniciar o tour
+  // Verificar se elementos existem - apenas para logging/debug, não interferir na navegação
   useEffect(() => {
-    if (run && steps.length > 0) {
+    if (run && steps.length > 0 && stepIndex < steps.length) {
       const currentStep = steps[stepIndex]
       if (currentStep) {
         const element = document.querySelector(currentStep.target)
         if (!element) {
-          // Se o elemento não existe, pular para o próximo
-          if (stepIndex < steps.length - 1) {
-            handleStepChange({ index: stepIndex + 1 })
-          } else {
-            stopTour()
-          }
+          // Log apenas, não interferir - o react-joyride já trata isso
+          console.warn(`Tour step target not found: ${currentStep.target}`)
         }
       }
     }
-  }, [run, steps, stepIndex, stopTour, handleStepChange])
+  }, [run, steps, stepIndex])
 
   const handleJoyrideCallback = (data) => {
     const { action, index, status, type } = data
 
+    // Quando o tour termina ou é pulado
     if (status === 'finished' || status === 'skipped') {
       handleTourEnd(data)
-    } else if (type === 'step:after' || type === 'error:target_not_found') {
-      handleStepChange(data)
+      return
+    }
+
+    // Quando há erro de elemento não encontrado
+    if (type === 'error:target_not_found') {
+      // Pular para o próximo step se disponível
+      if (typeof index === 'number' && index < steps.length - 1) {
+        handleStepChange({ index: index + 1 })
+      } else {
+        handleTourEnd(data)
+      }
+      return
+    }
+
+    // Atualizar stepIndex quando o passo muda - este é o evento principal
+    // O react-joyride chama este callback com o novo index após cada ação
+    if (typeof index === 'number') {
+      // Sempre atualizar o stepIndex quando o react-joyride notificar uma mudança
+      if (type === 'step:after' || action === 'next' || action === 'prev') {
+        handleStepChange({ index })
+      }
     }
   }
 
@@ -120,10 +136,14 @@ const TourProvider = ({ children }) => {
         steps={steps}
         run={run}
         stepIndex={stepIndex}
-        continuous
-        showProgress
-        showSkipButton
+        continuous={true}
+        showProgress={true}
+        showSkipButton={true}
         callback={handleJoyrideCallback}
+        disableScrolling={false}
+        scrollOffset={20}
+        disableOverlayClose={true}
+        spotlightClicks={false}
         styles={{
           options: {
             primaryColor: TOUR_STYLES.options.primaryColor,
@@ -170,10 +190,7 @@ const TourProvider = ({ children }) => {
           open: TOUR_TEXTS.open,
           skip: TOUR_TEXTS.skip
         }}
-        disableOverlayClose
-        disableScrolling={false}
-        scrollToFirstStep
-        spotlightClicks
+        scrollToFirstStep={true}
       />
     </>
   )
