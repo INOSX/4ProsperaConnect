@@ -21,6 +21,21 @@ export const TourProvider = ({ children }) => {
   const [tourDisabled, setTourDisabled] = useState(false)
   const location = useLocation()
 
+  // Log quando stepIndex muda
+  useEffect(() => {
+    console.log(`📌 [TourContext] stepIndex state changed to: ${stepIndex}`)
+  }, [stepIndex])
+
+  // Log quando steps mudam
+  useEffect(() => {
+    console.log(`📦 [TourContext] steps state changed, count: ${steps.length}`)
+  }, [steps.length])
+
+  // Log quando run muda
+  useEffect(() => {
+    console.log(`▶️ [TourContext] run state changed to: ${run}`)
+  }, [run])
+
   // Carregar preferências do localStorage
   useEffect(() => {
     const savedDisabled = localStorage.getItem(DISABLED_KEY)
