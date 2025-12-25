@@ -21,7 +21,8 @@ export const TOUR_ROUTES = {
   '/settings': 'settings',
   '/profile': 'profile',
   '/datasets': 'datasets',
-  '/upload': 'upload'
+  '/upload': 'upload',
+  '/specialist': 'specialist'
 }
 
 // Função para obter a configuração do tour baseada na rota

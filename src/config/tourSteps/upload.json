@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='upload-dropzone']",
+    "title": "Upload de Dados",
+    "content": "Arraste um arquivo CSV ou Excel aqui, ou clique para selecionar. O sistema suporta arquivos até 10MB e processa automaticamente os dados.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='upload-preview']",
+    "title": "Preview dos Dados",
+    "content": "Após o upload, você verá uma prévia dos dados processados. Verifique se as informações estão corretas antes de salvar.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='upload-column-types']",
+    "title": "Tipos de Colunas",
+    "content": "O sistema detecta automaticamente os tipos de dados de cada coluna (texto, número, data, etc). Isso ajuda na análise e visualização dos dados.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='upload-save']",
+    "title": "Salvar Dados",
+    "content": "Clique em 'Salvar Dados' para finalizar o upload. Os dados serão salvos no seu bucket e disponibilizados para análise no Dashboard.",
+    "placement": "top"
+  }
+]
+

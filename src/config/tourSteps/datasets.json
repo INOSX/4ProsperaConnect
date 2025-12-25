@@ -1,0 +1,21 @@
+[
+  {
+    "target": "[data-tour-id='datasets-header']",
+    "title": "Meus Datasets",
+    "content": "Aqui você visualiza todos os arquivos de dados que foram enviados para o sistema. Cada arquivo contém informações que podem ser analisadas no Dashboard.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='datasets-table']",
+    "title": "Lista de Arquivos",
+    "content": "A tabela mostra todos os seus datasets com informações como nome do arquivo, tamanho, data de criação e status. Use os checkboxes para selecionar arquivos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='datasets-actions']",
+    "title": "Ações Disponíveis",
+    "content": "Use os botões para: 'Usar no Dashboard' (carregar dados para análise), 'Download' (baixar arquivo) ou 'Excluir' (remover permanentemente).",
+    "placement": "left"
+  }
+]
+

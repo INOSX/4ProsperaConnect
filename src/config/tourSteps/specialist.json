@@ -1,0 +1,21 @@
+[
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Este é o seu assistente virtual inteligente! Ele pode responder perguntas sobre seus dados, ajudar com análises e fornecer insights sobre suas empresas e colaboradores.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='specialist-connect']",
+    "title": "Conectar Especialista",
+    "content": "Clique em 'Conectar' para iniciar uma conversa com o especialista. Ele usará os dados do seu dataset selecionado para fornecer respostas precisas.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='specialist-microphone']",
+    "title": "Gravação de Voz",
+    "content": "Use o microfone para fazer perguntas por voz. O especialista transcreve sua pergunta e responde usando inteligência artificial e seus dados.",
+    "placement": "left"
+  }
+]
+

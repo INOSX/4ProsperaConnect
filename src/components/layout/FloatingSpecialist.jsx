@@ -427,6 +427,7 @@ const FloatingSpecialist = () => {
   return (
     <div 
       ref={widgetRef}
+      data-tour-id="specialist-widget"
       className="fixed z-50 w-80"
       style={{
         left: initialPosition.x,
@@ -500,8 +501,9 @@ const FloatingSpecialist = () => {
                 
                 {/* Botão de gravação */}
                 <button
-                  onClick={toggleRecording}
+                  onClick={!avatarConnected ? () => initializeAvatar() : toggleRecording}
                   disabled={!audioRecorder}
+                  data-tour-id={!avatarConnected ? "specialist-connect" : "specialist-microphone"}
                   className={`w-full flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     !avatarConnected
                       ? 'bg-primary-50 text-primary-600 hover:bg-primary-100'
