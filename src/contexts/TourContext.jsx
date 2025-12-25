@@ -106,7 +106,7 @@ export const TourProvider = ({ children }) => {
 
   // Callback quando passo muda
   const handleStepChange = useCallback((data) => {
-    if (data && typeof data.index === 'number') {
+    if (data && typeof data.index === 'number' && data.index >= 0) {
       setStepIndex(data.index)
     }
   }, [])

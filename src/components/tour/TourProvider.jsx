@@ -100,7 +100,7 @@ const TourProvider = ({ children }) => {
   }, [run, steps, stepIndex])
 
   const handleJoyrideCallback = (data) => {
-    const { action, index, status, type } = data
+    const { action, index, status, type, step } = data
 
     // Quando o tour termina ou é pulado
     if (status === 'finished' || status === 'skipped') {
@@ -119,11 +119,17 @@ const TourProvider = ({ children }) => {
       return
     }
 
-    // Atualizar stepIndex quando o passo muda - este é o evento principal
-    // O react-joyride chama este callback com o novo index após cada ação
-    if (typeof index === 'number') {
-      // Sempre atualizar o stepIndex quando o react-joyride notificar uma mudança
-      if (type === 'step:after' || action === 'next' || action === 'prev') {
+    // Atualizar stepIndex para QUALQUER evento que tenha um index válido
+    // O react-joyride passa o index no callback após cada ação
+    if (typeof index === 'number' && index >= 0 && index < steps.length) {
+      // Sempre atualizar, mesmo que seja o mesmo valor (pode ser necessário para forçar re-render)
+      handleStepChange({ index })
+    }
+
+    // Log eventos importantes para debug
+    if (type === 'step:after' || action === 'next' || action === 'prev') {
+      // Evento de navegação - garantir que o index foi atualizado
+      if (typeof index === 'number' && index >= 0) {
         handleStepChange({ index })
       }
     }
@@ -132,6 +138,7 @@ const TourProvider = ({ children }) => {
   return (
     <>
       {children}
+      {steps.length > 0 && (
       <Joyride
         steps={steps}
         run={run}
@@ -144,6 +151,9 @@ const TourProvider = ({ children }) => {
         scrollOffset={20}
         disableOverlayClose={true}
         spotlightClicks={false}
+        floaterProps={{
+          disableAnimation: false
+        }}
         styles={{
           options: {
             primaryColor: TOUR_STYLES.options.primaryColor,
@@ -192,6 +202,7 @@ const TourProvider = ({ children }) => {
         }}
         scrollToFirstStep={true}
       />
+      )}
     </>
   )
 }
