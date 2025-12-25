@@ -16,12 +16,6 @@
     "title": "Estatísticas",
     "content": "Visualize estatísticas agregadas de todas as empresas, como total de funcionários, produtos ativos e benefícios oferecidos.",
     "placement": "bottom"
-  },
-  {
-    "target": "[data-tour-id='company-list-actions']",
-    "title": "Ações Rápidas",
-    "content": "Acesse rapidamente funcionalidades como adicionar nova empresa, gerenciar produtos e visualizar relatórios.",
-    "placement": "left"
   }
 ]
 
