@@ -22,6 +22,9 @@ import integrationsSteps from '../../config/tourSteps/integrations.json'
 import settingsSteps from '../../config/tourSteps/settings.json'
 import modulesSteps from '../../config/tourSteps/modules.json'
 import employeesSteps from '../../config/tourSteps/employees.json'
+import uploadSteps from '../../config/tourSteps/upload.json'
+import datasetsSteps from '../../config/tourSteps/datasets.json'
+import specialistSteps from '../../config/tourSteps/specialist.json'
 
 const tourStepsMap = {
   'dashboard': dashboardSteps,
@@ -39,7 +42,10 @@ const tourStepsMap = {
   'integrations': integrationsSteps,
   'settings': settingsSteps,
   'modules': modulesSteps,
-  'employees': employeesSteps
+  'employees': employeesSteps,
+  'upload': uploadSteps,
+  'datasets': datasetsSteps,
+  'specialist': specialistSteps
 }
 
 const TourProvider = ({ children }) => {

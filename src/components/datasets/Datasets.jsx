@@ -335,7 +335,7 @@ const Datasets = () => {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-6" data-tour-id="datasets-header">
         <h1 className="text-2xl font-semibold text-gray-900">Meus Datasets</h1>
         <p className="text-sm text-gray-600">Arquivos presentes no seu bucket do Supabase e tabela de datasets</p>
       </div>
@@ -370,7 +370,7 @@ const Datasets = () => {
                   {Object.values(selected).filter(v => v === true).length} de {items.length} selecionado(s)
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2" data-tour-id="datasets-actions">
                 <button
                   onClick={handleUseInDashboard}
                   disabled={isProcessing || Object.values(selected).filter(v => v === true).length === 0}
@@ -402,7 +402,7 @@ const Datasets = () => {
                 Processando... Por favor, aguarde.
               </div>
             )}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" data-tour-id="datasets-table">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

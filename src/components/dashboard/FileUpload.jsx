@@ -234,6 +234,7 @@ const FileUpload = ({ onDataLoaded, onClose, asPage = false }) => {
         {!parsedData ? (
           <div
             {...getRootProps()}
+            data-tour-id="upload-dropzone"
             className={`
               border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
               ${isDragActive 
@@ -288,7 +289,7 @@ const FileUpload = ({ onDataLoaded, onClose, asPage = false }) => {
             </div>
 
             {/* Data Preview */}
-            <div>
+            <div data-tour-id="upload-preview">
               <h3 className="text-lg font-medium text-gray-900 mb-3">Preview dos Dados</h3>
               <div className="border border-gray-200 rounded-lg overflow-hidden">
                 <div className="overflow-x-auto max-h-64">
@@ -344,7 +345,7 @@ const FileUpload = ({ onDataLoaded, onClose, asPage = false }) => {
             </div>
 
             {/* Column Types */}
-            <div>
+            <div data-tour-id="upload-column-types">
               <h3 className="text-lg font-medium text-gray-900 mb-3">Tipos de Colunas Detectados</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {Object.entries(parsedData.columnTypes).map(([column, type]) => (
@@ -366,6 +367,7 @@ const FileUpload = ({ onDataLoaded, onClose, asPage = false }) => {
                 Carregar Outro Arquivo
               </Button>
               <Button
+                data-tour-id="upload-save"
                 onClick={handleSaveData}
                 loading={isUploading}
                 disabled={!parsedData}
