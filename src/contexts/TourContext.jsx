@@ -47,12 +47,20 @@ export const TourProvider = ({ children }) => {
 
   // Iniciar tour
   const startTour = useCallback((tourSteps = []) => {
-    if (tourDisabled) return
+    if (tourDisabled) {
+      console.log('🚫 [TourContext] Tour is disabled')
+      return
+    }
     
     if (tourSteps.length > 0) {
+      console.log('🚀 [TourContext] Starting tour with', tourSteps.length, 'steps')
+      console.log('📋 [TourContext] Steps:', tourSteps)
       setSteps(tourSteps)
       setStepIndex(0)
       setRun(true)
+      console.log('✅ [TourContext] Tour started, stepIndex set to 0, run set to true')
+    } else {
+      console.warn('⚠️ [TourContext] Cannot start tour: no steps provided')
     }
   }, [tourDisabled])
 
@@ -106,10 +114,15 @@ export const TourProvider = ({ children }) => {
 
   // Callback quando passo muda
   const handleStepChange = useCallback((data) => {
+    console.log('🔄 [TourContext] handleStepChange called with:', data)
     if (data && typeof data.index === 'number' && data.index >= 0) {
+      console.log(`📝 [TourContext] Updating stepIndex from ${stepIndex} to ${data.index}`)
       setStepIndex(data.index)
+      console.log(`✅ [TourContext] stepIndex updated to: ${data.index}`)
+    } else {
+      console.warn('⚠️ [TourContext] handleStepChange called with invalid data:', data)
     }
-  }, [])
+  }, [stepIndex])
 
   // Resetar tour quando rota muda
   useEffect(() => {
