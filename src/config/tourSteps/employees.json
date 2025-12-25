@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='employee-portal-welcome']",
+    "title": "Portal do Funcionário",
+    "content": "Bem-vindo ao seu portal! Aqui você pode visualizar seus benefícios, produtos disponíveis e informações da sua empresa.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='employee-benefits']",
+    "title": "Meus Benefícios",
+    "content": "Visualize todos os benefícios disponíveis para você. Veja detalhes, valores e como utilizar cada benefício.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='employee-products']",
+    "title": "Produtos Disponíveis",
+    "content": "Explore produtos bancários e de seguros disponíveis especialmente para você, com condições especiais.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='employee-profile']",
+    "title": "Meu Perfil",
+    "content": "Acesse e atualize suas informações pessoais, dados de contato e preferências.",
+    "placement": "left"
+  }
+]
+

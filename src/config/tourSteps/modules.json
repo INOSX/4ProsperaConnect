@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='module-selector']",
+    "title": "Seleção de Módulos",
+    "content": "Escolha o módulo que deseja usar. Cada módulo oferece funcionalidades específicas para diferentes necessidades do seu negócio.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='module-people']",
+    "title": "Gestão de Pessoas",
+    "content": "Gerencie colaboradores, empresas e benefícios. Ideal para pequenas empresas que precisam organizar sua gestão de pessoas.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='module-prospecting']",
+    "title": "Prospecção de Clientes",
+    "content": "Identifique e qualifique potenciais clientes usando dados e inteligência artificial para encontrar as melhores oportunidades.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='module-marketing']",
+    "title": "Campanhas de Marketing",
+    "content": "Crie e gerencie campanhas de marketing digital para engajar seus prospects e clientes de forma eficiente.",
+    "placement": "top"
+  }
+]
+

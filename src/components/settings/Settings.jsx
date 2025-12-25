@@ -130,7 +130,7 @@ const Settings = ({ initialTab }) => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200" data-tour-id="settings-tabs">
         <nav className="flex space-x-4">
           <button
             onClick={() => handleTabChange('smtp')}

@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='products-list']",
+    "title": "Lista de Produtos",
+    "content": "Gerencie todos os produtos disponíveis no catálogo. Visualize detalhes, edite informações ou desative produtos.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='products-add']",
+    "title": "Adicionar Produto",
+    "content": "Crie novos produtos bancários ou de seguros. Configure código, tipo, categoria, preços e requisitos.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='products-catalog']",
+    "title": "Catálogo",
+    "content": "Acesse o catálogo completo de produtos para visualizar todas as opções disponíveis de forma organizada.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='products-filters']",
+    "title": "Filtros",
+    "content": "Filtre produtos por tipo (conta, crédito, investimento, seguro), categoria ou status (ativo/inativo).",
+    "placement": "bottom"
+  }
+]
+

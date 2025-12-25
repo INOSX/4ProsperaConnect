@@ -1,0 +1,21 @@
+[
+  {
+    "target": "[data-tour-id='prospect-list-filters']",
+    "title": "Filtros de Busca",
+    "content": "Use os filtros para encontrar prospects específicos. Filtre por score, status, tipo de empresa e outras características importantes.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='prospect-list-table']",
+    "title": "Lista de Prospects",
+    "content": "Visualize todos os seus prospects em uma tabela organizada. Clique em qualquer prospect para ver detalhes completos e tomar ações.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='prospect-list-actions']",
+    "title": "Ações em Lote",
+    "content": "Selecione múltiplos prospects e execute ações em lote, como qualificar, rejeitar ou criar campanhas personalizadas.",
+    "placement": "left"
+  }
+]
+

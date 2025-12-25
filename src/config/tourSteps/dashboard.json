@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='dashboard-upload']",
+    "title": "Upload de Dados",
+    "content": "Aqui você pode fazer upload de arquivos CSV ou Excel para análise. Os dados serão processados e exibidos em gráficos interativos.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='dashboard-kpis']",
+    "title": "Indicadores (KPIs)",
+    "content": "Visualize os principais indicadores do seu dashboard. Você pode minimizar ou ocultar cards que não precisa ver no momento.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='dashboard-chart']",
+    "title": "Gráficos Interativos",
+    "content": "Crie gráficos personalizados selecionando as colunas para os eixos X e Y. Escolha entre diferentes tipos de gráfico: linha, barra, pizza, área e dispersão.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='dashboard-datasets']",
+    "title": "Datasets",
+    "content": "Gerencie todos os seus datasets aqui. Você pode visualizar, editar ou excluir datasets carregados anteriormente.",
+    "placement": "left"
+  }
+]
+

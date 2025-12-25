@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='benefits-list']",
+    "title": "Lista de Benefícios",
+    "content": "Visualize todos os benefícios cadastrados no sistema. Veja detalhes como tipo, valor e empresas que oferecem cada benefício.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='benefits-add']",
+    "title": "Adicionar Benefício",
+    "content": "Crie novos benefícios para oferecer aos funcionários. Configure tipo, valor, requisitos e empresas elegíveis.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='benefits-categories']",
+    "title": "Categorias",
+    "content": "Organize benefícios por categorias como saúde, alimentação, transporte, educação e outros.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='benefits-stats']",
+    "title": "Estatísticas",
+    "content": "Acompanhe métricas como número de beneficiários, valor total investido e benefícios mais populares.",
+    "placement": "top"
+  }
+]
+
