@@ -129,10 +129,12 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon
+                const tourId = item.href === '/upload' ? 'sidebar-upload' : item.href === '/datasets' ? 'sidebar-datasets' : null
                 return (
                   <a
                     key={item.label}
                     href={item.href}
+                    data-tour-id={tourId}
                     className={`
                       flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
                       ${item.active 
