@@ -62,16 +62,21 @@ const TourProvider = ({ children }) => {
       
       if (configKey && tourStepsMap[configKey]) {
         const routeSteps = tourStepsMap[configKey]
-        // Aguardar um pouco para garantir que o DOM foi renderizado antes de verificar elementos
+        // Primeiro, definir os steps imediatamente (sem verificação de elementos)
+        setSteps(routeSteps)
+        
+        // Depois, aguardar um pouco e verificar se os elementos existem
         setTimeout(() => {
-          // Verificar se os elementos existem antes de adicionar ao tour
           const validSteps = routeSteps.filter(step => {
             const element = document.querySelector(step.target)
             return element !== null
           })
           
-          setSteps(validSteps.length > 0 ? validSteps : routeSteps)
-        }, 300)
+          // Atualizar apenas se houver diferença
+          if (validSteps.length !== routeSteps.length) {
+            setSteps(validSteps.length > 0 ? validSteps : routeSteps)
+          }
+        }, 500)
       } else {
         setSteps([])
       }

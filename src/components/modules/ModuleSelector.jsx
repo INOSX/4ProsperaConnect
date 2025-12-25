@@ -1,12 +1,31 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
+import { useTour } from '../../contexts/TourContext'
 import Card from '../ui/Card'
-import { Users, Target, Mail, ArrowRight } from 'lucide-react'
+import { Users, Target, Mail, ArrowRight, HelpCircle, X } from 'lucide-react'
 
 const ModuleSelector = () => {
   const navigate = useNavigate()
   const { selectModule, modules } = useModule()
+  const { run, startTour, stopTour, steps } = useTour()
+
+  const handleTourClick = () => {
+    if (run) {
+      stopTour()
+    } else {
+      if (steps.length > 0) {
+        startTour(steps)
+      } else {
+        // Aguardar um pouco e tentar novamente
+        setTimeout(() => {
+          if (steps.length > 0) {
+            startTour(steps)
+          }
+        }, 500)
+      }
+    }
+  }
 
   const moduleCards = [
     {
@@ -63,6 +82,28 @@ const ModuleSelector = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
+      {/* Tour Button - Floating */}
+      <div className="fixed top-4 right-4 z-50">
+        <button
+          onClick={handleTourClick}
+          className={`p-3 rounded-full shadow-lg transition-all relative ${
+            run 
+              ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+              : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
+          }`}
+          title={run ? 'Parar tour guiado' : 'Iniciar tour guiado'}
+        >
+          {run ? (
+            <X className="h-5 w-5" />
+          ) : (
+            <HelpCircle className="h-5 w-5" />
+          )}
+          {run && (
+            <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full animate-pulse border-2 border-white"></span>
+          )}
+        </button>
+      </div>
+
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

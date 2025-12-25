@@ -19,11 +19,20 @@ const TourButton = () => {
       stopTour()
     } else {
       const configKey = getTourConfigForRoute(location.pathname)
-      if (configKey && steps.length > 0) {
-        startTour(steps)
+      if (configKey) {
+        if (steps.length > 0) {
+          startTour(steps)
+        } else {
+          // Aguardar um pouco e tentar novamente se os steps ainda não foram carregados
+          setTimeout(() => {
+            if (steps.length > 0) {
+              startTour(steps)
+            }
+          }, 800)
+        }
       } else {
         // Se não houver tour configurado para esta página, mostrar mensagem
-        alert('Tour guiado não disponível para esta página.')
+        console.log('Tour não disponível para:', location.pathname)
       }
     }
   }
