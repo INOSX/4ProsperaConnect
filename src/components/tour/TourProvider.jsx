@@ -52,7 +52,8 @@ const TourProvider = ({ children }) => {
     stopTour,
     handleTourEnd,
     handleStepChange,
-    setSteps
+    setSteps,
+    setStepIndex
   } = useTour()
 
   // Carregar steps quando a rota mudar
@@ -100,7 +101,7 @@ const TourProvider = ({ children }) => {
   }, [run, steps, stepIndex])
 
   const handleJoyrideCallback = (data) => {
-    const { action, index, status, type, step } = data
+    const { action, index, status, type } = data
 
     // Quando o tour termina ou é pulado
     if (status === 'finished' || status === 'skipped') {
@@ -119,18 +120,18 @@ const TourProvider = ({ children }) => {
       return
     }
 
-    // Atualizar stepIndex para QUALQUER evento que tenha um index válido
-    // O react-joyride passa o index no callback após cada ação
+    // CRÍTICO: Atualizar stepIndex para TODOS os eventos que tenham um index válido
+    // O react-joyride com continuous=true gerencia o stepIndex internamente,
+    // mas precisamos sincronizar nosso estado através do callback
     if (typeof index === 'number' && index >= 0 && index < steps.length) {
-      // Sempre atualizar, mesmo que seja o mesmo valor (pode ser necessário para forçar re-render)
-      handleStepChange({ index })
+      // Usar setStepIndex diretamente para garantir atualização imediata
+      setStepIndex(index)
     }
 
-    // Log eventos importantes para debug
+    // Tratamento adicional para eventos específicos de navegação
     if (type === 'step:after' || action === 'next' || action === 'prev') {
-      // Evento de navegação - garantir que o index foi atualizado
-      if (typeof index === 'number' && index >= 0) {
-        handleStepChange({ index })
+      if (typeof index === 'number' && index >= 0 && index < steps.length) {
+        setStepIndex(index)
       }
     }
   }
