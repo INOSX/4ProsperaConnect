@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='company-list-search']",
+    "title": "Buscar Empresas",
+    "content": "Use a barra de busca para encontrar empresas específicas pelo nome, CNPJ ou outras características.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='company-list-cards']",
+    "title": "Cards de Empresas",
+    "content": "Cada card mostra informações resumidas da empresa, incluindo número de funcionários, produtos oferecidos e status. Clique para ver detalhes completos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='company-list-stats']",
+    "title": "Estatísticas",
+    "content": "Visualize estatísticas agregadas de todas as empresas, como total de funcionários, produtos ativos e benefícios oferecidos.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='company-list-actions']",
+    "title": "Ações Rápidas",
+    "content": "Acesse rapidamente funcionalidades como adicionar nova empresa, gerenciar produtos e visualizar relatórios.",
+    "placement": "left"
+  }
+]
+

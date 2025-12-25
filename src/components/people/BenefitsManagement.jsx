@@ -128,6 +128,7 @@ const BenefitsManagement = () => {
         <Button
           variant="primary"
           onClick={() => navigate('/people/benefits/new')}
+          data-tour-id="benefits-add"
         >
           <Plus className="h-4 w-4 mr-2" />
           Novo Benefício
@@ -135,7 +136,7 @@ const BenefitsManagement = () => {
       </div>
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-tour-id="benefits-stats">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -167,6 +168,7 @@ const BenefitsManagement = () => {
 
       {/* Benefícios Ativos */}
       {activeBenefits.length > 0 && (
+        <div data-tour-id="benefits-list">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Benefícios Ativos</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -231,6 +233,7 @@ const BenefitsManagement = () => {
               </Card>
             ))}
           </div>
+        </div>
         </div>
       )}
 

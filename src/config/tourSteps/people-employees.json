@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='employees-list']",
+    "title": "Lista de Funcionários",
+    "content": "Visualize todos os funcionários cadastrados. Use os filtros para encontrar funcionários específicos ou por empresa.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='employees-add']",
+    "title": "Adicionar Funcionário",
+    "content": "Clique aqui para adicionar um novo funcionário ao sistema. Preencha os dados cadastrais e associe a uma empresa.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='employees-filters']",
+    "title": "Filtros e Busca",
+    "content": "Use os filtros para encontrar funcionários por empresa, status, departamento ou outros critérios.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='employees-actions']",
+    "title": "Ações",
+    "content": "Visualize detalhes, edite informações ou gerencie benefícios de cada funcionário através das ações disponíveis.",
+    "placement": "left"
+  }
+]
+

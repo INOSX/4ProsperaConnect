@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='integrations-list']",
+    "title": "Conexões de Dados",
+    "content": "Gerencie todas as suas integrações com fontes de dados externas. Conecte APIs, bancos de dados e planilhas.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='integrations-add']",
+    "title": "Nova Integração",
+    "content": "Configure uma nova conexão de dados. Escolha o tipo de fonte (API, banco de dados, Google Sheets, etc.) e configure as credenciais.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='integrations-status']",
+    "title": "Status das Integrações",
+    "content": "Monitore o status de cada integração: ativa, inativa, com erro ou sincronizando. Receba alertas quando houver problemas.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='integrations-sync']",
+    "title": "Sincronização",
+    "content": "Configure a frequência de sincronização dos dados. Execute sincronizações manuais ou automáticas agendadas.",
+    "placement": "top"
+  }
+]
+

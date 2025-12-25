@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='catalog-search']",
+    "title": "Buscar Produtos",
+    "content": "Use a busca para encontrar produtos específicos por nome, tipo ou categoria.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='catalog-filters']",
+    "title": "Filtros",
+    "content": "Filtre produtos por tipo, categoria, faixa de preço ou outras características importantes.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='catalog-cards']",
+    "title": "Cards de Produtos",
+    "content": "Cada card mostra informações resumidas do produto. Clique para ver detalhes completos, preços e requisitos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='catalog-categories']",
+    "title": "Categorias",
+    "content": "Navegue por categorias de produtos: contas, crédito, investimentos, seguros e serviços.",
+    "placement": "left"
+  }
+]
+

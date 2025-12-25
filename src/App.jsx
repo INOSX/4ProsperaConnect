@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { DatasetProvider } from './contexts/DatasetContext'
 import { ModuleProvider } from './contexts/ModuleContext'
+import { TourProvider } from './contexts/TourContext'
+import TourProviderComponent from './components/tour/TourProvider'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
 import AuthCallback from './components/auth/AuthCallback'
@@ -43,8 +45,10 @@ function App() {
     <AuthProvider>
       <DatasetProvider>
         <BrowserRouter>
-          <ModuleProvider>
-            <div className="min-h-screen bg-gray-50">
+          <TourProvider>
+            <TourProviderComponent>
+              <ModuleProvider>
+                <div className="min-h-screen bg-gray-50">
               <Routes>
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
@@ -292,8 +296,10 @@ function App() {
             } />
               </Routes>
               <Analytics />
-            </div>
-          </ModuleProvider>
+                </div>
+              </ModuleProvider>
+            </TourProviderComponent>
+          </TourProvider>
         </BrowserRouter>
       </DatasetProvider>
     </AuthProvider>

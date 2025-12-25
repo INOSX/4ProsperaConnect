@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='enrich-wizard-steps']",
+    "title": "Assistente de Enriquecimento",
+    "content": "Siga os passos do assistente para enriquecer seus dados de prospecção com informações adicionais de fontes externas.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='enrich-source']",
+    "title": "Selecionar Fonte",
+    "content": "Escolha a fonte de dados externa que deseja usar para enriquecer seus prospects: APIs, bancos de dados ou planilhas.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='enrich-mapping']",
+    "title": "Mapeamento de Campos",
+    "content": "Mapeie os campos dos seus dados com os campos da fonte externa para garantir que as informações sejam combinadas corretamente.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='enrich-preview']",
+    "title": "Pré-visualização",
+    "content": "Visualize uma prévia dos dados enriquecidos antes de confirmar a importação. Verifique se tudo está correto.",
+    "placement": "top"
+  }
+]
+

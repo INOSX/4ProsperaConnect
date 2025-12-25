@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='settings-tabs']",
+    "title": "Abas de Configurações",
+    "content": "Navegue entre diferentes seções de configurações: perfil, integrações, notificações e preferências do sistema.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='settings-profile']",
+    "title": "Perfil",
+    "content": "Atualize suas informações pessoais, foto de perfil e preferências de conta.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='settings-notifications']",
+    "title": "Notificações",
+    "content": "Configure como e quando você deseja receber notificações sobre eventos importantes no sistema.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='settings-tour']",
+    "title": "Tour Guiado",
+    "content": "Gerencie as preferências do tour guiado. Reative o tour se desejar revisar as funcionalidades novamente.",
+    "placement": "top"
+  }
+]
+

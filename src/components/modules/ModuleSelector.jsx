@@ -75,12 +75,13 @@ const ModuleSelector = () => {
         </div>
 
         {/* Module Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8" data-tour-id="module-selector">
           {moduleCards.map((module) => {
             const Icon = module.icon
             return (
               <Card
                 key={module.id}
+                data-tour-id={module.id === 'people' ? 'module-people' : module.id === 'prospecting' ? 'module-prospecting' : 'module-marketing'}
                 className="relative overflow-hidden group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 onClick={() => handleSelectModule(module.id, module.route)}
                 hover

@@ -140,7 +140,7 @@ const ProspectingDashboard = () => {
           <h1 className="text-2xl font-bold text-gray-900">Dashboard de Prospecção</h1>
           <p className="text-gray-600">Identifique e qualifique potenciais clientes CNPJ</p>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2" data-tour-id="prospecting-actions">
           {activeTab === 'cnpj' && (
             <>
               <Button
@@ -163,7 +163,7 @@ const ProspectingDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200" data-tour-id="prospecting-tabs">
         <nav className="flex space-x-4">
           <button
             onClick={() => {
@@ -218,7 +218,7 @@ const ProspectingDashboard = () => {
       ) : (
         <>
           {/* KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4" data-tour-id="prospecting-stats">
         <Card className="p-4 relative group">
           <div className="flex items-center justify-between">
             <div>
@@ -390,6 +390,7 @@ const ProspectingDashboard = () => {
       </div>
 
       {/* Gráficos e Visualizações */}
+      <div data-tour-id="prospecting-charts">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Distribuição de Scores */}
         <Card>

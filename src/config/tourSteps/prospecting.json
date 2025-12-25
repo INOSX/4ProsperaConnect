@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='prospecting-stats']",
+    "title": "Estatísticas de Prospecção",
+    "content": "Visualize um resumo completo das suas prospecções: total de prospects, qualificados, pendentes e rejeitados, além de métricas como score médio e LTV.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='prospecting-tabs']",
+    "title": "Abas de Prospecção",
+    "content": "Navegue entre diferentes tipos de prospecção: CNPJ (empresas), CPF (pessoas físicas) e Empresas Desbancarizadas. Cada aba tem suas próprias funcionalidades.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='prospecting-charts']",
+    "title": "Gráficos de Análise",
+    "content": "Analise a distribuição de scores e outras métricas através de gráficos interativos. Use os filtros para visualizar dados específicos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='prospecting-actions']",
+    "title": "Ações Rápidas",
+    "content": "Acesse rapidamente funcionalidades importantes como enriquecimento de dados, lista de prospects e criação de campanhas.",
+    "placement": "left"
+  }
+]
+

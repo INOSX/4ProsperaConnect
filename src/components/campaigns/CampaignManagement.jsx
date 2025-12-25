@@ -136,6 +136,7 @@ const CampaignManagement = () => {
         <Button
           variant="primary"
           onClick={() => navigate('/campaigns/create', { state: { selectedClients } })}
+          data-tour-id="campaigns-create"
         >
           <Plus className="h-4 w-4 mr-2" />
           Criar Campanha
@@ -166,7 +167,7 @@ const CampaignManagement = () => {
       </Card>
 
       {/* Lista de Campanhas */}
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4" data-tour-id="campaigns-list">
         {campaigns.length === 0 ? (
           <Card className="p-12 text-center">
             <Mail className="h-16 w-16 mx-auto mb-4 text-gray-400" />

@@ -144,7 +144,7 @@ const CompanyList = () => {
 
       {/* Busca */}
       <Card>
-        <div className="p-4">
+        <div className="p-4" data-tour-id="company-list-search">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <input
@@ -170,7 +170,7 @@ const CompanyList = () => {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-tour-id="company-list-cards">
           {filteredCompanies.map((company) => (
             <Card 
               key={company.id} 
@@ -244,7 +244,7 @@ const CompanyList = () => {
 
       {/* Estatísticas Gerais */}
       {companiesWithStats.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4" data-tour-id="company-list-stats">
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>

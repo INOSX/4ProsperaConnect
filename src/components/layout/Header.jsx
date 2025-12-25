@@ -11,6 +11,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import Button from '../ui/Button'
+import TourButton from '../tour/TourButton'
 
 const Header = ({ onMenuToggle, isSidebarOpen }) => {
   const { user, signOut } = useAuth()
@@ -59,6 +60,9 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
           <Bell className="h-5 w-5 text-gray-600" />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
         </button>
+
+        {/* Tour button */}
+        <TourButton />
 
         {/* Settings button */}
         <button

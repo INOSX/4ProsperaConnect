@@ -243,6 +243,7 @@ const ProductsManagement = () => {
           <Button
             variant="secondary"
             onClick={() => navigate('/people/products/catalog')}
+            data-tour-id="products-catalog"
           >
             <Package className="h-4 w-4 mr-2" />
             Ver Catálogo
@@ -250,6 +251,7 @@ const ProductsManagement = () => {
           <Button
             variant="primary"
             onClick={() => navigate('/people/products/assign')}
+            data-tour-id="products-add"
           >
             <Plus className="h-4 w-4 mr-2" />
             Atribuir Produto

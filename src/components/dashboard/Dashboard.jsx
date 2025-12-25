@@ -363,6 +363,7 @@ const Dashboard = () => {
           <button 
             onClick={() => setShowFileUpload(true)}
             className="btn-secondary flex items-center space-x-2"
+            data-tour-id="dashboard-upload"
           >
             <Upload className="h-4 w-4" />
             <span>Upload de Dados</span>
@@ -375,6 +376,7 @@ const Dashboard = () => {
       </div>
 
       {/* KPIs Grid - Dinâmico baseado nos dados */}
+      <div data-tour-id="dashboard-kpis">
       {/* Faixa de KPIs minimizados */}
       {minimizedKpis.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 -mt-2">
@@ -474,11 +476,12 @@ const Dashboard = () => {
           <p className="text-gray-500">Carregue dados para visualizar métricas</p>
         </Card>
       )}
+      </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Main Chart */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2" data-tour-id="dashboard-chart">
           <ChartContainer
             data={selectedDataset?.data || []}
             title="Visualização de Dados"
@@ -494,7 +497,7 @@ const Dashboard = () => {
 
         {/* Dataset Selection */}
         {datasets.length > 0 && (
-          <Card>
+          <Card data-tour-id="dashboard-datasets">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Datasets Carregados</h3>
             <div className="space-y-2">
               {datasets.map((dataset, index) => (

@@ -1,0 +1,27 @@
+[
+  {
+    "target": "[data-tour-id='company-detail-header']",
+    "title": "Informações da Empresa",
+    "content": "Visualize informações completas da empresa, incluindo dados cadastrais, contato e status da conta.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='company-detail-employees']",
+    "title": "Funcionários",
+    "content": "Gerencie os funcionários desta empresa. Adicione novos funcionários, visualize detalhes e gerencie benefícios.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='company-detail-benefits']",
+    "title": "Benefícios",
+    "content": "Visualize e gerencie os benefícios oferecidos pela empresa aos seus funcionários. Adicione novos benefícios ou edite os existentes.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='company-detail-recommendations']",
+    "title": "Recomendações",
+    "content": "Receba recomendações inteligentes de produtos e serviços baseadas no perfil da empresa e seus funcionários.",
+    "placement": "top"
+  }
+]
+
