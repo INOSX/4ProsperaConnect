@@ -106,7 +106,9 @@ export const TourProvider = ({ children }) => {
 
   // Callback quando passo muda
   const handleStepChange = useCallback((data) => {
-    setStepIndex(data.index)
+    if (data && typeof data.index === 'number') {
+      setStepIndex(data.index)
+    }
   }, [])
 
   // Resetar tour quando rota muda
