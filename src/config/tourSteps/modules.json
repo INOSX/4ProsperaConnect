@@ -1,23 +1,5 @@
 [
   {
-    "target": "[data-tour-id='tour-button']",
-    "title": "Tour Guiado",
-    "content": "Use este botão para ativar ou desativar o tour guiado em qualquer momento. O tour ajuda você a entender todos os recursos disponíveis na plataforma.",
-    "placement": "left"
-  },
-  {
-    "target": "[data-tour-id='page-header']",
-    "title": "Bem-vindo ao 4Prospera Connect",
-    "content": "Esta é a página inicial onde você seleciona qual módulo deseja utilizar. Cada módulo oferece funcionalidades específicas para diferentes áreas do seu negócio.",
-    "placement": "bottom"
-  },
-  {
-    "target": "[data-tour-id='module-selector']",
-    "title": "Seleção de Módulos",
-    "content": "Aqui estão os três módulos disponíveis. Clique em qualquer card para acessar o módulo desejado. Cada módulo oferece funcionalidades específicas para diferentes necessidades do seu negócio.",
-    "placement": "bottom"
-  },
-  {
     "target": "[data-tour-id='module-people']",
     "title": "Gestão de Pessoas",
     "content": "Gerencie colaboradores, empresas e benefícios. Ideal para pequenas empresas que precisam organizar sua gestão de pessoas. Inclui recursos como gerenciamento de colaboradores, configuração de benefícios, portal do colaborador e dashboard da empresa.",
@@ -33,12 +15,6 @@
     "target": "[data-tour-id='module-marketing']",
     "title": "Campanhas de Marketing",
     "content": "Crie e gerencie campanhas de marketing digital para engajar seus prospects e clientes de forma eficiente. Inclui recursos como criação de campanhas, email marketing, segmentação e acompanhamento de resultados.",
-    "placement": "top"
-  },
-  {
-    "target": "[data-tour-id='page-footer']",
-    "title": "Trocar de Módulo",
-    "content": "Você pode trocar de módulo a qualquer momento usando o menu superior. Não é necessário voltar para esta página - use o menu de navegação no topo da aplicação.",
     "placement": "top"
   }
 ]
