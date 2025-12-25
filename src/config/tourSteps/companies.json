@@ -16,6 +16,24 @@
     "title": "Estatísticas",
     "content": "Visualize estatísticas agregadas de todas as empresas, como total de funcionários, produtos ativos e benefícios oferecidos.",
     "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='sidebar-upload']",
+    "title": "Upload de Dados",
+    "content": "Acesse o Upload de Dados pelo menu lateral para enviar arquivos CSV ou Excel. Os dados serão processados e disponibilizados para análise.",
+    "placement": "right"
+  },
+  {
+    "target": "[data-tour-id='sidebar-datasets']",
+    "title": "Meus Datasets",
+    "content": "Visualize e gerencie todos os seus arquivos de dados enviados. Você pode usar no Dashboard, fazer download ou excluir arquivos.",
+    "placement": "right"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para fazer perguntas sobre seus dados e obter insights inteligentes. Ele está sempre disponível no canto da tela.",
+    "placement": "left"
   }
 ]
 
