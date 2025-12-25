@@ -151,7 +151,9 @@ const TourProvider = ({ children }) => {
 
     // CRÍTICO: Quando o usuário clica em "Next" ou "Prev", precisamos incrementar/decrementar manualmente
     // porque estamos controlando o stepIndex e o react-joyride não incrementa automaticamente
-    if (action === 'next') {
+    // IMPORTANTE: Só processar 'next' quando type for 'step:after' (clique real do usuário)
+    // Ignorar 'step:before' que é apenas o react-joyride preparando o próximo step
+    if (action === 'next' && type === 'step:after') {
       const nextIndex = stepIndex + 1
       if (nextIndex < steps.length) {
         console.log(`➡️ [TourProvider] Next clicked: moving from step ${stepIndex} to ${nextIndex}`)
@@ -163,12 +165,24 @@ const TourProvider = ({ children }) => {
       return
     }
 
-    if (action === 'prev') {
+    // Ignorar 'next' em 'step:before' - é apenas preparação, não ação do usuário
+    if (action === 'next' && type === 'step:before') {
+      console.log(`⏸️ [TourProvider] Ignoring 'next' action in step:before (preparation phase)`)
+      return
+    }
+
+    if (action === 'prev' && type === 'step:after') {
       const prevIndex = stepIndex - 1
       if (prevIndex >= 0) {
         console.log(`⬅️ [TourProvider] Prev clicked: moving from step ${stepIndex} to ${prevIndex}`)
         setStepIndex(prevIndex)
       }
+      return
+    }
+
+    // Ignorar 'prev' em 'step:before' - é apenas preparação, não ação do usuário
+    if (action === 'prev' && type === 'step:before') {
+      console.log(`⏸️ [TourProvider] Ignoring 'prev' action in step:before (preparation phase)`)
       return
     }
 
