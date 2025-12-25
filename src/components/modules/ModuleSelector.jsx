@@ -85,6 +85,7 @@ const ModuleSelector = () => {
       {/* Tour Button - Floating */}
       <div className="fixed top-4 right-4 z-50">
         <button
+          data-tour-id="tour-button"
           onClick={handleTourClick}
           className={`p-3 rounded-full shadow-lg transition-all relative ${
             run 
@@ -106,7 +107,7 @@ const ModuleSelector = () => {
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" data-tour-id="page-header">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Bem-vindo ao 4Prospera Connect
           </h1>
@@ -168,7 +169,7 @@ const ModuleSelector = () => {
         </div>
 
         {/* Footer Info */}
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center" data-tour-id="page-footer">
           <p className="text-sm text-gray-500">
             Você pode trocar de módulo a qualquer momento usando o menu superior
           </p>
