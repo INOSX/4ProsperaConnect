@@ -391,7 +391,7 @@ const ProspectingDashboard = () => {
 
       {/* Gráficos e Visualizações */}
       <div data-tour-id="prospecting-charts">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Distribuição de Scores */}
         <Card>
           <div className="p-6">
@@ -485,6 +485,7 @@ const ProspectingDashboard = () => {
             </div>
           </div>
         </Card>
+        </div>
       </div>
 
       {/* Prospects Recentes */}
