@@ -172,13 +172,24 @@ const TourProvider = ({ children }) => {
       return
     }
 
-    // Para outros eventos, atualizar stepIndex se o index for válido e diferente
+    // Para eventos de 'update' (tooltip, beacon, etc), não atualizar o stepIndex
+    // porque esses eventos podem vir com o index antigo e causar loops
+    // Só atualizar para eventos específicos que realmente indicam mudança de step
+    if (action === 'update' && (type === 'tooltip' || type === 'beacon')) {
+      console.log(`⏸️ [TourProvider] Ignoring update event (${type}) to prevent stepIndex rollback`)
+      return
+    }
+
+    // Para outros eventos, atualizar stepIndex apenas se for um evento de mudança real de step
+    // e o index for maior que o atual (evitar rollbacks)
     if (typeof index === 'number' && index >= 0 && index < steps.length) {
-      // Só atualizar se o index for diferente do atual (evitar loops)
-      if (index !== stepIndex) {
-        console.log(`📊 [TourProvider] Updating stepIndex from ${stepIndex} to ${index}`)
+      // Só atualizar se o index for maior que o atual (permitir avanço, evitar retrocesso)
+      if (index > stepIndex) {
+        console.log(`📊 [TourProvider] Updating stepIndex from ${stepIndex} to ${index} (forward only)`)
         setStepIndex(index)
         console.log(`✅ [TourProvider] stepIndex updated to: ${index}`)
+      } else if (index !== stepIndex) {
+        console.log(`⏸️ [TourProvider] Ignoring stepIndex update from ${stepIndex} to ${index} (would be a rollback)`)
       }
     }
   }
