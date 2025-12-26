@@ -138,7 +138,7 @@ const ProspectingDashboard = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard de Prospecção</h1>
-          <p className="text-gray-600">Identifique e qualifique potenciais clientes CNPJ</p>
+          <p className="text-gray-600" data-tour-id="prospecting-upload-info">Identifique e qualifique potenciais clientes CNPJ</p>
         </div>
         <div className="flex space-x-2" data-tour-id="prospecting-actions">
           {activeTab === 'cnpj' && (

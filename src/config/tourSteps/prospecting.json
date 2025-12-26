@@ -22,6 +22,24 @@
     "title": "Ações Rápidas",
     "content": "Acesse rapidamente funcionalidades importantes como enriquecimento de dados, lista de prospects e criação de campanhas.",
     "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='prospecting-upload-info']",
+    "title": "Upload de Dados",
+    "content": "Para fazer upload de dados de prospecção, acesse 'Upload de Dados' no menu lateral. Você pode enviar arquivos CSV ou Excel com informações de prospects para análise.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='prospecting-datasets-info']",
+    "title": "Meus Datasets",
+    "content": "Visualize e gerencie todos os seus arquivos de dados enviados em 'Meus Datasets' no menu lateral. Use os dados no Dashboard ou faça download dos arquivos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para fazer perguntas sobre seus prospects e obter insights inteligentes. Ele está sempre disponível no canto da tela.",
+    "placement": "left"
   }
 ]
 
