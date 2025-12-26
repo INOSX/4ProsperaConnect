@@ -1,0 +1,45 @@
+[
+  {
+    "target": "[data-tour-id='cpf-stats']",
+    "title": "Estatísticas CPF",
+    "content": "Visualize métricas importantes dos clientes CPF: total de CPFs identificados, alto potencial de conversão, convertidos e taxa de conversão.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='cpf-chart']",
+    "title": "Distribuição de Scores",
+    "content": "Analise a distribuição de scores de potencial de conversão através de gráficos interativos. Alterne entre gráficos de barras, linha e pizza para diferentes visualizações.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='cpf-filters']",
+    "title": "Filtros e Busca",
+    "content": "Use a busca para encontrar clientes por nome, CPF ou email. Filtre por status, score de potencial e prioridade para focar nos clientes mais relevantes.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='cpf-table']",
+    "title": "Tabela de Clientes CPF",
+    "content": "Visualize todos os clientes CPF com potencial de conversão. Cada linha mostra informações como score, status, ação recomendada e prioridade. Clique em um cliente para ver detalhes.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='cpf-actions']",
+    "title": "Ações Disponíveis",
+    "content": "Para cada cliente, você pode: ver detalhes, marcar como contatado, converter para prospect CNPJ, ou rejeitar. Use os checkboxes para selecionar múltiplos clientes e analisar em lote.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='cpf-campaigns']",
+    "title": "Criar Campanhas",
+    "content": "Use o botão 'Campanhas' para criar campanhas de marketing direcionadas aos clientes CPF selecionados. Ideal para converter leads em prospects CNPJ.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para fazer perguntas sobre seus clientes CPF e obter insights inteligentes sobre potencial de conversão e estratégias de abordagem.",
+    "placement": "left"
+  }
+]
+

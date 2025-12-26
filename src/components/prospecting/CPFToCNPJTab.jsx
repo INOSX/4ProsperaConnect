@@ -223,7 +223,7 @@ const CPFToCNPJTab = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" data-tour-id="cpf-stats">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -267,7 +267,7 @@ const CPFToCNPJTab = () => {
 
       {/* Gráfico de Distribuição */}
       <Card>
-        <div className="p-6">
+        <div className="p-6" data-tour-id="cpf-chart">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Distribuição de Scores de Potencial</h2>
             <div className="flex space-x-1">
@@ -334,7 +334,7 @@ const CPFToCNPJTab = () => {
 
       {/* Filtros e Busca */}
       <Card>
-        <div className="p-4">
+        <div className="p-4" data-tour-id="cpf-filters">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -407,6 +407,7 @@ const CPFToCNPJTab = () => {
             <Button
               variant="primary"
               onClick={() => navigate('/campaigns', { state: { selectedClients } })}
+              data-tour-id="cpf-campaigns"
             >
               <Mail className="h-4 w-4 mr-2" />
               Campanhas
@@ -419,7 +420,7 @@ const CPFToCNPJTab = () => {
               <p>Nenhum cliente CPF encontrado</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" data-tour-id="cpf-table">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>

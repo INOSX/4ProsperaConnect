@@ -26,7 +26,12 @@ export const TOUR_ROUTES = {
 }
 
 // Função para obter a configuração do tour baseada na rota
-export const getTourConfigForRoute = (pathname) => {
+export const getTourConfigForRoute = (pathname, searchParams = '') => {
+  // Verificar query parameters para rotas especiais
+  if (pathname === '/prospecting' && searchParams.includes('tab=cpf')) {
+    return 'prospecting-cpf'
+  }
+
   // Tentar match exato primeiro
   if (TOUR_ROUTES[pathname]) {
     return TOUR_ROUTES[pathname]
