@@ -26,6 +26,7 @@ import uploadSteps from '../../config/tourSteps/upload.json'
 import datasetsSteps from '../../config/tourSteps/datasets.json'
 import specialistSteps from '../../config/tourSteps/specialist.json'
 import prospectingCpfSteps from '../../config/tourSteps/prospecting-cpf.json'
+import prospectingUnbankedSteps from '../../config/tourSteps/prospecting-unbanked.json'
 
 const tourStepsMap = {
   'dashboard': dashboardSteps,
@@ -47,7 +48,8 @@ const tourStepsMap = {
   'upload': uploadSteps,
   'datasets': datasetsSteps,
   'specialist': specialistSteps,
-  'prospecting-cpf': prospectingCpfSteps
+  'prospecting-cpf': prospectingCpfSteps,
+  'prospecting-unbanked': prospectingUnbankedSteps
 }
 
 const TourProvider = ({ children }) => {

@@ -243,7 +243,7 @@ const UnbankedCompaniesTab = () => {
   return (
     <div className="space-y-6">
       {/* Cards de Métricas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" data-tour-id="unbanked-stats">
         <Card className="p-4">
           <div className="flex items-center justify-between">
             <div>
@@ -299,7 +299,7 @@ const UnbankedCompaniesTab = () => {
 
       {/* Gráfico de Distribuição */}
       <Card>
-        <div className="p-6">
+        <div className="p-6" data-tour-id="unbanked-chart">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Distribuição de Scores de Potencial</h2>
             <div className="flex space-x-1">
@@ -366,7 +366,7 @@ const UnbankedCompaniesTab = () => {
 
       {/* Filtros e Busca */}
       <Card>
-        <div className="p-4">
+        <div className="p-4" data-tour-id="unbanked-filters">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -459,6 +459,7 @@ const UnbankedCompaniesTab = () => {
               variant="primary"
               onClick={() => navigate('/campaigns', { state: { selectedCompanies } })}
               disabled={selectedCompanies.length === 0}
+              data-tour-id="unbanked-campaigns"
             >
               <Mail className="h-4 w-4 mr-2" />
               Campanhas ({selectedCompanies.length})
@@ -472,7 +473,7 @@ const UnbankedCompaniesTab = () => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" data-tour-id="unbanked-table">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -561,7 +562,7 @@ const UnbankedCompaniesTab = () => {
                             <span className="ml-2 text-xs text-gray-600">{company.priority || 0}/10</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()} data-tour-id="unbanked-actions">
                           <div className="flex space-x-2">
                             <button
                               onClick={() => handleCompanyClick(company.id)}

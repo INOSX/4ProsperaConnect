@@ -31,6 +31,9 @@ export const getTourConfigForRoute = (pathname, searchParams = '') => {
   if (pathname === '/prospecting' && searchParams.includes('tab=cpf')) {
     return 'prospecting-cpf'
   }
+  if (pathname === '/prospecting' && searchParams.includes('tab=unbanked')) {
+    return 'prospecting-unbanked'
+  }
 
   // Tentar match exato primeiro
   if (TOUR_ROUTES[pathname]) {
