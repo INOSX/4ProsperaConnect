@@ -11,6 +11,17 @@ function getAdminClient() {
   return createClient(url, serviceKey)
 }
 
+// Função helper para verificar se é Admin do Banco
+async function checkBankAdmin(adminClient, userId) {
+  if (!userId) return false
+  const { data: client } = await adminClient
+    .from('clients')
+    .select('role')
+    .eq('user_id', userId)
+    .maybeSingle()
+  return client?.role === 'admin'
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
@@ -22,6 +33,35 @@ export default async function handler(req, res) {
   }
 
   const adminClient = getAdminClient()
+
+  // Verificar se é Admin do Banco para todas as operações
+  // Tentar obter userId do token de autorização
+  let userId = null
+  const token = req.headers.authorization?.split(' ')[1]
+  if (token) {
+    try {
+      const { data: userResponse } = await adminClient.auth.getUser(token)
+      if (userResponse?.user) {
+        userId = userResponse.user.id
+      }
+    } catch (e) {
+      console.warn('Error getting user from token:', e)
+    }
+  }
+  
+  // Fallback para outros métodos
+  if (!userId) {
+    userId = req.headers['x-user-id'] || req.body?.userId || req.query?.userId
+  }
+
+  if (!userId) {
+    return res.status(401).json({ error: 'User ID is required' })
+  }
+
+  const isBankAdmin = await checkBankAdmin(adminClient, userId)
+  if (!isBankAdmin) {
+    return res.status(403).json({ error: 'Apenas administradores do banco podem acessar campanhas de marketing' })
+  }
 
   try {
     switch (req.method) {

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
+import { ClientService } from '../../services/clientService'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { ArrowLeft, Database, Save, TestTube, AlertCircle, CheckCircle, Loader } from 'lucide-react'
@@ -36,6 +37,8 @@ const NewIntegration = () => {
   const [testResult, setTestResult] = useState(null)
   const [errors, setErrors] = useState({})
   const [initializedFromQuery, setInitializedFromQuery] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [checkingAdmin, setCheckingAdmin] = useState(true)
   const isEditing = !!id
 
   const [formData, setFormData] = useState({
@@ -63,11 +66,18 @@ const NewIntegration = () => {
     pool_size: '5',
   })
 
+  // Verificar se é admin ao carregar
+  useEffect(() => {
+    if (user) {
+      checkAdminStatus()
+    }
+  }, [user])
+
   // Carregar dados da conexão se estiver editando
   useEffect(() => {
-    if (isEditing && id && !initializedFromQuery) {
+    if (isEditing && id && !initializedFromQuery && isAdmin) {
       loadConnectionData()
-    } else if (!isEditing && !initializedFromQuery) {
+    } else if (!isEditing && !initializedFromQuery && isAdmin) {
       // Pré-preencher formulário quando vier da conexão Supabase principal
       const searchParams = new URLSearchParams(location.search)
       const from = searchParams.get('from')
@@ -88,7 +98,30 @@ const NewIntegration = () => {
 
       setInitializedFromQuery(true)
     }
-  }, [id, isEditing, initializedFromQuery, location.search])
+  }, [id, isEditing, initializedFromQuery, location.search, isAdmin])
+
+  const checkAdminStatus = async () => {
+    if (!user) return
+    setCheckingAdmin(true)
+    try {
+      const clientResult = await ClientService.getClientByUserId(user.id)
+      if (clientResult.success && clientResult.client) {
+        const userIsAdmin = clientResult.client.role === 'admin'
+        setIsAdmin(userIsAdmin)
+        if (!userIsAdmin) {
+          // Redirecionar se não for admin
+          alert('Apenas administradores podem criar ou editar conexões de banco de dados')
+          navigate('/integrations')
+        }
+      }
+    } catch (error) {
+      console.warn('Error checking admin status:', error)
+      alert('Erro ao verificar permissões. Redirecionando...')
+      navigate('/integrations')
+    } finally {
+      setCheckingAdmin(false)
+    }
+  }
 
   const loadConnectionData = async () => {
     if (!id) return
@@ -308,7 +341,7 @@ const NewIntegration = () => {
           updates.credentials = credentials
         }
 
-        const result = await DataIntegrationService.updateConnection(id, updates)
+        const result = await DataIntegrationService.updateConnection(id, updates, user.id)
 
         if (result.success) {
           navigate('/integrations', { 
@@ -327,7 +360,7 @@ const NewIntegration = () => {
           credentials,
           sync_frequency: formData.sync_frequency,
           created_by: user.id,
-        })
+        }, user.id)
 
         if (result.success) {
           navigate('/integrations', { 
@@ -361,6 +394,35 @@ const NewIntegration = () => {
   const isConnectionStringBased = formData.engine === 'mongodb'
   const isFileBased = formData.engine === 'sqlite'
   const isStandardDB = !isConnectionStringBased && !isFileBased
+
+  // Verificar permissões antes de renderizar
+  if (checkingAdmin) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Verificando permissões...</div>
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Card>
+          <div className="p-12 text-center">
+            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-400" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h3>
+            <p className="text-gray-600 mb-4">
+              Apenas administradores podem criar ou editar conexões de banco de dados.
+            </p>
+            <Button onClick={() => navigate('/integrations')}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar para Conexões
+            </Button>
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

@@ -85,10 +85,33 @@ export default async function handler(req, res) {
       }
 
       case 'POST': {
-        const { name, connection_type, connection_config, credentials, sync_frequency, created_by } = req.body
+        const { name, connection_type, connection_config, credentials, sync_frequency, created_by, userId } = req.body
 
-        if (!name || !connection_type || !connection_config || !created_by) {
-          return res.status(400).json({ error: 'name, connection_type, connection_config, and created_by are required' })
+        if (!name || !connection_type || !connection_config) {
+          return res.status(400).json({ error: 'name, connection_type, and connection_config are required' })
+        }
+
+        // Verificar se o usuário é admin
+        const requestingUserId = userId || created_by || req.headers['x-user-id']
+        if (!requestingUserId) {
+          return res.status(401).json({ error: 'User ID is required' })
+        }
+
+        // Buscar o cliente para verificar se é admin
+        const { data: client, error: clientError } = await adminClient
+          .from('clients')
+          .select('role')
+          .eq('user_id', requestingUserId)
+          .maybeSingle()
+
+        if (clientError) throw clientError
+        if (!client) {
+          return res.status(404).json({ error: 'Client not found' })
+        }
+
+        // Apenas admins podem criar conexões
+        if (client.role !== 'admin') {
+          return res.status(403).json({ error: 'Apenas administradores podem criar conexões de banco de dados' })
         }
 
         // Criptografar credenciais se fornecidas
@@ -106,7 +129,7 @@ export default async function handler(req, res) {
             credentials_encrypted,
             sync_frequency: sync_frequency || 'manual',
             status: 'inactive',
-            created_by
+            created_by: requestingUserId
           })
           .select()
           .single()
@@ -123,10 +146,33 @@ export default async function handler(req, res) {
       }
 
       case 'PUT': {
-        const { id, name, connection_config, credentials, sync_frequency, status } = req.body
+        const { id, name, connection_config, credentials, sync_frequency, status, userId } = req.body
 
         if (!id) {
           return res.status(400).json({ error: 'id is required' })
+        }
+
+        // Verificar se o usuário é admin
+        const requestingUserId = userId || req.headers['x-user-id']
+        if (!requestingUserId) {
+          return res.status(401).json({ error: 'User ID is required' })
+        }
+
+        // Buscar o cliente para verificar se é admin
+        const { data: client, error: clientError } = await adminClient
+          .from('clients')
+          .select('role')
+          .eq('user_id', requestingUserId)
+          .maybeSingle()
+
+        if (clientError) throw clientError
+        if (!client) {
+          return res.status(404).json({ error: 'Client not found' })
+        }
+
+        // Apenas admins podem atualizar conexões
+        if (client.role !== 'admin') {
+          return res.status(403).json({ error: 'Apenas administradores podem atualizar conexões de banco de dados' })
         }
 
         const updates = {}
@@ -159,10 +205,33 @@ export default async function handler(req, res) {
       }
 
       case 'DELETE': {
-        const { id } = req.query
+        const { id, userId } = req.query
 
         if (!id) {
           return res.status(400).json({ error: 'id is required' })
+        }
+
+        // Verificar se o usuário é admin
+        const requestingUserId = userId || req.headers['x-user-id']
+        if (!requestingUserId) {
+          return res.status(401).json({ error: 'User ID is required' })
+        }
+
+        // Buscar o cliente para verificar se é admin
+        const { data: client, error: clientError } = await adminClient
+          .from('clients')
+          .select('role')
+          .eq('user_id', requestingUserId)
+          .maybeSingle()
+
+        if (clientError) throw clientError
+        if (!client) {
+          return res.status(404).json({ error: 'Client not found' })
+        }
+
+        // Apenas admins podem deletar conexões
+        if (client.role !== 'admin') {
+          return res.status(403).json({ error: 'Apenas administradores podem deletar conexões de banco de dados' })
         }
 
         const { error } = await adminClient

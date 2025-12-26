@@ -72,16 +72,20 @@ export class CompanyService {
   }
 
   /**
-   * Criar nova empresa
+   * Criar nova empresa (apenas admins)
    * @param {Object} companyData - Dados da empresa
+   * @param {string} userId - ID do usuário que está criando
    * @returns {Promise<Object>} Empresa criada
    */
-  static async createCompany(companyData) {
+  static async createCompany(companyData, userId) {
     try {
       const response = await fetch('/api/companies', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(companyData)
+        body: JSON.stringify({
+          ...companyData,
+          userId // Passar userId para verificação de admin na API
+        })
       })
 
       if (!response.ok) {

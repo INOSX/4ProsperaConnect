@@ -77,10 +77,33 @@ export default async function handler(req, res) {
       }
 
       case 'POST': {
-        const { cnpj, company_name, trade_name, company_type, email, phone, address, owner_user_id, industry, annual_revenue } = req.body
+        const { cnpj, company_name, trade_name, company_type, email, phone, address, owner_user_id, industry, annual_revenue, userId } = req.body
 
-        if (!cnpj || !company_name || !owner_user_id) {
-          return res.status(400).json({ error: 'cnpj, company_name, and owner_user_id are required' })
+        if (!cnpj || !company_name) {
+          return res.status(400).json({ error: 'cnpj and company_name are required' })
+        }
+
+        // Verificar se o usuário é admin
+        const requestingUserId = userId || req.headers['x-user-id']
+        if (!requestingUserId) {
+          return res.status(401).json({ error: 'User ID is required' })
+        }
+
+        // Buscar o cliente para verificar se é admin
+        const { data: client, error: clientError } = await adminClient
+          .from('clients')
+          .select('role')
+          .eq('user_id', requestingUserId)
+          .maybeSingle()
+
+        if (clientError) throw clientError
+        if (!client) {
+          return res.status(404).json({ error: 'Client not found' })
+        }
+
+        // Apenas admins podem criar empresas
+        if (client.role !== 'admin') {
+          return res.status(403).json({ error: 'Apenas administradores podem criar empresas' })
         }
 
         // Verificar se já existe
@@ -94,6 +117,7 @@ export default async function handler(req, res) {
           return res.status(409).json({ error: 'Company with this CNPJ already exists', company: existing })
         }
 
+        // Empresas criadas por admins têm owner_user_id = NULL
         const { data, error } = await adminClient
           .from('companies')
           .insert({
@@ -104,7 +128,7 @@ export default async function handler(req, res) {
             email,
             phone,
             address,
-            owner_user_id,
+            owner_user_id: null, // Admins não têm owner
             industry,
             annual_revenue,
             banking_status: 'partial'
