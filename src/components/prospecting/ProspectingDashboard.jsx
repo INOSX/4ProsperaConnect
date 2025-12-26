@@ -490,7 +490,7 @@ const ProspectingDashboard = () => {
 
       {/* Prospects Recentes */}
       <Card>
-        <div className="p-6">
+        <div className="p-6" data-tour-id="prospecting-datasets-info">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Prospects em Destaque</h2>
           
           {recentProspects.length === 0 ? (
