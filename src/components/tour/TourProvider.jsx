@@ -69,21 +69,23 @@ const TourProvider = ({ children }) => {
       
       if (configKey && tourStepsMap[configKey]) {
         const routeSteps = tourStepsMap[configKey]
-        // Primeiro, definir os steps imediatamente (sem verificação de elementos)
+        // Definir os steps imediatamente - não filtrar automaticamente
+        // O react-joyride já lida com elementos não encontrados através do callback
         setSteps(routeSteps)
+        setStepIndex(0)
+        setRun(false) // Parar o tour para que possa ser reiniciado manualmente
         
-        // Depois, aguardar um pouco e verificar se os elementos existem
+        // Log para debug: verificar quais elementos existem
         setTimeout(() => {
-          const validSteps = routeSteps.filter(step => {
+          routeSteps.forEach((step, index) => {
             const element = document.querySelector(step.target)
-            return element !== null
+            if (element) {
+              console.log(`✅ [TourProvider] Step ${index} target found: ${step.target}`)
+            } else {
+              console.warn(`⚠️ [TourProvider] Step ${index} target not found: ${step.target}`)
+            }
           })
-          
-          // Atualizar apenas se houver diferença
-          if (validSteps.length !== routeSteps.length) {
-            setSteps(validSteps.length > 0 ? validSteps : routeSteps)
-          }
-        }, 500)
+        }, 1000)
       } else {
         setSteps([])
       }
