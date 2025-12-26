@@ -25,6 +25,7 @@ import employeesSteps from '../../config/tourSteps/employees.json'
 import uploadSteps from '../../config/tourSteps/upload.json'
 import datasetsSteps from '../../config/tourSteps/datasets.json'
 import specialistSteps from '../../config/tourSteps/specialist.json'
+import prospectingCpfSteps from '../../config/tourSteps/prospecting-cpf.json'
 
 const tourStepsMap = {
   'dashboard': dashboardSteps,
@@ -45,7 +46,8 @@ const tourStepsMap = {
   'employees': employeesSteps,
   'upload': uploadSteps,
   'datasets': datasetsSteps,
-  'specialist': specialistSteps
+  'specialist': specialistSteps,
+  'prospecting-cpf': prospectingCpfSteps
 }
 
 const TourProvider = ({ children }) => {
@@ -63,10 +65,10 @@ const TourProvider = ({ children }) => {
     setRun
   } = useTour()
 
-  // Carregar steps quando a rota mudar
-  useEffect(() => {
-    const loadStepsForRoute = () => {
-      const configKey = getTourConfigForRoute(location.pathname)
+      // Carregar steps quando a rota mudar
+      useEffect(() => {
+        const loadStepsForRoute = () => {
+          const configKey = getTourConfigForRoute(location.pathname, location.search)
       
       if (configKey && tourStepsMap[configKey]) {
         const routeSteps = tourStepsMap[configKey]
