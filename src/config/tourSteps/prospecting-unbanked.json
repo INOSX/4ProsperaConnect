@@ -1,0 +1,45 @@
+[
+  {
+    "target": "[data-tour-id='unbanked-stats']",
+    "title": "Estatísticas de Empresas",
+    "content": "Visualize métricas importantes: total de empresas identificadas, não bancarizadas, subexploradas, convertidas e receita estimada total.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='unbanked-chart']",
+    "title": "Distribuição de Scores",
+    "content": "Analise a distribuição de scores de potencial de identificação através de gráficos interativos. Alterne entre gráficos de barras, linha e pizza para diferentes visualizações.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='unbanked-filters']",
+    "title": "Filtros e Busca",
+    "content": "Use a busca para encontrar empresas por CNPJ, nome ou setor. Filtre por status bancário, status de conversão, score, indústria e prioridade para focar nas empresas mais relevantes.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='unbanked-table']",
+    "title": "Tabela de Empresas",
+    "content": "Visualize todas as empresas não bancarizadas ou subexploradas. Cada linha mostra informações como CNPJ, nome, setor, status bancário, score, produtos atuais e recomendados, e prioridade. Clique em uma empresa para ver detalhes.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='unbanked-actions']",
+    "title": "Ações Disponíveis",
+    "content": "Para cada empresa, você pode: ver detalhes, marcar como contatada, converter para cliente do banco, ou rejeitar. Use os checkboxes para selecionar múltiplas empresas e analisar em lote.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='unbanked-campaigns']",
+    "title": "Criar Campanhas",
+    "content": "Use o botão 'Campanhas' para criar campanhas de marketing direcionadas às empresas selecionadas. Ideal para converter empresas não bancarizadas em clientes.",
+    "placement": "left"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para fazer perguntas sobre empresas não bancarizadas e obter insights inteligentes sobre potencial de conversão e estratégias de abordagem.",
+    "placement": "left"
+  }
+]
+
