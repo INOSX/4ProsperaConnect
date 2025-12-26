@@ -59,7 +59,8 @@ const TourProvider = ({ children }) => {
     handleTourEnd,
     handleStepChange,
     setSteps,
-    setStepIndex
+    setStepIndex,
+    setRun
   } = useTour()
 
   // Carregar steps quando a rota mudar
