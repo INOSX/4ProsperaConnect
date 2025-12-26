@@ -101,7 +101,7 @@ const CreateCampaign = () => {
       </div>
 
       {/* Card de Clientes Selecionados */}
-      <Card className="p-6">
+      <Card className="p-6" data-tour-id="campaign-create-selected-clients">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Users className="h-6 w-6 text-primary-600" />
@@ -128,7 +128,7 @@ const CreateCampaign = () => {
         <Card className="p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-6">Tipo de Campanha</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6" data-tour-id="campaign-form-type">
             {campaignTypes.map((type) => {
               const Icon = type.icon
               return (
@@ -153,7 +153,7 @@ const CreateCampaign = () => {
           </div>
 
           <div className="space-y-4">
-            <div>
+            <div data-tour-id="campaign-form-name">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Nome da Campanha *
               </label>
@@ -167,7 +167,7 @@ const CreateCampaign = () => {
               />
             </div>
 
-            <div>
+            <div data-tour-id="campaign-form-message">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Mensagem da Campanha
               </label>
@@ -180,7 +180,7 @@ const CreateCampaign = () => {
               />
             </div>
 
-            <div>
+            <div data-tour-id="campaign-form-schedule">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Data de Agendamento (Opcional)
               </label>
@@ -193,7 +193,7 @@ const CreateCampaign = () => {
             </div>
           </div>
 
-          <div className="mt-6 flex items-center justify-end space-x-4">
+          <div className="mt-6 flex items-center justify-end space-x-4" data-tour-id="campaign-form-actions">
             <Button
               type="button"
               variant="secondary"
