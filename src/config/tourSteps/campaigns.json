@@ -1,27 +1,27 @@
 [
   {
-    "target": "[data-tour-id='campaigns-list']",
-    "title": "Lista de Campanhas",
-    "content": "Visualize todas as suas campanhas de marketing. Veja o status, tipo, público-alvo e resultados de cada campanha.",
-    "placement": "bottom"
-  },
-  {
-    "target": "[data-tour-id='campaigns-filters']",
-    "title": "Filtros",
-    "content": "Filtre campanhas por tipo (email, SMS, WhatsApp), status (ativa, pausada, concluída) ou período.",
-    "placement": "bottom"
-  },
-  {
     "target": "[data-tour-id='campaigns-create']",
     "title": "Criar Campanha",
-    "content": "Clique aqui para criar uma nova campanha de marketing. Escolha o tipo, público-alvo e personalize a mensagem.",
+    "content": "Clique aqui para criar uma nova campanha de marketing. Escolha o tipo (Email, Telefone ou Carta Convite), público-alvo e personalize a mensagem.",
     "placement": "left"
   },
   {
-    "target": "[data-tour-id='campaigns-stats']",
-    "title": "Estatísticas",
-    "content": "Acompanhe o desempenho das suas campanhas com métricas como taxa de abertura, conversão e ROI.",
+    "target": "[data-tour-id='campaigns-selected-clients']",
+    "title": "Clientes Selecionados",
+    "content": "Visualize quantos clientes foram selecionados para a campanha. Se não houver clientes selecionados, você pode voltar à página de prospecção para selecionar.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='campaigns-list']",
+    "title": "Lista de Campanhas",
+    "content": "Visualize todas as suas campanhas de marketing. Cada card mostra o nome, tipo, status, número de clientes, taxa de abertura e conversões. Clique em 'Ver Detalhes' para mais informações.",
     "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para fazer perguntas sobre suas campanhas e obter insights inteligentes sobre desempenho e estratégias de otimização.",
+    "placement": "left"
   }
 ]
 
