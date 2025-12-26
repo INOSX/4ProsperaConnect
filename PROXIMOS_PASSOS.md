@@ -1,184 +1,106 @@
-# Próximos Passos - Plataforma 4Prospera Connect
+# Próximos Passos - Sistema de Permissões Atualizado
 
-## ✅ O que já está implementado
+## ⚠️ IMPORTANTE: Você ainda não executou nada
 
-1. **Banco de Dados**: Todas as tabelas criadas no Supabase
-2. **Dados Mockados**: Dados de exemplo para testes
-3. **APIs Backend**: Todas as rotas de API implementadas
-4. **Serviços Frontend**: Serviços para integração com APIs
-5. **Componentes Frontend**: Dashboards e páginas principais
-6. **Navegação**: Rotas e menu lateral atualizados
+Como você mencionou que ainda não executou nada, aqui estão os próximos passos na ordem correta:
 
-## 🚀 Próximos Passos
+## 1. Executar Scripts SQL no Supabase (Ordem Importante)
 
-### 1. Testar a Aplicação
+### Passo 1.1: Script Base (se ainda não executou)
+```sql
+-- Execute primeiro: create_user_roles_system.sql
+-- Este script cria o campo 'role' na tabela clients
+```
 
-#### 1.1 Acessar o Dashboard de Prospecção
-- Faça login na aplicação
-- Acesse **Prospecção** no menu lateral
-- Você deve ver o dashboard com estatísticas dos prospects mockados
+### Passo 1.2: Script de Admin do Cliente (NOVO)
+```sql
+-- Execute: create_company_admin_system.sql
+-- Este script adiciona o campo is_company_admin na tabela employees
+-- E cria funções helper para verificar Admin do Cliente
+```
 
-#### 1.2 Ver Lista de Prospects
-- Clique em **Prospecção** → **Lista** (ou acesse `/prospecting/list`)
-- Você deve ver os 5 prospects mockados com diferentes scores e status
+### Passo 1.3: Script de Políticas RLS Atualizado (NOVO - CRIADO)
+```sql
+-- Execute: create_admin_full_access_rls_v2.sql
+-- Este script atualiza as políticas RLS para incluir Admin do Cliente
+-- IMPORTANTE: Este script substitui o create_admin_full_access_rls.sql anterior
+-- ✅ ARQUIVO JÁ CRIADO
+```
 
-#### 1.3 Ver Detalhes de um Prospect
-- Clique em qualquer prospect da lista
-- Você verá detalhes completos, score, sinais de mercado
-- Teste o botão "Qualificar" e "Gerar Recomendações"
+### Passo 1.4: Script de Constraints (se ainda não executou)
+```sql
+-- Execute: create_admin_constraints.sql
+-- Este script cria triggers para validações
+```
 
-#### 1.4 Testar Dashboard de Empresa
-- Acesse **Minha Empresa** no menu lateral
-- Se você for dono de uma empresa, verá o dashboard 360º
-- Você verá colaboradores, benefícios e recomendações
+## 2. Atualizar Código Frontend e Backend
 
-#### 1.5 Testar Portal do Colaborador
-- Acesse **Portal Colaborador** no menu lateral
-- Se você for um colaborador, verá seus benefícios e recomendações
+Após executar os scripts SQL, será necessário atualizar:
 
-#### 1.6 Testar Integrações
-- Acesse **Integrações** no menu lateral
-- Você pode criar conexões com bases de dados externas
-- Teste criar uma conexão de API, CSV ou Excel
+### 2.1 APIs
+- `api/employees/index.js` - Adicionar verificação de Admin do Cliente
+- Rotas de Prospecção - Proteger para apenas Admin do Banco
+- Rotas de Campanhas - Proteger para apenas Admin do Banco
 
-### 2. Funcionalidades para Testar
+### 2.2 Frontend - Utils
+- `src/utils/permissions.js` - Adicionar funções para Admin do Cliente
 
-#### 2.1 Prospecção
-- ✅ Ver prospects mockados
-- ✅ Filtrar por status e score
-- ✅ Qualificar prospects
-- ✅ Gerar recomendações de produtos
-- ⚠️ Upload de dados de CPF (precisa implementar interface)
+### 2.3 Frontend - Componentes
+- Componentes de Gestão de Colaboradores
+- Componentes de Prospecção (proteger rotas)
+- Componentes de Campanhas (proteger rotas)
+- Sidebar (mostrar/ocultar links)
 
-#### 2.2 Empresas
-- ✅ Ver dashboard da empresa
-- ✅ Ver colaboradores
-- ✅ Ver benefícios configurados
-- ⚠️ Criar/editar empresa (precisa implementar formulário)
-- ⚠️ Adicionar colaboradores (precisa implementar formulário)
-- ⚠️ Configurar benefícios (precisa implementar formulário)
+### 2.4 Rotas
+- Criar `CompanyAdminRoute` e `BankAdminRoute`
+- Atualizar `src/App.jsx`
 
-#### 2.3 Colaboradores
-- ✅ Ver benefícios ativos
-- ✅ Ver recomendações personalizadas
-- ✅ Aceitar/rejeitar recomendações
+## 3. Testes
 
-#### 2.4 Integrações
-- ✅ Listar conexões
-- ✅ Criar nova conexão (via API)
-- ✅ Testar conexão
-- ✅ Sincronizar dados
-- ⚠️ Wizard de criação (precisa implementar interface completa)
+Após implementação:
+1. Testar Admin do Banco (acesso total)
+2. Testar Admin do Cliente (acesso limitado à empresa)
+3. Testar Colaborador Normal (acesso básico)
+4. Verificar que Prospecção e Campanhas são apenas para Admin do Banco
+5. Verificar que Gestão de Colaboradores funciona para Admin do Banco e Admin do Cliente
 
-### 3. Melhorias e Funcionalidades Pendentes
+## 4. Marcar Usuários como Admin do Cliente
 
-#### 3.1 Componentes Faltantes
-- [ ] `QualificationRules.jsx` - Configurar critérios de qualificação
-- [ ] `CampaignBuilder.jsx` - Criar campanhas personalizadas
-- [ ] `CompanyProfile.jsx` - Perfil completo da empresa
-- [ ] `CompanyEmployees.jsx` - Gestão de colaboradores
-- [ ] `CompanyBenefits.jsx` - Gestão de benefícios
-- [ ] `ConnectionWizard.jsx` - Wizard para criar conexões
-- [ ] `DataSyncStatus.jsx` - Status de sincronizações
+Para marcar um colaborador como Admin do Cliente:
 
-#### 3.2 Funcionalidades Avançadas
-- [ ] Upload de arquivo CSV/Excel para identificar prospects
-- [ ] Integração com APIs externas para buscar dados de CPF/CNPJ
-- [ ] Geração automática de campanhas baseadas em IA
-- [ ] Dashboard de métricas e analytics
-- [ ] Exportação de dados (CSV, Excel, PDF)
-- [ ] Notificações em tempo real
-- [ ] Sistema de permissões e roles mais robusto
+```sql
+-- Marcar colaborador como admin da empresa
+UPDATE public.employees 
+SET is_company_admin = true
+WHERE id = 'ID_DO_EMPLOYEE_AQUI';
 
-#### 3.3 Melhorias de UX/UI
-- [ ] Filtros avançados em todas as listas
-- [ ] Paginação para listas grandes
-- [ ] Busca em tempo real
-- [ ] Gráficos e visualizações interativas
-- [ ] Modo escuro
-- [ ] Responsividade mobile completa
+-- Ou marcar pelo platform_user_id e company_id
+UPDATE public.employees 
+SET is_company_admin = true
+WHERE platform_user_id = 'USER_ID_AQUI'
+AND company_id = 'COMPANY_ID_AQUI';
+```
 
-### 4. Testes Recomendados
+## Resumo das Mudanças Necessárias
 
-#### 4.1 Teste de Fluxo Completo de Prospecção
-1. Acesse o dashboard de prospecção
-2. Veja os prospects mockados
-3. Clique em um prospect qualificado
-4. Gere recomendações
-5. Aceite uma recomendação
-6. Verifique se a recomendação foi atualizada
+### O que já foi criado (mas precisa ser ajustado):
+- ✅ Scripts SQL base (precisam ser atualizados)
+- ✅ APIs de companies e connections (precisam ajustes menores)
+- ✅ Componentes de integrações (precisam ajustes menores)
 
-#### 4.2 Teste de Integração com Avatar
-1. Conecte o avatar no dashboard
-2. Faça uma pergunta sobre os dados
-3. Verifique se o avatar responde usando o OpenAI Assistant
-4. Teste com contexto de empresa/colaborador
+### O que precisa ser criado/atualizado:
+- ✅ Script SQL para Admin do Cliente (`create_company_admin_system.sql` - CRIADO)
+- ✅ Script SQL atualizado de RLS (`create_admin_full_access_rls_v2.sql` - CRIADO)
+- ⏳ APIs de employees (atualizar)
+- ⏳ Proteção de rotas de Prospecção
+- ⏳ Proteção de rotas de Campanhas
+- ⏳ Componentes de proteção de rotas
+- ⏳ Utils de permissões atualizados
 
-#### 4.3 Teste de Sincronização de Dados
-1. Crie uma conexão de dados
-2. Configure uma sincronização
-3. Execute a sincronização
-4. Verifique se os dados foram atualizados
+## Ordem de Execução Recomendada
 
-### 5. Configurações Importantes
-
-#### 5.1 Variáveis de Ambiente no Vercel
-Certifique-se de que todas as variáveis estão configuradas:
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
-- `OPENAI_PROJECT_ID`
-- `HEYGEN_API_KEY`
-
-#### 5.2 RLS Policies no Supabase
-As políticas básicas estão criadas, mas você pode precisar refiná-las:
-- Verificar se usuários podem ver apenas seus próprios dados
-- Configurar roles e permissões adequadas
-- Testar acesso de diferentes tipos de usuários
-
-### 6. Próximas Implementações Prioritárias
-
-1. **Formulários de Criação/Edição**
-   - Formulário para criar/editar empresas
-   - Formulário para adicionar colaboradores
-   - Formulário para configurar benefícios
-
-2. **Upload de Dados para Prospecção**
-   - Interface para upload de CSV/Excel com CPFs
-   - Processamento automático dos dados
-   - Identificação automática de prospects
-
-3. **Wizard de Integrações**
-   - Interface passo a passo para criar conexões
-   - Mapeamento visual de campos
-   - Teste de conexão integrado
-
-4. **Dashboard de Analytics**
-   - Métricas de conversão
-   - Gráficos de performance
-   - Relatórios personalizados
-
-## 📝 Notas Importantes
-
-- Os dados mockados são apenas para desenvolvimento
-- Em produção, você precisará:
-  - Revisar e ajustar as RLS policies
-  - Implementar validações mais robustas
-  - Adicionar tratamento de erros completo
-  - Implementar testes automatizados
-  - Configurar monitoramento e logs
-
-## 🐛 Se Encontrar Problemas
-
-1. Verifique os logs do Vercel para erros de API
-2. Verifique o console do navegador para erros de frontend
-3. Verifique as RLS policies no Supabase
-4. Confirme que todas as variáveis de ambiente estão configuradas
-
-## 📚 Documentação de Referência
-
-- `INSTRUCOES_EXECUCAO_SQL.md` - Como executar os scripts SQL
-- `SOLUCAO_ERRO_PRODUCT_CATALOG.md` - Solução de problemas comuns
-- `GUIA_VARIAVEIS_AMBIENTE.md` - Configuração de variáveis
-
+1. **Primeiro**: Execute `create_company_admin_system.sql` no Supabase
+2. **Segundo**: Aguarde a criação do script `create_admin_full_access_rls_v2.sql` (será criado em seguida)
+3. **Terceiro**: Execute `create_admin_full_access_rls_v2.sql` no Supabase
+4. **Quarto**: Aguarde as atualizações de código que serão feitas
+5. **Quinto**: Teste o sistema completo

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { DataIntegrationService } from '../../services/dataIntegrationService'
+import { ClientService } from '../../services/clientService'
+import { canCreateConnection } from '../../utils/permissions'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw, Settings, Edit, Trash2 } from 'lucide-react'
+import { Plus, Database, FileText, Link2, CheckCircle, XCircle, Clock, RefreshCw, Settings, Edit, Trash2, Shield } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const DataConnections = () => {
@@ -11,12 +13,26 @@ const DataConnections = () => {
   const navigate = useNavigate()
   const [connections, setConnections] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     if (user) {
+      checkAdminStatus()
       loadConnections()
     }
   }, [user])
+
+  const checkAdminStatus = async () => {
+    if (!user) return
+    try {
+      const clientResult = await ClientService.getClientByUserId(user.id)
+      if (clientResult.success && clientResult.client) {
+        setIsAdmin(clientResult.client.role === 'admin')
+      }
+    } catch (error) {
+      console.warn('Error checking admin status:', error)
+    }
+  }
 
   const loadConnections = async () => {
     if (!user) return
@@ -58,15 +74,16 @@ const DataConnections = () => {
   }
 
   const handleSyncConnection = async (connectionId) => {
+    if (!user) return
     try {
-      const result = await DataIntegrationService.syncConnection(connectionId)
+      const result = await DataIntegrationService.syncConnection(connectionId, false, user.id)
       if (result.success) {
         alert('Sincronização iniciada!')
         await loadConnections()
       }
     } catch (error) {
       console.error('Error syncing connection:', error)
-      alert('Erro ao iniciar sincronização')
+      alert(error.message || 'Erro ao iniciar sincronização')
     }
   }
 
@@ -75,6 +92,7 @@ const DataConnections = () => {
   }
 
   const handleDeleteConnection = async (connectionId) => {
+    if (!user) return
     const connection = connections.find(c => c.id === connectionId)
     if (!connection) return
 
@@ -85,7 +103,7 @@ const DataConnections = () => {
     if (!confirmed) return
 
     try {
-      const result = await DataIntegrationService.deleteConnection(connectionId)
+      const result = await DataIntegrationService.deleteConnection(connectionId, user.id)
       if (result.success) {
         alert('Conexão excluída com sucesso!')
         await loadConnections()
@@ -148,13 +166,28 @@ const DataConnections = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Conexões de Dados</h1>
-          <p className="text-gray-600">Gerencie suas integrações com bases de dados externas</p>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold text-gray-900">Conexões de Dados</h1>
+            {isAdmin && (
+              <span className="px-2 py-1 text-xs font-medium bg-primary-600 text-white rounded flex items-center space-x-1">
+                <Shield className="h-3 w-3" />
+                <span>Admin</span>
+              </span>
+            )}
+          </div>
+          <p className="text-gray-600">
+            {isAdmin 
+              ? 'Gerencie integrações com bases de dados externas'
+              : 'Apenas administradores podem criar e gerenciar conexões de banco de dados'
+            }
+          </p>
         </div>
-        <Button onClick={() => navigate('/integrations/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Conexão
-        </Button>
+        {isAdmin && (
+          <Button onClick={() => navigate('/integrations/new')}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Conexão
+          </Button>
+        )}
       </div>
 
       {/* Conexão fixa: Supabase atual da plataforma */}
@@ -187,15 +220,17 @@ const DataConnections = () => {
               <br />
               Tipo: Banco de dados gerenciado (Supabase / PostgreSQL)
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="flex items-center justify-center"
-              onClick={() => navigate('/integrations/new?from=supabase')}
-            >
-              <Settings className="h-3 w-3 mr-1" />
-              Editar conexão Supabase
-            </Button>
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex items-center justify-center"
+                onClick={() => navigate('/integrations/new?from=supabase')}
+              >
+                <Settings className="h-3 w-3 mr-1" />
+                Editar conexão Supabase
+              </Button>
+            )}
           </div>
         </div>
       </Card>
@@ -206,13 +241,21 @@ const DataConnections = () => {
           <div className="text-center py-12">
             <Database className="h-16 w-16 mx-auto text-gray-400 mb-4" />
             <p className="text-gray-500 mb-2">Nenhuma conexão configurada</p>
-            <p className="text-sm text-gray-400 mb-4">
-              Crie uma nova conexão para integrar dados externos à plataforma
-            </p>
-            <Button onClick={() => navigate('/integrations/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Primeira Conexão
-            </Button>
+            {isAdmin ? (
+              <>
+                <p className="text-sm text-gray-400 mb-4">
+                  Crie uma nova conexão para integrar dados externos à plataforma
+                </p>
+                <Button onClick={() => navigate('/integrations/new')}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Criar Primeira Conexão
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-gray-400 mb-4">
+                Apenas administradores podem criar conexões de banco de dados
+              </p>
+            )}
           </div>
         </Card>
       ) : (

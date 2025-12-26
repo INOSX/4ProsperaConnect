@@ -181,9 +181,9 @@ const EmployeeForm = () => {
 
       let result
       if (isEdit) {
-        result = await EmployeeService.updateEmployee(id, employeeData)
+        result = await EmployeeService.updateEmployee(id, employeeData, user.id)
       } else {
-        result = await EmployeeService.createEmployee(employeeData)
+        result = await EmployeeService.createEmployee(employeeData, user.id)
       }
 
       if (result.success) {

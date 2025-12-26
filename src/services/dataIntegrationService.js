@@ -24,16 +24,20 @@ export class DataIntegrationService {
   }
 
   /**
-   * Criar nova conexão
+   * Criar nova conexão (apenas admins)
    * @param {Object} connectionData - Dados da conexão
+   * @param {string} userId - ID do usuário que está criando
    * @returns {Promise<Object>} Conexão criada
    */
-  static async createConnection(connectionData) {
+  static async createConnection(connectionData, userId) {
     try {
       const response = await fetch('/api/integrations/connections', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(connectionData)
+        body: JSON.stringify({
+          ...connectionData,
+          userId // Passar userId para verificação de admin na API
+        })
       })
 
       if (!response.ok) {
@@ -49,17 +53,22 @@ export class DataIntegrationService {
   }
 
   /**
-   * Atualizar conexão
+   * Atualizar conexão (apenas admins)
    * @param {string} connectionId - ID da conexão
    * @param {Object} updates - Dados para atualizar
+   * @param {string} userId - ID do usuário que está atualizando
    * @returns {Promise<Object>} Conexão atualizada
    */
-  static async updateConnection(connectionId, updates) {
+  static async updateConnection(connectionId, updates, userId) {
     try {
       const response = await fetch('/api/integrations/connections', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: connectionId, ...updates })
+        body: JSON.stringify({ 
+          id: connectionId, 
+          ...updates,
+          userId // Passar userId para verificação de admin na API
+        })
       })
 
       if (!response.ok) {
@@ -100,17 +109,22 @@ export class DataIntegrationService {
   }
 
   /**
-   * Sincronizar dados de uma conexão
+   * Sincronizar dados de uma conexão (apenas admins)
    * @param {string} connectionId - ID da conexão
    * @param {boolean} force - Forçar sincronização mesmo se já estiver rodando
+   * @param {string} userId - ID do usuário que está executando a sincronização
    * @returns {Promise<Object>} Job de sincronização
    */
-  static async syncConnection(connectionId, force = false) {
+  static async syncConnection(connectionId, force = false, userId) {
     try {
       const response = await fetch('/api/integrations/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ connectionId, force })
+        body: JSON.stringify({ 
+          connectionId, 
+          force,
+          userId // Passar userId para verificação de admin na API
+        })
       })
 
       if (!response.ok) {
@@ -201,13 +215,14 @@ export class DataIntegrationService {
   }
 
   /**
-   * Deletar conexão
+   * Deletar conexão (apenas admins)
    * @param {string} connectionId - ID da conexão
+   * @param {string} userId - ID do usuário que está deletando
    * @returns {Promise<Object>} Resultado da exclusão
    */
-  static async deleteConnection(connectionId) {
+  static async deleteConnection(connectionId, userId) {
     try {
-      const response = await fetch(`/api/integrations/connections?id=${connectionId}`, {
+      const response = await fetch(`/api/integrations/connections?id=${connectionId}&userId=${userId}`, {
         method: 'DELETE'
       })
 

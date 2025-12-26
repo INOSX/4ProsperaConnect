@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
-import { EmployeeService } from '../../services/employeeService'
+import { EmployeeService, isCompanyAdmin } from '../../services/employeeService'
+import { ClientService } from '../../services/clientService'
+import { canManageEmployees } from '../../utils/permissions'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
-import { Users, Search, Plus, Edit, Eye, Filter, X } from 'lucide-react'
+import { Users, Search, Plus, Edit, Eye, Filter, X, Shield } from 'lucide-react'
 
 const EmployeeList = () => {
   const { user } = useAuth()
@@ -17,6 +19,9 @@ const EmployeeList = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [isBankAdmin, setIsBankAdmin] = useState(false)
+  const [isCompanyAdminUser, setIsCompanyAdminUser] = useState(false)
+  const [canManage, setCanManage] = useState(false)
 
   useEffect(() => {
     if (user) {
@@ -33,10 +38,27 @@ const EmployeeList = () => {
 
     setLoading(true)
     try {
-      const companyResult = await CompanyService.getUserCompanies(user.id)
+      // Verificar se é Admin do Banco
+      let userIsBankAdmin = false
+      try {
+        const clientResult = await ClientService.getClientByUserId(user.id)
+        if (clientResult.success && clientResult.client) {
+          userIsBankAdmin = clientResult.client.role === 'admin'
+          setIsBankAdmin(userIsBankAdmin)
+        }
+      } catch (e) {
+        console.warn('Error checking bank admin status:', e)
+      }
+
+      const companyResult = await CompanyService.getUserCompanies(user.id, userIsBankAdmin)
       if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
         const userCompany = companyResult.companies[0]
         setCompany(userCompany)
+
+        // Verificar se é Admin do Cliente desta empresa
+        const userIsCompanyAdmin = await isCompanyAdmin(user.id, userCompany.id)
+        setIsCompanyAdminUser(userIsCompanyAdmin)
+        setCanManage(canManageEmployees(userIsBankAdmin ? 'admin' : 'user', userIsCompanyAdmin))
 
         const employeesResult = await EmployeeService.getCompanyEmployees(userCompany.id)
         if (employeesResult.success) {
@@ -121,16 +143,37 @@ const EmployeeList = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Colaboradores</h1>
-          <p className="text-gray-600">Gerencie os colaboradores de {company.company_name}</p>
+          <div className="flex items-center space-x-2">
+            <h1 className="text-2xl font-bold text-gray-900">Colaboradores</h1>
+            {isBankAdmin && (
+              <span className="px-2 py-1 text-xs font-medium bg-primary-600 text-white rounded flex items-center space-x-1">
+                <Shield className="h-3 w-3" />
+                <span>Admin do Banco</span>
+              </span>
+            )}
+            {isCompanyAdminUser && !isBankAdmin && (
+              <span className="px-2 py-1 text-xs font-medium bg-blue-600 text-white rounded flex items-center space-x-1">
+                <Shield className="h-3 w-3" />
+                <span>Admin da Empresa</span>
+              </span>
+            )}
+          </div>
+          <p className="text-gray-600">
+            {canManage 
+              ? `Gerencie os colaboradores de ${company.company_name}`
+              : `Visualize os colaboradores de ${company.company_name}`
+            }
+          </p>
         </div>
-        <Button
-          variant="primary"
-          onClick={() => navigate('/people/employees/new')}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Colaborador
-        </Button>
+        {canManage && (
+          <Button
+            variant="primary"
+            onClick={() => navigate('/people/employees/new')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Colaborador
+          </Button>
+        )}
       </div>
 
       {/* Estatísticas */}

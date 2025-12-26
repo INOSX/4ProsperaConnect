@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useModule } from '../../contexts/ModuleContext'
 import { ClientService } from '../../services/clientService'
+import { isCompanyAdminAny } from '../../services/employeeService'
+import { canAccessProspecting, canAccessCampaigns } from '../../utils/permissions'
 import { supabase } from '../../services/supabase'
 import { 
   BarChart3, 
@@ -25,6 +27,38 @@ const Sidebar = ({ isOpen, onClose }) => {
   const [error, setError] = useState(null)
   const [selectKey, setSelectKey] = useState(0)
   const [refreshTick, setRefreshTick] = useState(0)
+  const [isBankAdmin, setIsBankAdmin] = useState(false)
+  const [isCompanyAdminUser, setIsCompanyAdminUser] = useState(false)
+  const [canAccessProspectingModule, setCanAccessProspectingModule] = useState(false)
+  const [canAccessCampaignsModule, setCanAccessCampaignsModule] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      checkPermissions()
+    }
+  }, [user])
+
+  const checkPermissions = async () => {
+    if (!user) return
+    try {
+      const clientResult = await ClientService.getClientByUserId(user.id)
+      let userRole = 'user'
+      if (clientResult.success && clientResult.client) {
+        userRole = clientResult.client.role || 'user'
+        setIsBankAdmin(userRole === 'admin')
+      }
+
+      // Verificar se é Admin do Cliente
+      const userIsCompanyAdmin = await isCompanyAdminAny(user.id)
+      setIsCompanyAdminUser(userIsCompanyAdmin)
+
+      // Verificar permissões de módulos
+      setCanAccessProspectingModule(canAccessProspecting(userRole))
+      setCanAccessCampaignsModule(canAccessCampaigns(userRole))
+    } catch (error) {
+      console.warn('Error checking permissions:', error)
+    }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -65,7 +99,8 @@ const Sidebar = ({ isOpen, onClose }) => {
     window.addEventListener('storage-updated', onUpdated)
     return () => window.removeEventListener('storage-updated', onUpdated)
   }, [])
-  const menuItems = [
+  // Menu items base - sempre visíveis
+  const baseMenuItems = [
     {
       icon: BarChart3,
       label: 'Dashboard',
@@ -93,6 +128,27 @@ const Sidebar = ({ isOpen, onClose }) => {
       href: '/analyses'
     }
   ]
+
+  // Menu items adicionais baseados em permissões
+  const additionalMenuItems = []
+  
+  if (canAccessProspectingModule) {
+    additionalMenuItems.push({
+      icon: TrendingUp,
+      label: 'Prospecção de Clientes',
+      href: '/prospecting'
+    })
+  }
+
+  if (canAccessCampaignsModule) {
+    additionalMenuItems.push({
+      icon: Database,
+      label: 'Campanhas de Marketing',
+      href: '/campaigns'
+    })
+  }
+
+  const menuItems = [...baseMenuItems, ...additionalMenuItems]
 
   return (
     <>
@@ -168,13 +224,15 @@ const Sidebar = ({ isOpen, onClose }) => {
               <Grid3x3 className="h-5 w-5" />
               <span>Trocar Módulo</span>
             </button>
-            <a
-              href="/settings"
-              className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              <Settings className="h-5 w-5" />
-              <span>Configurações</span>
-            </a>
+            {isBankAdmin && (
+              <a
+                href="/settings"
+                className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                <Settings className="h-5 w-5" />
+                <span>Configurações</span>
+              </a>
+            )}
             <a
               href="/help"
               className="flex items-center space-x-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-100 transition-colors"

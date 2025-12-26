@@ -33,10 +33,33 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'POST') {
-      const { connectionId, force = false } = req.body
+      const { connectionId, force = false, userId } = req.body
 
       if (!connectionId) {
         return res.status(400).json({ error: 'connectionId is required' })
+      }
+
+      // Verificar se o usuário é admin
+      const requestingUserId = userId || req.headers['x-user-id']
+      if (!requestingUserId) {
+        return res.status(401).json({ error: 'User ID is required' })
+      }
+
+      // Buscar o cliente para verificar se é admin
+      const { data: client, error: clientError } = await adminClient
+        .from('clients')
+        .select('role')
+        .eq('user_id', requestingUserId)
+        .maybeSingle()
+
+      if (clientError) throw clientError
+      if (!client) {
+        return res.status(404).json({ error: 'Client not found' })
+      }
+
+      // Apenas admins podem executar sincronizações
+      if (client.role !== 'admin') {
+        return res.status(403).json({ error: 'Apenas administradores podem executar sincronizações de dados' })
       }
 
       // Buscar conexão

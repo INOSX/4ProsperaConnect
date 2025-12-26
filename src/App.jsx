@@ -8,6 +8,9 @@ import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
 import AuthCallback from './components/auth/AuthCallback'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminRoute from './components/auth/AdminRoute'
+import BankAdminRoute from './components/auth/BankAdminRoute'
+import CompanyAdminRoute from './components/auth/CompanyAdminRoute'
 import Layout from './components/layout/Layout'
 import ModuleSelector from './components/modules/ModuleSelector'
 import Dashboard from './components/dashboard/Dashboard'
@@ -99,46 +102,46 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/prospecting" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <ProspectingDashboard />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/prospecting/list" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <ProspectList />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/prospecting/:id" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <ProspectDetail />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/prospecting/cpf/:id" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <CPFClientDetail />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/prospecting/unbanked/:id" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <UnbankedCompanyDetail />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/prospecting/enrich" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <EnrichmentWizard />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/companies" element={
               <ProtectedRoute>
@@ -162,32 +165,32 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/people/employees" element={
-              <ProtectedRoute>
+              <CompanyAdminRoute>
                 <Layout>
                   <EmployeeList />
                 </Layout>
-              </ProtectedRoute>
+              </CompanyAdminRoute>
             } />
             <Route path="/people/employees/new" element={
-              <ProtectedRoute>
+              <CompanyAdminRoute>
                 <Layout>
                   <EmployeeForm />
                 </Layout>
-              </ProtectedRoute>
+              </CompanyAdminRoute>
             } />
             <Route path="/people/employees/:id" element={
-              <ProtectedRoute>
+              <CompanyAdminRoute>
                 <Layout>
                   <EmployeeDetail />
                 </Layout>
-              </ProtectedRoute>
+              </CompanyAdminRoute>
             } />
             <Route path="/people/employees/:id/edit" element={
-              <ProtectedRoute>
+              <CompanyAdminRoute>
                 <Layout>
                   <EmployeeForm />
                 </Layout>
-              </ProtectedRoute>
+              </CompanyAdminRoute>
             } />
             <Route path="/people/benefits" element={
               <ProtectedRoute>
@@ -247,52 +250,58 @@ function App() {
                 } />
             <Route path="/integrations" element={
               <ProtectedRoute>
-                <Layout>
-                  <Settings initialTab="integrations" />
-                </Layout>
+                <AdminRoute>
+                  <Layout>
+                    <Settings initialTab="integrations" />
+                  </Layout>
+                </AdminRoute>
               </ProtectedRoute>
             } />
             <Route path="/integrations/new" element={
               <ProtectedRoute>
-                <Layout>
-                  <NewIntegration />
-                </Layout>
+                <AdminRoute>
+                  <Layout>
+                    <NewIntegration />
+                  </Layout>
+                </AdminRoute>
               </ProtectedRoute>
             } />
             <Route path="/integrations/edit/:id" element={
               <ProtectedRoute>
-                <Layout>
-                  <NewIntegration />
-                </Layout>
+                <AdminRoute>
+                  <Layout>
+                    <NewIntegration />
+                  </Layout>
+                </AdminRoute>
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <CampaignManagement />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/campaigns/create" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <CreateCampaign />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/campaigns/:id" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <CampaignDetail />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
             <Route path="/campaigns/edit/:id" element={
-              <ProtectedRoute>
+              <BankAdminRoute>
                 <Layout>
                   <EditCampaign />
                 </Layout>
-              </ProtectedRoute>
+              </BankAdminRoute>
             } />
               </Routes>
               <Analytics />
