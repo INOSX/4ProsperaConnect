@@ -1,27 +1,45 @@
 [
   {
-    "target": "[data-tour-id='campaign-form-type']",
-    "title": "Tipo de Campanha",
-    "content": "Escolha o tipo de campanha: Email, SMS ou WhatsApp. Cada tipo tem características e custos diferentes.",
+    "target": "[data-tour-id='campaign-create-selected-clients']",
+    "title": "Clientes Selecionados",
+    "content": "Visualize quantos clientes foram selecionados para esta campanha. Se não houver clientes selecionados, você pode voltar à página de prospecção para selecionar.",
     "placement": "bottom"
   },
   {
-    "target": "[data-tour-id='campaign-form-audience']",
-    "title": "Público-alvo",
-    "content": "Selecione o público-alvo da campanha usando filtros como score mínimo, localização ou outras características.",
+    "target": "[data-tour-id='campaign-form-type']",
+    "title": "Tipo de Campanha",
+    "content": "Escolha o tipo de campanha: Email (envio de emails personalizados), Telefone (ligações) ou Carta Convite (envio de cartas). Clique em uma opção para selecioná-la.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='campaign-form-name']",
+    "title": "Nome da Campanha",
+    "content": "Dê um nome descritivo para sua campanha. Isso ajudará você a identificá-la facilmente na lista de campanhas.",
     "placement": "top"
   },
   {
     "target": "[data-tour-id='campaign-form-message']",
-    "title": "Mensagem",
-    "content": "Escreva a mensagem da campanha. Use variáveis personalizadas para tornar a mensagem mais relevante para cada destinatário.",
+    "title": "Mensagem da Campanha",
+    "content": "Escreva a mensagem que será enviada aos clientes. Personalize a mensagem para torná-la mais relevante e eficaz.",
     "placement": "top"
   },
   {
     "target": "[data-tour-id='campaign-form-schedule']",
-    "title": "Agendamento",
-    "content": "Agende quando a campanha deve ser enviada. Você pode enviar imediatamente ou agendar para uma data futura.",
+    "title": "Data de Agendamento",
+    "content": "Opcionalmente, agende quando a campanha deve ser enviada. Se deixar em branco, você poderá enviar manualmente depois.",
     "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='campaign-form-actions']",
+    "title": "Ações",
+    "content": "Use 'Cancelar' para voltar sem salvar ou 'Criar Campanha' para finalizar. O botão só será habilitado quando todos os campos obrigatórios estiverem preenchidos.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-widget']",
+    "title": "Especialista Virtual",
+    "content": "Use o Especialista Virtual para obter dicas sobre como criar campanhas eficazes e personalizar mensagens para melhor conversão.",
+    "placement": "left"
   }
 ]
 
