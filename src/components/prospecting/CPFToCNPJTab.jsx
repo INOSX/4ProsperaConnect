@@ -498,7 +498,7 @@ const CPFToCNPJTab = () => {
                           <span className="ml-2 text-xs text-gray-600">{client.priority || 0}/10</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
+                      <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()} data-tour-id="cpf-actions">
                         <div className="flex space-x-2">
                           <button
                             onClick={() => handleClientClick(client.id)}
