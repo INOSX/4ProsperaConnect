@@ -24,6 +24,7 @@ import CPFClientDetail from './components/prospecting/CPFClientDetail'
 import UnbankedCompanyDetail from './components/prospecting/UnbankedCompanyDetail'
 import EnrichmentWizard from './components/prospecting/EnrichmentWizard'
 import CompanyDashboard from './components/companies/CompanyDashboard'
+import CompanyDashboardSimplified from './components/companies/CompanyDashboardSimplified'
 import CompanyList from './components/companies/CompanyList'
 import CompanyForm from './components/companies/CompanyForm'
 import UserProfile from './components/profile/UserProfile'
@@ -163,6 +164,11 @@ function App() {
                 <Layout>
                   <CompanyDashboard />
                 </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/companies/:id/dashboard" element={
+              <ProtectedRoute>
+                <CompanyDashboardSimplified />
               </ProtectedRoute>
             } />
             <Route path="/companies/:id/edit" element={
