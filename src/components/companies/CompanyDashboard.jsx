@@ -141,7 +141,7 @@ const CompanyDashboard = () => {
   const activeBenefits = benefits.filter(b => b.is_active).length
   const productsContracted = company.products_contracted?.length || 0
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     {
       id: 'employees',
       label: 'Gerenciar Colaboradores',
@@ -160,7 +160,7 @@ const CompanyDashboard = () => {
       icon: Briefcase,
       url: `/people/products?companyId=${companyId}`
     }
-  ]
+  ], [companyId])
 
   const handleMenuClick = (item) => {
     setActiveTab(item.id)
@@ -171,7 +171,7 @@ const CompanyDashboard = () => {
     if (!activeTab) return null
     const item = menuItems.find(item => item.id === activeTab)
     return item ? `${window.location.origin}${item.url}` : null
-  }, [activeTab])
+  }, [activeTab, menuItems])
 
   return (
     <div className="flex flex-col">
