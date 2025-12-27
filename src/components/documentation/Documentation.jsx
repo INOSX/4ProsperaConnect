@@ -57,9 +57,9 @@ const Documentation = ({ onClose }) => {
       content: (
         <div className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">4Prospera Connect</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">4Prospera</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              O <strong>4Prospera Connect</strong> é uma plataforma completa de gestão empresarial desenvolvida para 
+              O <strong>4Prospera</strong> é uma plataforma completa de gestão empresarial desenvolvida para 
               bancos e instituições financeiras gerenciarem relacionamentos com empresas (PMEs/MEIs) e seus colaboradores.
             </p>
             <p className="text-gray-700 leading-relaxed mb-4">
@@ -136,7 +136,7 @@ const Documentation = ({ onClose }) => {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Arquitetura do Sistema</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              O 4Prospera Connect é construído com uma arquitetura moderna baseada em React e Next.js, 
+              O 4Prospera é construído com uma arquitetura moderna baseada em React e Next.js, 
               utilizando Supabase como backend e banco de dados.
             </p>
           </div>
@@ -220,7 +220,7 @@ api/                    # API Routes (Next.js)
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Sistema de Permissões e Roles</h2>
             <p className="text-gray-700 leading-relaxed mb-4">
-              O 4Prospera Connect implementa um sistema robusto de permissões com três níveis de acesso distintos.
+              O 4Prospera implementa um sistema robusto de permissões com três níveis de acesso distintos.
             </p>
           </div>
 
@@ -1339,7 +1339,7 @@ api/                    # API Routes (Next.js)
             <BookOpen className="h-8 w-8 text-primary-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Documentação</h1>
-              <p className="text-sm text-gray-600">4Prospera Connect - Guia Completo</p>
+              <p className="text-sm text-gray-600">4Prospera - Guia Completo</p>
             </div>
           </div>
           <Button

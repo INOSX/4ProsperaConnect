@@ -1,4 +1,4 @@
--- Script para criar as tabelas do 4Prospera Connect no projeto correto
+-- Script para criar as tabelas do 4Prospera no projeto correto
 -- Execute este script no SQL Editor do Supabase (dytuwutsjjxxmyefrfed)
 
 -- Tabela para armazenar fontes de dados
