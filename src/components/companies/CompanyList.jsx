@@ -5,6 +5,7 @@ import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
 import { ClientService } from '../../services/clientService'
 import Card from '../ui/Card'
+import Button from '../ui/Button'
 import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, CheckCircle, Shield, Plus, Edit, Trash2 } from 'lucide-react'
 
 const CompanyList = () => {
