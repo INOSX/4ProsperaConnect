@@ -67,8 +67,17 @@ const TourProvider = ({ children }) => {
     setRun
   } = useTour()
 
+      // Verificar se está dentro de um iframe
+      const isInIframe = window.self !== window.top
+
       // Carregar steps quando a rota mudar
       useEffect(() => {
+        // Se estiver dentro de um iframe, não carregar tour
+        if (isInIframe) {
+          setSteps([])
+          return
+        }
+
         const loadStepsForRoute = () => {
           const configKey = getTourConfigForRoute(location.pathname, location.search)
           
@@ -102,7 +111,7 @@ const TourProvider = ({ children }) => {
         }
 
         loadStepsForRoute()
-      }, [location.pathname, location.search, setSteps])
+      }, [location.pathname, location.search, setSteps, isInIframe])
 
   // Verificar se elementos existem - apenas para logging/debug, não interferir na navegação
   useEffect(() => {

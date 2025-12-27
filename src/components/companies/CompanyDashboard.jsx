@@ -202,9 +202,15 @@ const CompanyDashboard = () => {
       {activeTab ? (
         <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
           <iframe
-            src={menuItems.find(item => item.id === activeTab)?.url}
+            key={activeTab}
+            src={`${window.location.origin}${menuItems.find(item => item.id === activeTab)?.url}`}
             className="w-full h-full border-0"
             title={menuItems.find(item => item.id === activeTab)?.label}
+            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
+            onLoad={() => {
+              // Prevenir recarregamentos desnecessários
+              console.log('Iframe loaded:', activeTab)
+            }}
           />
         </div>
       ) : (
