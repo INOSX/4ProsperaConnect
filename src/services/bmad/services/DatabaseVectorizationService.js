@@ -1,7 +1,7 @@
 /**
  * DatabaseVectorizationService - Vetoriza o banco de dados para busca semântica
  */
-import { supabase } from '../../services/supabase'
+import { supabase } from '../../../services/supabase'
 import EmbeddingGenerator from '../utils/embeddingGenerator.js'
 
 export default class DatabaseVectorizationService {

@@ -4,7 +4,7 @@
 export default class BenefitActionAgent {
   async create(params, user, context) {
     try {
-      const { BenefitService } = await import('../../services/benefitService')
+      const { BenefitService } = await import('../../../services/benefitService')
       const result = await BenefitService.createBenefit({
         name: params.name,
         company_id: params.companyId || context.userContext?.companyId
@@ -24,7 +24,7 @@ export default class BenefitActionAgent {
 
   async list(params, user, context) {
     try {
-      const { BenefitService } = await import('../../services/benefitService')
+      const { BenefitService } = await import('../../../services/benefitService')
       const companyId = params.companyId || context.userContext?.companyId
       const result = await BenefitService.getCompanyBenefits(companyId)
       return {
@@ -42,7 +42,7 @@ export default class BenefitActionAgent {
 
   async update(params, user, context) {
     try {
-      const { BenefitService } = await import('../../services/benefitService')
+      const { BenefitService } = await import('../../../services/benefitService')
       const result = await BenefitService.updateBenefit(params.id, {
         name: params.name
       })
@@ -61,7 +61,7 @@ export default class BenefitActionAgent {
 
   async delete(params, user, context) {
     try {
-      const { BenefitService } = await import('../../services/benefitService')
+      const { BenefitService } = await import('../../../services/benefitService')
       const result = await BenefitService.deleteBenefit(params.id)
       return {
         success: result.success,

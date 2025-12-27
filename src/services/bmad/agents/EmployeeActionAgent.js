@@ -1,7 +1,7 @@
 /**
  * EmployeeActionAgent - Ações relacionadas a colaboradores
  */
-import { EmployeeService } from '../../services/employeeService'
+import { EmployeeService } from '../../../services/employeeService'
 
 export default class EmployeeActionAgent {
   async create(params, user, context) {

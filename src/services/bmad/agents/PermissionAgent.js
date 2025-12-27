@@ -1,8 +1,8 @@
 /**
  * PermissionAgent - Valida permissões do usuário
  */
-import { ClientService } from '../../services/clientService'
-import { canManageEmployees, canAccessProspecting, canAccessCampaigns } from '../../utils/permissions'
+import { ClientService } from '../../../services/clientService'
+import { canManageEmployees, canAccessProspecting, canAccessCampaigns } from '../../../utils/permissions'
 
 export default class PermissionAgent {
   async checkPermission(intent, user, params) {

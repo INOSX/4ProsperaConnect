@@ -1,7 +1,7 @@
 /**
  * ContextAgent - Coleta contexto da página e dados relevantes
  */
-import { ClientService } from '../../services/clientService'
+import { ClientService } from '../../../services/clientService'
 
 export default class ContextAgent {
   async collectContext(user, additionalContext = {}) {
