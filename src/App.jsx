@@ -43,6 +43,8 @@ import CampaignManagement from './components/campaigns/CampaignManagement'
 import CreateCampaign from './components/campaigns/CreateCampaign'
 import CampaignDetail from './components/campaigns/CampaignDetail'
 import EditCampaign from './components/campaigns/EditCampaign'
+import SpecialistModule from './components/specialist/SpecialistModule'
+import VectorizationPage from './pages/VectorizationPage'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -323,6 +325,20 @@ function App() {
                   <EditCampaign />
                 </Layout>
               </BankAdminRoute>
+            } />
+            <Route path="/specialist" element={
+              <ProtectedRoute>
+                <Layout>
+                  <SpecialistModule />
+                </Layout>
+              </ProtectedRoute>
+            } />
+            <Route path="/vectorization" element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <VectorizationPage />
+                </AdminRoute>
+              </ProtectedRoute>
             } />
               </Routes>
               <Analytics />

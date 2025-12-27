@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ModuleTopMenu from './ModuleTopMenu'
-import FloatingSpecialist from './FloatingSpecialist'
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -55,9 +54,6 @@ const Layout = ({ children }) => {
           {children}
         </main>
       </div>
-      
-      {/* Floating Specialist Widget */}
-      <FloatingSpecialist />
     </div>
   )
 }

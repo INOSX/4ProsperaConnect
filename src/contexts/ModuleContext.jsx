@@ -32,6 +32,13 @@ const MODULES = {
     description: 'Crie e gerencie campanhas de marketing digital',
     routes: ['/campaigns'],
     defaultRoute: '/campaigns'
+  },
+  SPECIALIST: {
+    id: 'specialist',
+    name: 'Especialista',
+    description: 'Consultoria inteligente por voz com IA avançada',
+    routes: ['/specialist'],
+    defaultRoute: '/specialist'
   }
 }
 
