@@ -5,6 +5,9 @@ import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
 import { BenefitService } from '../../services/benefitService'
 import { RecommendationService } from '../../services/recommendationService'
+import EmployeeList from '../people/EmployeeList'
+import BenefitsManagement from '../people/BenefitsManagement'
+import ProductsManagement from '../people/ProductsManagement'
 import Card from '../ui/Card'
 import { Users, Building2, TrendingUp, DollarSign, Package, Briefcase, ArrowLeft, X } from 'lucide-react'
 import Button from '../ui/Button'
@@ -99,29 +102,19 @@ const CompanyDashboardSimplified = () => {
     {
       id: 'employees',
       label: 'Gerenciar Colaboradores',
-      icon: Users,
-      url: `/people/employees?companyId=${companyId}`
+      icon: Users
     },
     {
       id: 'benefits',
       label: 'Gerenciar Benefícios',
-      icon: Package,
-      url: `/people/benefits?companyId=${companyId}`
+      icon: Package
     },
     {
       id: 'products',
       label: 'Produtos Financeiros',
-      icon: Briefcase,
-      url: `/people/products?companyId=${companyId}`
+      icon: Briefcase
     }
-  ], [companyId])
-
-  // Memoizar a URL do iframe para evitar recarregamentos desnecessários
-  const iframeUrl = useMemo(() => {
-    if (!activeTab) return null
-    const item = menuItems.find(item => item.id === activeTab)
-    return item ? `${window.location.origin}${item.url}` : null
-  }, [activeTab, menuItems])
+  ], [])
 
   const handleClose = () => {
     window.close()
@@ -203,16 +196,14 @@ const CompanyDashboardSimplified = () => {
         </div>
       </div>
 
-      {/* Conteúdo - Dashboard ou Iframe */}
-      {activeTab && iframeUrl ? (
-        <div className="flex-1 overflow-hidden">
-          <iframe
-            key={activeTab}
-            src={iframeUrl}
-            className="w-full h-full border-0"
-            title={menuItems.find(item => item.id === activeTab)?.label}
-            style={{ display: 'block' }}
-          />
+      {/* Conteúdo - Dashboard ou Componente */}
+      {activeTab ? (
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+            {activeTab === 'employees' && <EmployeeList companyId={companyId} />}
+            {activeTab === 'benefits' && <BenefitsManagement companyId={companyId} />}
+            {activeTab === 'products' && <ProductsManagement companyId={companyId} />}
+          </div>
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto">

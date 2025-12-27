@@ -8,7 +8,7 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { Package, Plus, Edit, Users, TrendingUp, CheckCircle, XCircle } from 'lucide-react'
 
-const BenefitsManagement = () => {
+const BenefitsManagement = ({ companyId: propCompanyId }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [company, setCompany] = useState(null)
@@ -20,22 +20,37 @@ const BenefitsManagement = () => {
     if (user) {
       loadData()
     }
-  }, [user])
+  }, [user, propCompanyId])
 
   const loadData = async () => {
     if (!user) return
 
     setLoading(true)
     try {
-      const companyResult = await CompanyService.getUserCompanies(user.id)
-      if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
-        const userCompany = companyResult.companies[0]
-        setCompany(userCompany)
+      // Se companyId foi passado como prop, usar diretamente
+      if (propCompanyId) {
+        const companyResult = await CompanyService.getCompany(propCompanyId)
+        if (companyResult.success && companyResult.company) {
+          const targetCompany = companyResult.company
+          setCompany(targetCompany)
 
-        await Promise.all([
-          loadBenefits(userCompany.id),
-          loadEmployees(userCompany.id)
-        ])
+          await Promise.all([
+            loadBenefits(targetCompany.id),
+            loadEmployees(targetCompany.id)
+          ])
+        }
+      } else {
+        // Comportamento original - buscar empresas do usuário
+        const companyResult = await CompanyService.getUserCompanies(user.id)
+        if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
+          const userCompany = companyResult.companies[0]
+          setCompany(userCompany)
+
+          await Promise.all([
+            loadBenefits(userCompany.id),
+            loadEmployees(userCompany.id)
+          ])
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error)

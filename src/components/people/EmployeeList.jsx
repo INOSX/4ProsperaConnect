@@ -9,7 +9,7 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { Users, Search, Plus, Edit, Eye, Filter, X, Shield } from 'lucide-react'
 
-const EmployeeList = () => {
+const EmployeeList = ({ companyId: propCompanyId }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [company, setCompany] = useState(null)
@@ -27,7 +27,7 @@ const EmployeeList = () => {
     if (user) {
       loadCompanyAndEmployees()
     }
-  }, [user])
+  }, [user, propCompanyId])
 
   useEffect(() => {
     filterEmployees()
@@ -50,19 +50,39 @@ const EmployeeList = () => {
         console.warn('Error checking bank admin status:', e)
       }
 
-      const companyResult = await CompanyService.getUserCompanies(user.id, userIsBankAdmin)
-      if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
-        const userCompany = companyResult.companies[0]
-        setCompany(userCompany)
+      // Se companyId foi passado como prop, usar diretamente
+      if (propCompanyId) {
+        const companyResult = await CompanyService.getCompany(propCompanyId)
+        if (companyResult.success && companyResult.company) {
+          const targetCompany = companyResult.company
+          setCompany(targetCompany)
 
-        // Verificar se é Admin do Cliente desta empresa
-        const userIsCompanyAdmin = await isCompanyAdmin(user.id, userCompany.id)
-        setIsCompanyAdminUser(userIsCompanyAdmin)
-        setCanManage(canManageEmployees(userIsBankAdmin ? 'admin' : 'user', userIsCompanyAdmin))
+          // Verificar se é Admin do Cliente desta empresa
+          const userIsCompanyAdmin = await isCompanyAdmin(user.id, targetCompany.id)
+          setIsCompanyAdminUser(userIsCompanyAdmin)
+          setCanManage(canManageEmployees(userIsBankAdmin ? 'admin' : 'user', userIsCompanyAdmin))
 
-        const employeesResult = await EmployeeService.getCompanyEmployees(userCompany.id)
-        if (employeesResult.success) {
-          setEmployees(employeesResult.employees || [])
+          const employeesResult = await EmployeeService.getCompanyEmployees(targetCompany.id)
+          if (employeesResult.success) {
+            setEmployees(employeesResult.employees || [])
+          }
+        }
+      } else {
+        // Comportamento original - buscar empresas do usuário
+        const companyResult = await CompanyService.getUserCompanies(user.id, userIsBankAdmin)
+        if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
+          const userCompany = companyResult.companies[0]
+          setCompany(userCompany)
+
+          // Verificar se é Admin do Cliente desta empresa
+          const userIsCompanyAdmin = await isCompanyAdmin(user.id, userCompany.id)
+          setIsCompanyAdminUser(userIsCompanyAdmin)
+          setCanManage(canManageEmployees(userIsBankAdmin ? 'admin' : 'user', userIsCompanyAdmin))
+
+          const employeesResult = await EmployeeService.getCompanyEmployees(userCompany.id)
+          if (employeesResult.success) {
+            setEmployees(employeesResult.employees || [])
+          }
         }
       }
     } catch (error) {
