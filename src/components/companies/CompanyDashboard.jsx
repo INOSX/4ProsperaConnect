@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
@@ -166,6 +166,13 @@ const CompanyDashboard = () => {
     setActiveTab(item.id)
   }
 
+  // Memoizar a URL do iframe para evitar recarregamentos desnecessários
+  const iframeUrl = useMemo(() => {
+    if (!activeTab) return null
+    const item = menuItems.find(item => item.id === activeTab)
+    return item ? `${window.location.origin}${item.url}` : null
+  }, [activeTab])
+
   return (
     <div className="flex flex-col">
       {/* Header com Topbar */}
@@ -199,18 +206,14 @@ const CompanyDashboard = () => {
       </div>
 
       {/* Conteúdo - Dashboard ou Iframe */}
-      {activeTab ? (
+      {activeTab && iframeUrl ? (
         <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
           <iframe
             key={activeTab}
-            src={`${window.location.origin}${menuItems.find(item => item.id === activeTab)?.url}`}
+            src={iframeUrl}
             className="w-full h-full border-0"
             title={menuItems.find(item => item.id === activeTab)?.label}
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-            onLoad={() => {
-              // Prevenir recarregamentos desnecessários
-              console.log('Iframe loaded:', activeTab)
-            }}
+            style={{ display: 'block' }}
           />
         </div>
       ) : (
