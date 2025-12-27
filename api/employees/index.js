@@ -67,10 +67,17 @@ export default async function handler(req, res) {
             .from('employees')
             .select('*')
             .eq('platform_user_id', userId)
-            .maybeSingle()
+            .order('created_at', { ascending: false })
 
           if (error) throw error
-          return res.status(200).json({ success: true, employee: data })
+          
+          // Se houver apenas um registro, retornar como employee (compatibilidade)
+          // Se houver múltiplos, retornar como employees (lista)
+          if (data && data.length === 1) {
+            return res.status(200).json({ success: true, employee: data[0] })
+          } else {
+            return res.status(200).json({ success: true, employees: data || [], employee: data?.[0] || null })
+          }
         }
 
         return res.status(400).json({ error: 'id, companyId, cpf, or userId is required' })

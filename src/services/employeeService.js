@@ -184,10 +184,14 @@ export class EmployeeService {
 export async function isCompanyAdmin(userId, companyId) {
   try {
     const result = await EmployeeService.getEmployeeByUserId(userId)
-    if (result.success && result.employee) {
-      return result.employee.is_company_admin === true && 
-             result.employee.company_id === companyId &&
-             result.employee.is_active === true
+    if (result.success) {
+      // Verificar se há employees (array) ou employee (objeto único)
+      const employees = result.employees || (result.employee ? [result.employee] : [])
+      return employees.some(emp => 
+        emp.is_company_admin === true && 
+        emp.company_id === companyId &&
+        emp.is_active === true
+      )
     }
     return false
   } catch (error) {
@@ -204,9 +208,13 @@ export async function isCompanyAdmin(userId, companyId) {
 export async function isCompanyAdminAny(userId) {
   try {
     const result = await EmployeeService.getEmployeeByUserId(userId)
-    if (result.success && result.employee) {
-      return result.employee.is_company_admin === true && 
-             result.employee.is_active === true
+    if (result.success) {
+      // Verificar se há employees (array) ou employee (objeto único)
+      const employees = result.employees || (result.employee ? [result.employee] : [])
+      return employees.some(emp => 
+        emp.is_company_admin === true && 
+        emp.is_active === true
+      )
     }
     return false
   } catch (error) {
@@ -223,10 +231,12 @@ export async function isCompanyAdminAny(userId) {
 export async function getCompanyAdminCompanies(userId) {
   try {
     const result = await EmployeeService.getEmployeeByUserId(userId)
-    if (result.success && result.employee) {
-      if (result.employee.is_company_admin === true && result.employee.is_active === true) {
-        return [result.employee.company_id]
-      }
+    if (result.success) {
+      // Verificar se há employees (array) ou employee (objeto único)
+      const employees = result.employees || (result.employee ? [result.employee] : [])
+      return employees
+        .filter(emp => emp.is_company_admin === true && emp.is_active === true)
+        .map(emp => emp.company_id)
     }
     return []
   } catch (error) {
