@@ -8,15 +8,18 @@ import {
   Settings, 
   LogOut, 
   User,
-  BarChart3
+  BarChart3,
+  BookOpen
 } from 'lucide-react'
 import Button from '../ui/Button'
 import TourButton from '../tour/TourButton'
+import Documentation from '../documentation/Documentation'
 
 const Header = ({ onMenuToggle, isSidebarOpen }) => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [showDocumentation, setShowDocumentation] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
@@ -59,6 +62,15 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
         <button className="p-2 rounded-lg hover:bg-gray-100 relative">
           <Bell className="h-5 w-5 text-gray-600" />
           <span className="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+        </button>
+
+        {/* Documentation button */}
+        <button
+          onClick={() => setShowDocumentation(true)}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          title="Documentação"
+        >
+          <BookOpen className="h-5 w-5 text-gray-600" />
         </button>
 
         {/* Tour button */}
@@ -127,6 +139,11 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
           className="fixed inset-0 z-40 lg:hidden"
           onClick={() => setShowUserMenu(false)}
         />
+      )}
+
+      {/* Documentation Modal */}
+      {showDocumentation && (
+        <Documentation onClose={() => setShowDocumentation(false)} />
       )}
     </header>
   )
