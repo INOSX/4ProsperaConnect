@@ -110,6 +110,38 @@ const CompanyDashboard = () => {
     }
   }, [user, companyId, loadCompanyData])
 
+  // Hooks devem ser chamados antes de qualquer early return
+  const menuItems = useMemo(() => [
+    {
+      id: 'employees',
+      label: 'Gerenciar Colaboradores',
+      icon: Users,
+      url: `/people/employees?companyId=${companyId}`
+    },
+    {
+      id: 'benefits',
+      label: 'Gerenciar Benefícios',
+      icon: Package,
+      url: `/people/benefits?companyId=${companyId}`
+    },
+    {
+      id: 'products',
+      label: 'Produtos Financeiros',
+      icon: Briefcase,
+      url: `/people/products?companyId=${companyId}`
+    }
+  ], [companyId])
+
+  // Memoizar a URL do iframe para evitar recarregamentos desnecessários
+  const iframeUrl = useMemo(() => {
+    if (!activeTab) return null
+    const item = menuItems.find(item => item.id === activeTab)
+    return item ? `${window.location.origin}${item.url}` : null
+  }, [activeTab, menuItems])
+
+  const handleMenuClick = (item) => {
+    setActiveTab(item.id)
+  }
 
   if (loading) {
     return (
@@ -140,38 +172,6 @@ const CompanyDashboard = () => {
   const activeEmployees = employees.filter(e => e.is_active).length
   const activeBenefits = benefits.filter(b => b.is_active).length
   const productsContracted = company.products_contracted?.length || 0
-
-  const menuItems = useMemo(() => [
-    {
-      id: 'employees',
-      label: 'Gerenciar Colaboradores',
-      icon: Users,
-      url: `/people/employees?companyId=${companyId}`
-    },
-    {
-      id: 'benefits',
-      label: 'Gerenciar Benefícios',
-      icon: Package,
-      url: `/people/benefits?companyId=${companyId}`
-    },
-    {
-      id: 'products',
-      label: 'Produtos Financeiros',
-      icon: Briefcase,
-      url: `/people/products?companyId=${companyId}`
-    }
-  ], [companyId])
-
-  const handleMenuClick = (item) => {
-    setActiveTab(item.id)
-  }
-
-  // Memoizar a URL do iframe para evitar recarregamentos desnecessários
-  const iframeUrl = useMemo(() => {
-    if (!activeTab) return null
-    const item = menuItems.find(item => item.id === activeTab)
-    return item ? `${window.location.origin}${item.url}` : null
-  }, [activeTab, menuItems])
 
   return (
     <div className="flex flex-col">
