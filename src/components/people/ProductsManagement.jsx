@@ -8,7 +8,7 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { Briefcase, Users, TrendingUp, Search, Filter, Plus, Eye, DollarSign, Calendar, Package } from 'lucide-react'
 
-const ProductsManagement = () => {
+const ProductsManagement = ({ companyId: propCompanyId }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [company, setCompany] = useState(null)
@@ -25,7 +25,7 @@ const ProductsManagement = () => {
     if (user) {
       loadData()
     }
-  }, [user])
+  }, [user, propCompanyId])
 
   useEffect(() => {
     filterData()
@@ -40,22 +40,42 @@ const ProductsManagement = () => {
 
     setLoading(true)
     try {
-      console.log('Loading company data for user:', user.id)
-      const companyResult = await CompanyService.getUserCompanies(user.id)
-      console.log('Company result:', companyResult)
-      
-      if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
-        const userCompany = companyResult.companies[0]
-        setCompany(userCompany)
-        console.log('Company loaded:', userCompany)
+      // Se companyId foi passado como prop, usar diretamente
+      if (propCompanyId) {
+        console.log('Loading company data for companyId:', propCompanyId)
+        const companyResult = await CompanyService.getCompany(propCompanyId)
+        console.log('Company result:', companyResult)
+        
+        if (companyResult.success && companyResult.company) {
+          const targetCompany = companyResult.company
+          setCompany(targetCompany)
+          console.log('Company loaded:', targetCompany)
 
-        await Promise.all([
-          loadEmployees(userCompany.id),
-          loadEmployeeProducts(userCompany.id),
-          loadProducts()
-        ])
+          await Promise.all([
+            loadEmployees(targetCompany.id),
+            loadEmployeeProducts(targetCompany.id),
+            loadProducts()
+          ])
+        }
       } else {
-        console.warn('No companies found for user')
+        // Comportamento original - buscar empresas do usuário
+        console.log('Loading company data for user:', user.id)
+        const companyResult = await CompanyService.getUserCompanies(user.id)
+        console.log('Company result:', companyResult)
+        
+        if (companyResult.success && companyResult.companies && companyResult.companies.length > 0) {
+          const userCompany = companyResult.companies[0]
+          setCompany(userCompany)
+          console.log('Company loaded:', userCompany)
+
+          await Promise.all([
+            loadEmployees(userCompany.id),
+            loadEmployeeProducts(userCompany.id),
+            loadProducts()
+          ])
+        } else {
+          console.warn('No companies found for user')
+        }
       }
     } catch (error) {
       console.error('Error loading data:', error)
