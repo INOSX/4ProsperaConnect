@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
@@ -154,6 +154,13 @@ const CompanyDashboardSimplified = () => {
     setActiveTab(item.id)
   }
 
+  // Memoizar a URL do iframe para evitar recarregamentos desnecessários
+  const iframeUrl = useMemo(() => {
+    if (!activeTab) return null
+    const item = menuItems.find(item => item.id === activeTab)
+    return item ? `${window.location.origin}${item.url}` : null
+  }, [activeTab])
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header simplificado com Topbar */}
@@ -196,11 +203,11 @@ const CompanyDashboardSimplified = () => {
       </div>
 
       {/* Conteúdo - Dashboard ou Iframe */}
-      {activeTab ? (
+      {activeTab && iframeUrl ? (
         <div className="flex-1 overflow-hidden">
           <iframe
             key={activeTab}
-            src={`${window.location.origin}${menuItems.find(item => item.id === activeTab)?.url}`}
+            src={iframeUrl}
             className="w-full h-full border-0"
             title={menuItems.find(item => item.id === activeTab)?.label}
             style={{ display: 'block' }}
