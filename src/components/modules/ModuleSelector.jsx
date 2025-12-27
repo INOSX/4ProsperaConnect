@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
 import { useTour } from '../../contexts/TourContext'
 import Card from '../ui/Card'
-import { Users, Target, Mail, ArrowRight, HelpCircle, X } from 'lucide-react'
+import { Users, Target, Mail, ArrowRight, HelpCircle, X, Bot } from 'lucide-react'
 
 const ModuleSelector = () => {
   const navigate = useNavigate()
@@ -72,6 +72,21 @@ const ModuleSelector = () => {
         'Segmentação',
         'Acompanhar resultados'
       ]
+    },
+    {
+      id: modules.SPECIALIST.id,
+      name: modules.SPECIALIST.name,
+      description: modules.SPECIALIST.description,
+      icon: Bot,
+      color: 'bg-orange-500',
+      gradient: 'from-orange-500 to-orange-600',
+      route: modules.SPECIALIST.defaultRoute,
+      features: [
+        'Consultoria por voz',
+        'Ações inteligentes',
+        'Busca semântica',
+        'Visualizações automáticas'
+      ]
     }
   ]
 
@@ -117,13 +132,13 @@ const ModuleSelector = () => {
         </div>
 
         {/* Module Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8" data-tour-id="module-selector">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" data-tour-id="module-selector">
           {moduleCards.map((module) => {
             const Icon = module.icon
             return (
               <Card
                 key={module.id}
-                data-tour-id={module.id === 'people' ? 'module-people' : module.id === 'prospecting' ? 'module-prospecting' : 'module-marketing'}
+                data-tour-id={module.id === 'people' ? 'module-people' : module.id === 'prospecting' ? 'module-prospecting' : module.id === 'marketing' ? 'module-marketing' : 'module-specialist'}
                 className="relative overflow-hidden group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 onClick={() => handleSelectModule(module.id, module.route)}
                 hover
