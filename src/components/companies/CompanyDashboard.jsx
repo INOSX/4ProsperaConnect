@@ -18,6 +18,7 @@ const CompanyDashboard = () => {
   const [benefits, setBenefits] = useState([])
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState(null)
 
   const loadEmployees = useCallback(async (companyIdParam) => {
     try {
@@ -140,13 +141,74 @@ const CompanyDashboard = () => {
   const activeBenefits = benefits.filter(b => b.is_active).length
   const productsContracted = company.products_contracted?.length || 0
 
+  const menuItems = [
+    {
+      id: 'employees',
+      label: 'Gerenciar Colaboradores',
+      icon: Users,
+      url: `/people/employees?companyId=${companyId}`
+    },
+    {
+      id: 'benefits',
+      label: 'Gerenciar Benefícios',
+      icon: Package,
+      url: `/people/benefits?companyId=${companyId}`
+    },
+    {
+      id: 'products',
+      label: 'Produtos Financeiros',
+      icon: Briefcase,
+      url: `/people/products?companyId=${companyId}`
+    }
+  ]
+
+  const handleMenuClick = (item) => {
+    setActiveTab(item.id)
+  }
+
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Empresa</h1>
-        <p className="text-gray-600">Visão 360º da sua empresa</p>
+    <div className="flex flex-col">
+      {/* Header com Topbar */}
+      <div className="bg-white border-b border-gray-200 mb-6">
+        <div className="px-6 py-4">
+          <h1 className="text-2xl font-bold text-gray-900">{company.company_name}</h1>
+        </div>
+        {/* Topbar Menu */}
+        <div className="border-t border-gray-200 px-6">
+          <div className="flex items-center space-x-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon
+              const isActive = activeTab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleMenuClick(item)}
+                  className={`flex items-center space-x-2 px-4 py-3 border-b-2 transition-colors ${
+                    isActive
+                      ? 'border-primary-600 text-primary-600'
+                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="font-medium">{item.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
+
+      {/* Conteúdo - Dashboard ou Iframe */}
+      {activeTab ? (
+        <div className="flex-1 overflow-hidden" style={{ height: 'calc(100vh - 300px)' }}>
+          <iframe
+            src={menuItems.find(item => item.id === activeTab)?.url}
+            className="w-full h-full border-0"
+            title={menuItems.find(item => item.id === activeTab)?.label}
+          />
+        </div>
+      ) : (
+        <div className="space-y-6">
 
       {/* Informações da Empresa */}
       <Card>
@@ -263,38 +325,8 @@ const CompanyDashboard = () => {
         </Card>
       )}
 
-      {/* Ações Rápidas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/employees'}>
-          <div className="flex items-center space-x-4">
-            <Users className="h-8 w-8 text-primary-600" />
-            <div>
-              <p className="font-medium text-gray-900">Gerenciar Colaboradores</p>
-              <p className="text-sm text-gray-600">Adicionar e gerenciar sua equipe</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/benefits'}>
-          <div className="flex items-center space-x-4">
-            <Package className="h-8 w-8 text-primary-600" />
-            <div>
-              <p className="font-medium text-gray-900">Gerenciar Benefícios</p>
-              <p className="text-sm text-gray-600">Configurar benefícios para colaboradores</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6 hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = '/people/products'}>
-          <div className="flex items-center space-x-4">
-            <Briefcase className="h-8 w-8 text-primary-600" />
-            <div>
-              <p className="font-medium text-gray-900">Produtos Financeiros</p>
-              <p className="text-sm text-gray-600">Ver produtos dos colaboradores</p>
-            </div>
-          </div>
-        </Card>
-      </div>
+        </div>
+      )}
     </div>
   )
 }
