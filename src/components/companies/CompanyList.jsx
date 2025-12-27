@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
@@ -10,7 +9,6 @@ import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, C
 
 const CompanyList = () => {
   const { user } = useAuth()
-  const navigate = useNavigate()
   const [companies, setCompanies] = useState([])
   const [companiesWithStats, setCompaniesWithStats] = useState([])
   const [loading, setLoading] = useState(true)
@@ -97,10 +95,6 @@ const CompanyList = () => {
     } finally {
       setLoading(false)
     }
-  }
-
-  const handleSelectCompany = (companyId) => {
-    navigate(`/companies/${companyId}`)
   }
 
   const handleDeleteCompany = async (companyId, companyName) => {
@@ -264,7 +258,7 @@ const CompanyList = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleSelectCompany(company.id)
+                      window.open(`/companies/${company.id}/dashboard`, '_blank')
                     }}
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                   >
