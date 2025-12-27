@@ -9,6 +9,9 @@ const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const location = useLocation()
 
+  // Verificar se está dentro de um iframe
+  const isInIframe = window.self !== window.top
+
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
   }
@@ -19,6 +22,17 @@ const Layout = ({ children }) => {
 
   // Não mostrar ModuleTopMenu na página de seleção de módulos
   const showModuleMenu = location.pathname !== '/modules'
+
+  // Se estiver dentro de um iframe, renderizar apenas o conteúdo sem Layout
+  if (isInIframe) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <main className="p-6 max-w-7xl mx-auto w-full">
+          {children}
+        </main>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex">

@@ -206,11 +206,7 @@ const CompanyDashboard = () => {
             src={`${window.location.origin}${menuItems.find(item => item.id === activeTab)?.url}`}
             className="w-full h-full border-0"
             title={menuItems.find(item => item.id === activeTab)?.label}
-            sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-top-navigation"
-            onLoad={() => {
-              // Prevenir recarregamentos desnecessários
-              console.log('Iframe loaded:', activeTab)
-            }}
+            style={{ display: 'block' }}
           />
         </div>
       ) : (

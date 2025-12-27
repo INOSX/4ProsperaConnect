@@ -20,6 +20,14 @@ const FloatingSpecialist = () => {
   const { user } = useAuth()
   const { getSelectedFileName } = useDataset()
   const [isHidden, setIsHidden] = useState(false)
+  
+  // Verificar se está dentro de um iframe
+  const isInIframe = window.self !== window.top
+  
+  // Se estiver dentro de um iframe, não renderizar
+  if (isInIframe) {
+    return null
+  }
   const [isMinimized, setIsMinimized] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingStatus, setRecordingStatus] = useState('')
