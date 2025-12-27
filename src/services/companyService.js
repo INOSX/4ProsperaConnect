@@ -125,5 +125,28 @@ export class CompanyService {
       throw error
     }
   }
+
+  /**
+   * Deletar empresa (apenas admins)
+   * @param {string} companyId - ID da empresa
+   * @returns {Promise<Object>} Resultado da exclusão
+   */
+  static async deleteCompany(companyId) {
+    try {
+      const response = await fetch(`/api/companies?id=${companyId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error deleting company:', error)
+      throw error
+    }
+  }
 }
 

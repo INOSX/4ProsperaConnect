@@ -5,7 +5,7 @@ import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
 import { ClientService } from '../../services/clientService'
 import Card from '../ui/Card'
-import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, CheckCircle, Shield } from 'lucide-react'
+import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, CheckCircle, Shield, Plus, Edit, Trash2 } from 'lucide-react'
 
 const CompanyList = () => {
   const { user } = useAuth()
@@ -102,6 +102,31 @@ const CompanyList = () => {
     navigate(`/companies/${companyId}`)
   }
 
+  const handleDeleteCompany = async (companyId, companyName) => {
+    if (!isAdmin) {
+      alert('Você não tem permissão para deletar empresas.')
+      return
+    }
+
+    if (!window.confirm(`Tem certeza que deseja deletar a empresa "${companyName}"? Esta ação não pode ser desfeita.`)) {
+      return
+    }
+
+    try {
+      const result = await CompanyService.deleteCompany(companyId)
+      if (result.success) {
+        // Recarregar lista
+        loadCompanies()
+        alert('Empresa deletada com sucesso!')
+      } else {
+        throw new Error(result.error || 'Erro ao deletar empresa')
+      }
+    } catch (error) {
+      console.error('Error deleting company:', error)
+      alert(error.message || 'Erro ao deletar empresa. Tente novamente.')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -140,6 +165,15 @@ const CompanyList = () => {
             }
           </p>
         </div>
+        {isAdmin && (
+          <Button
+            variant="primary"
+            onClick={() => navigate('/companies/new')}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Empresa
+          </Button>
+        )}
       </div>
 
       {/* Busca */}
@@ -174,8 +208,7 @@ const CompanyList = () => {
           {filteredCompanies.map((company) => (
             <Card 
               key={company.id} 
-              className="hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => handleSelectCompany(company.id)}
+              className="hover:shadow-lg transition-shadow"
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -225,17 +258,43 @@ const CompanyList = () => {
                   </div>
                 </div>
 
-                {/* Botão de ação */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleSelectCompany(company.id)
-                  }}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  <span className="font-medium">Ver Dashboard</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {/* Botões de ação */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleSelectCompany(company.id)
+                    }}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  >
+                    <span className="font-medium">Ver Dashboard</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                  {isAdmin && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          navigate(`/companies/${company.id}/edit`)
+                        }}
+                        className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                        title="Editar empresa"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDeleteCompany(company.id, company.company_name)
+                        }}
+                        className="px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                        title="Deletar empresa"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </Card>
           ))}
