@@ -4,7 +4,7 @@
 export default class ProductActionAgent {
   async list(params, user, context) {
     try {
-      const { ProductService } = await import('../../services/productService')
+      const { ProductService } = await import('../../../services/productService')
       const result = await ProductService.getProducts(params.filters || {})
       return {
         success: result.success,

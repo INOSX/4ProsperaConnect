@@ -1,7 +1,7 @@
 /**
  * ProspectingActionAgent - Ações relacionadas a prospecção
  */
-import { ProspectingService } from '../../services/prospectingService'
+import { ProspectingService } from '../../../services/prospectingService'
 
 export default class ProspectingActionAgent {
   async list(params, user, context) {

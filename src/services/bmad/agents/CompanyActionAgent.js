@@ -1,7 +1,7 @@
 /**
  * CompanyActionAgent - Ações relacionadas a empresas
  */
-import { CompanyService } from '../../services/companyService'
+import { CompanyService } from '../../../services/companyService'
 
 export default class CompanyActionAgent {
   async create(params, user, context) {
@@ -95,7 +95,7 @@ export default class CompanyActionAgent {
       }
 
       // Buscar estatísticas relacionadas
-      const { EmployeeService } = await import('../../services/employeeService')
+      const { EmployeeService } = await import('../../../services/employeeService')
       const employeesResult = await EmployeeService.getCompanyEmployees(companyId)
       
       return {

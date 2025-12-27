@@ -1,7 +1,7 @@
 /**
  * CampaignActionAgent - Ações relacionadas a campanhas
  */
-import { CampaignService } from '../../services/campaignService'
+import { CampaignService } from '../../../services/campaignService'
 
 export default class CampaignActionAgent {
   async create(params, user, context) {

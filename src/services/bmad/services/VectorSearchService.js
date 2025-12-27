@@ -1,7 +1,7 @@
 /**
  * VectorSearchService - Serviço de busca vetorial semântica
  */
-import { supabase } from '../../services/supabase'
+import { supabase } from '../../../services/supabase'
 import EmbeddingGenerator from '../utils/embeddingGenerator.js'
 
 export default class VectorSearchService {

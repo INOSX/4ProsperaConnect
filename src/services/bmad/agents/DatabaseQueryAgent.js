@@ -1,7 +1,7 @@
 /**
  * DatabaseQueryAgent - Consultas ao banco de dados com busca SQL e vetorial
  */
-import { supabase } from '../../services/supabase'
+import { supabase } from '../../../services/supabase'
 import VectorSearchService from '../services/VectorSearchService.js'
 
 export default class DatabaseQueryAgent {
