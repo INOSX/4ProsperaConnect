@@ -144,7 +144,7 @@ const RegisterForm = () => {
           {/* Logo/Nome da Aplicação */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-blue-600 bg-clip-text text-transparent mb-2" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', letterSpacing: '-0.02em' }}>
-              4Prospera Connect
+              4Prospera
             </h1>
             <p className="text-sm text-gray-500 font-medium">Dashboard Inteligente</p>
           </div>

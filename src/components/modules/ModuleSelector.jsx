@@ -109,7 +109,7 @@ const ModuleSelector = () => {
         {/* Header */}
         <div className="text-center mb-12" data-tour-id="page-header">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Bem-vindo ao 4Prospera Connect
+            Bem-vindo ao 4Prospera
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Escolha o módulo de trabalho desejado para começar

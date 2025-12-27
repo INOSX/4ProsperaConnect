@@ -202,7 +202,7 @@ const DataConnections = () => {
                 Supabase - Banco principal da plataforma
               </h2>
               <p className="text-sm text-gray-600">
-                Esta é a conexão oficial usada pelo 4Prospera Connect para armazenar usuários, clientes,
+                Esta é a conexão oficial usada pelo 4Prospera para armazenar usuários, clientes,
                 dados financeiros e datasets.
               </p>
               <p className="mt-1 text-xs text-gray-500">

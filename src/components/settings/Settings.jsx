@@ -303,7 +303,7 @@ const Settings = ({ initialTab }) => {
                     type="text"
                     value={smtpSettings.fromName}
                     onChange={(e) => setSmtpSettings({ ...smtpSettings, fromName: e.target.value })}
-                    placeholder="4Prospera Connect"
+                    placeholder="4Prospera"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     required
                   />
