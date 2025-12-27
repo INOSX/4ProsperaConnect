@@ -71,33 +71,38 @@ const TourProvider = ({ children }) => {
       useEffect(() => {
         const loadStepsForRoute = () => {
           const configKey = getTourConfigForRoute(location.pathname, location.search)
+          
+          console.log(`🔍 [TourProvider] Loading steps for route: ${location.pathname}, configKey: ${configKey}`)
       
-      if (configKey && tourStepsMap[configKey]) {
-        const routeSteps = tourStepsMap[configKey]
-        // Definir os steps imediatamente - não filtrar automaticamente
-        // O react-joyride já lida com elementos não encontrados através do callback
-        setSteps(routeSteps)
-        setStepIndex(0)
-        setRun(false) // Parar o tour para que possa ser reiniciado manualmente
-        
-        // Log para debug: verificar quais elementos existem
-        setTimeout(() => {
-          routeSteps.forEach((step, index) => {
-            const element = document.querySelector(step.target)
-            if (element) {
-              console.log(`✅ [TourProvider] Step ${index} target found: ${step.target}`)
-            } else {
-              console.warn(`⚠️ [TourProvider] Step ${index} target not found: ${step.target}`)
-            }
-          })
-        }, 1000)
-      } else {
-        setSteps([])
-      }
-    }
+          if (configKey && tourStepsMap[configKey]) {
+            const routeSteps = tourStepsMap[configKey]
+            // Definir os steps imediatamente - não filtrar automaticamente
+            // O react-joyride já lida com elementos não encontrados através do callback
+            setSteps(routeSteps)
+            setStepIndex(0)
+            setRun(false) // Parar o tour para que possa ser reiniciado manualmente
+            
+            console.log(`📦 [TourProvider] Loaded ${routeSteps.length} steps for ${configKey}`)
+            
+            // Log para debug: verificar quais elementos existem
+            setTimeout(() => {
+              routeSteps.forEach((step, index) => {
+                const element = document.querySelector(step.target)
+                if (element) {
+                  console.log(`✅ [TourProvider] Step ${index} target found: ${step.target}`)
+                } else {
+                  console.warn(`⚠️ [TourProvider] Step ${index} target not found: ${step.target}`)
+                }
+              })
+            }, 1000)
+          } else {
+            console.log(`⚠️ [TourProvider] No tour config found for route: ${location.pathname}`)
+            setSteps([])
+          }
+        }
 
-    loadStepsForRoute()
-  }, [location.pathname, setSteps])
+        loadStepsForRoute()
+      }, [location.pathname, location.search, setSteps])
 
   // Verificar se elementos existem - apenas para logging/debug, não interferir na navegação
   useEffect(() => {
