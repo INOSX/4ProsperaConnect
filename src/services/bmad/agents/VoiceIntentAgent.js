@@ -155,21 +155,24 @@ export default class VoiceIntentAgent {
     const cnpjMatch = text.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/)
     if (cnpjMatch) {
       params.cnpj = cnpjMatch[0].replace(/\D/g, '')
-      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted CNPJ:', params.cnpj)
+      extractedCount++
+      console.log('[BMAD:VoiceIntentAgent]   ✅ CNPJ extraído:', params.cnpj)
     }
 
     // Extrair CPF
     const cpfMatch = text.match(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/)
     if (cpfMatch) {
       params.cpf = cpfMatch[0].replace(/\D/g, '')
-      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted CPF:', params.cpf)
+      extractedCount++
+      console.log('[BMAD:VoiceIntentAgent]   ✅ CPF extraído:', params.cpf)
     }
 
     // Extrair ID
     const idMatch = text.match(/(?:id|identificador)\s*:?\s*(\w+)/i)
     if (idMatch) {
       params.id = idMatch[1]
-      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted ID:', params.id)
+      extractedCount++
+      console.log('[BMAD:VoiceIntentAgent]   ✅ ID extraído:', params.id)
     }
 
     // Extrair nome (após palavras-chave)
@@ -178,7 +181,8 @@ export default class VoiceIntentAgent {
       const nameMatch = lowerText.match(new RegExp(`${keyword}\\s+(.+?)(?:\\s|$)`, 'i'))
       if (nameMatch) {
         params.name = nameMatch[1].trim()
-        console.log('[BMAD:VoiceIntentAgent] 📋 Extracted name:', params.name)
+        extractedCount++
+        console.log('[BMAD:VoiceIntentAgent]   ✅ Nome extraído:', params.name)
         break
       }
     }
@@ -187,10 +191,17 @@ export default class VoiceIntentAgent {
     const emailMatch = text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/)
     if (emailMatch) {
       params.email = emailMatch[0]
-      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted email:', params.email)
+      extractedCount++
+      console.log('[BMAD:VoiceIntentAgent]   ✅ Email extraído:', params.email)
     }
 
-    console.log('[BMAD:VoiceIntentAgent] ✅ Params extracted:', Object.keys(params).length > 0 ? params : 'none')
+    console.log('[BMAD:VoiceIntentAgent] ✅ ========== EXTRAÇÃO DE PARÂMETROS CONCLUÍDA ==========')
+    console.log('[BMAD:VoiceIntentAgent] 📊 Resumo:', {
+      totalExtracted: extractedCount,
+      params: params,
+      hasParams: Object.keys(params).length > 0
+    })
+    console.log('[BMAD:VoiceIntentAgent] 📤 Parâmetros extraídos:', JSON.stringify(params, null, 2))
     return params
   }
 }
