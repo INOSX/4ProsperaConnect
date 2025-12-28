@@ -475,8 +475,8 @@ flowchart TD
     CalculateScore --> SupabaseUpdateScore[UPDATE prospects<br/>SET score]
     SupabaseUpdateScore --> ReturnQualified[📤 Retorna:<br/>prospect qualificado]
     
-    Start --> CalculateScore[calculateScore<br/>Calcular Score]
-    CalculateScore --> ReturnScore[📤 Retorna:<br/>score calculado]
+    Start --> CalculateScoreMethod[calculateScore<br/>Calcular Score]
+    CalculateScoreMethod --> ReturnScore[📤 Retorna:<br/>score calculado]
     
     Start --> RecommendProducts[recommendProducts<br/>Recomendar Produtos]
     RecommendProducts --> AnalyzeProspect[Analisar prospect<br/>e histórico]
@@ -768,6 +768,6 @@ flowchart TD
 
 ---
 
-**Última atualização:** 2024  
+**Última atualização:** Janeiro 2025  
 **Versão do Sistema:** BMAD v1.0
 
