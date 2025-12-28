@@ -29,6 +29,12 @@ export default class FeedbackAgent {
         } else {
           text = actionResult.summary || `Encontrei ${actionResult.results.length} resultado${actionResult.results.length !== 1 ? 's' : ''}.`
         }
+      } else if (actionResult.isAggregate && actionResult.summary) {
+        // Consultas agregadas (média, etc)
+        text = actionResult.summary
+      } else if (actionResult.isTimeSeries && actionResult.summary) {
+        // Consultas temporais (gráficos)
+        text = actionResult.summary
       } else {
         const count = actionResult.results?.length || 0
         text = `Encontrei ${count} resultado${count !== 1 ? 's' : ''}.`

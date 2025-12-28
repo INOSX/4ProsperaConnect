@@ -17,12 +17,14 @@ export default class VectorSearchService {
       // Buscar similaridade usando pgvector (se tabela existir)
       try {
         // Usar função SQL semantic_search se existir
-        const { data, error } = await supabase.rpc('semantic_search', {
+        const rpcResult = await supabase.rpc('semantic_search', {
           query_embedding: queryEmbedding,
           table_filter: tableName,
           similarity_threshold: 0.7,
           result_limit: limit
-        }).catch(() => ({ data: null, error: null }))
+        })
+
+        const { data, error } = rpcResult
 
         if (!error && data && data.length > 0) {
           return {
@@ -51,42 +53,47 @@ export default class VectorSearchService {
 
   async fallbackVectorSearch(queryEmbedding, tableName, limit) {
     // Buscar embeddings e calcular similaridade manualmente
-    let query = supabase
-      .from('data_embeddings')
-      .select('*')
-      .not('embedding', 'is', null)
-      .limit(100) // Buscar mais para calcular similaridade
+    try {
+      let query = supabase
+        .from('data_embeddings')
+        .select('*')
+        .not('embedding', 'is', null)
+        .limit(100) // Buscar mais para calcular similaridade
 
-    if (tableName) {
-      query = query.eq('table_name', tableName)
-    }
+      if (tableName) {
+        query = query.eq('table_name', tableName)
+      }
 
-    const { data, error } = await query.catch(() => ({ data: [], error: null }))
+      const { data, error } = await query
 
-    if (error || !data || data.length === 0) {
+      if (error || !data || data.length === 0) {
+        return await this.fallbackSearch('', tableName, limit)
+      }
+
+      // Calcular similaridade para cada resultado
+      const { cosineSimilarity } = await import('../utils/vectorSearch.js')
+      const resultsWithSimilarity = data
+        .map(item => ({
+          ...item,
+          similarity: item.embedding ? cosineSimilarity(queryEmbedding, item.embedding) : 0
+        }))
+        .filter(item => item.similarity >= 0.7)
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, limit)
+
+      return {
+        results: resultsWithSimilarity.map(item => ({
+          record_id: item.record_id,
+          table_name: item.table_name,
+          chunk_text: item.chunk_text,
+          metadata: item.metadata,
+          similarity: item.similarity
+        })),
+        summary: `Encontrados ${resultsWithSimilarity.length} resultados semânticos`
+      }
+    } catch (error) {
+      console.error('Error in fallbackVectorSearch:', error)
       return await this.fallbackSearch('', tableName, limit)
-    }
-
-    // Calcular similaridade para cada resultado
-    const { cosineSimilarity } = await import('../utils/vectorSearch.js')
-    const resultsWithSimilarity = data
-      .map(item => ({
-        ...item,
-        similarity: item.embedding ? cosineSimilarity(queryEmbedding, item.embedding) : 0
-      }))
-      .filter(item => item.similarity >= 0.7)
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit)
-
-    return {
-      results: resultsWithSimilarity.map(item => ({
-        record_id: item.record_id,
-        table_name: item.table_name,
-        chunk_text: item.chunk_text,
-        metadata: item.metadata,
-        similarity: item.similarity
-      })),
-      summary: `Encontrados ${resultsWithSimilarity.length} resultados semânticos`
     }
   }
 
@@ -97,13 +104,12 @@ export default class VectorSearchService {
 
     for (const table of tables) {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from(table)
           .select('*')
           .limit(limit)
-          .catch(() => ({ data: [] }))
         
-        if (data) {
+        if (!error && data) {
           results.push(...data.map(item => ({
             record_id: item.id,
             table_name: table,

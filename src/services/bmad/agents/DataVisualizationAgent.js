@@ -27,6 +27,43 @@ export default class DataVisualizationAgent {
       }
     }
 
+    // Para consultas agregadas (média, etc)
+    if (actionResult.isAggregate && actionResult.results && actionResult.results.length > 0) {
+      const aggregateResult = actionResult.results[0]
+      if (aggregateResult.value !== undefined || aggregateResult.average !== undefined) {
+        const value = aggregateResult.value || aggregateResult.average
+        visualizations.push({
+          type: 'card',
+          data: [{
+            label: aggregateResult.metric ? this.formatLabel(aggregateResult.metric) : 'Média',
+            value: typeof value === 'number' ? value.toFixed(2) : value
+          }],
+          config: {
+            title: actionResult.summary || 'Agregação'
+          }
+        })
+        return visualizations
+      }
+    }
+
+    // Para consultas temporais (gráficos)
+    if (actionResult.isTimeSeries && actionResult.results && actionResult.results.length > 0) {
+      const chartData = this.prepareChartData(actionResult.results)
+      const config = actionResult.chartConfig || {
+        chartType: actionResult.chartType || 'line',
+        title: actionResult.summary || 'Gráfico Temporal',
+        xColumn: 'period',
+        yColumn: 'count'
+      }
+      
+      visualizations.push({
+        type: 'chart',
+        data: chartData,
+        config: config
+      })
+      return visualizations
+    }
+
     // Usar results ou data (compatibilidade)
     const data = actionResult.results || actionResult.data
     
