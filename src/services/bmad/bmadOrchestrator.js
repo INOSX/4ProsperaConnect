@@ -99,9 +99,10 @@ export class BMADOrchestrator {
       let actionResult = null
       const { intent, params } = intentResult
 
-      if (intent === 'query_database' || intent === 'search_data') {
-        // Busca no banco de dados
-        actionResult = await this.databaseQuery.query(text, user, contextResult, params)
+      if (intent === 'query_database' || intent === 'search_data' || intent === 'get_all_data' || intent === 'know_all_data') {
+        // Busca no banco de dados usando busca semântica
+        // Permite que o especialista "conheça" todos os registros
+        actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
         const queryValidation = await this.supervisor.validateQueryResult(actionResult)
         if (!queryValidation.approved) {
           return {
@@ -109,6 +110,13 @@ export class BMADOrchestrator {
             error: 'Erro ao executar consulta',
             corrections: queryValidation.corrections
           }
+        }
+      } else if (intent.startsWith('query_') || intent.startsWith('search_')) {
+        // Consultas genéricas também usam busca semântica
+        actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
+        const queryValidation = await this.supervisor.validateQueryResult(actionResult)
+        if (!queryValidation.approved) {
+          console.warn('Query validation failed, continuing with results')
         }
       } else {
         // Ações específicas por domínio
