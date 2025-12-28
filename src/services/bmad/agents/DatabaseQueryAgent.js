@@ -340,38 +340,77 @@ export default class DatabaseQueryAgent {
         
         // PRIORIDADE 1: Se a IA gerou uma SQL query completa, executá-la diretamente
         if (queryPlan.sqlQuery && queryPlan.sqlQuery.trim()) {
-          console.log('[BMAD:DatabaseQueryAgent] ✅ Query SQL gerada pela IA encontrada:')
-          console.log('[BMAD:DatabaseQueryAgent] 📝', queryPlan.sqlQuery)
+          console.log('[BMAD:DatabaseQueryAgent] ✅ ========== QUERY SQL GERADA PELA IA ENCONTRADA ==========')
+          console.log('[BMAD:DatabaseQueryAgent] 📝 Query SQL completa:', queryPlan.sqlQuery)
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Tipo de query:', queryPlan.queryType)
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Estratégia:', strategy)
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Tabelas:', queryPlan.tables)
           console.log('[BMAD:DatabaseQueryAgent] 🚀 Executando SQL query diretamente via RPC...')
           
           try {
+            const sqlQueryToExecute = queryPlan.sqlQuery.trim()
+            console.log('[BMAD:DatabaseQueryAgent] 📤 Preparando chamada RPC...')
+            console.log('[BMAD:DatabaseQueryAgent] 📤 Query a ser executada (primeiros 200 chars):', sqlQueryToExecute.substring(0, 200))
+            console.log('[BMAD:DatabaseQueryAgent] 📤 Tamanho da query:', sqlQueryToExecute.length, 'caracteres')
+            
+            const rpcStartTime = Date.now()
             const { data, error } = await supabase.rpc('execute_dynamic_sql', {
-              sql_query: queryPlan.sqlQuery
+              sql_query: sqlQueryToExecute
             })
+            const rpcDuration = Date.now() - rpcStartTime
+            
+            console.log('[BMAD:DatabaseQueryAgent] 📥 Resposta RPC recebida em', rpcDuration + 'ms')
+            console.log('[BMAD:DatabaseQueryAgent] 📥 Status:', error ? 'ERRO' : 'SUCESSO')
             
             if (error) {
-              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro ao executar SQL via RPC:', error)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO NA RESPOSTA RPC ==========')
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro completo:', JSON.stringify(error, null, 2))
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Código:', error.code)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Mensagem:', error.message)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Detalhes:', error.details)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Hint:', error.hint)
               throw error
             }
             
+            console.log('[BMAD:DatabaseQueryAgent] 📦 Dados recebidos:', {
+              hasData: !!data,
+              dataType: typeof data,
+              isArray: Array.isArray(data),
+              isObject: typeof data === 'object' && data !== null,
+              hasError: data && typeof data === 'object' && data.error,
+              dataKeys: data && typeof data === 'object' ? Object.keys(data) : null
+            })
+            
             // Verificar se há erro na resposta JSON
             if (data && typeof data === 'object' && data.error) {
-              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro na execução SQL:', data.message)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO NA EXECUÇÃO SQL (JSON) ==========')
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', data.message)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Código:', data.code)
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Detalhes:', data.detail)
               throw new Error(data.message || 'Erro ao executar query SQL')
             }
             
-            const results = Array.isArray(data) ? data : []
-            console.log('[BMAD:DatabaseQueryAgent] ✅ SQL executada com sucesso:', {
-              resultsCount: results.length,
-              firstResult: results[0] || null
-            })
+            const results = Array.isArray(data) ? data : (data ? [data] : [])
+            console.log('[BMAD:DatabaseQueryAgent] ✅ ========== SQL EXECUTADA COM SUCESSO ==========')
+            console.log('[BMAD:DatabaseQueryAgent] ✅ Resultados encontrados:', results.length)
+            console.log('[BMAD:DatabaseQueryAgent] ✅ Primeiro resultado:', results[0] || null)
+            console.log('[BMAD:DatabaseQueryAgent] ✅ Todos os resultados:', JSON.stringify(results, null, 2))
             
             // Formatar resultado baseado no tipo de query
             const isAggregate = queryPlan.queryType === 'aggregate' || queryPlan.aggregationType
             const isGrouped = !!queryPlan.groupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')
             const isCount = queryPlan.queryType === 'count' || queryPlan.sqlQuery.toLowerCase().includes('count(')
             
-            return {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Classificação do resultado:', {
+              isAggregate,
+              isGrouped,
+              isCount,
+              queryType: queryPlan.queryType,
+              aggregationType: queryPlan.aggregationType,
+              groupBy: queryPlan.groupBy
+            })
+            
+            const formattedResult = {
               success: true,
               results: results,
               summary: queryPlan.description || `Encontrados ${results.length} resultados.`,
@@ -387,10 +426,24 @@ export default class DatabaseQueryAgent {
                 title: queryPlan.description || 'Resultados da consulta'
               } : undefined
             }
+            
+            console.log('[BMAD:DatabaseQueryAgent] 📋 Resultado formatado:', JSON.stringify(formattedResult, null, 2))
+            return formattedResult
           } catch (rpcError) {
             console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR SQL VIA RPC ==========')
-            console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', rpcError)
+            console.error('[BMAD:DatabaseQueryAgent] ❌ Tipo do erro:', typeof rpcError)
+            console.error('[BMAD:DatabaseQueryAgent] ❌ Erro completo:', rpcError)
+            console.error('[BMAD:DatabaseQueryAgent] ❌ Mensagem:', rpcError.message)
             console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', rpcError.stack)
+            if (rpcError.code) {
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Código do erro:', rpcError.code)
+            }
+            if (rpcError.details) {
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Detalhes:', rpcError.details)
+            }
+            if (rpcError.hint) {
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Hint:', rpcError.hint)
+            }
             console.log('[BMAD:DatabaseQueryAgent] 🔄 Tentando fallback para métodos dinâmicos...')
             
             // Fallback: tentar métodos dinâmicos se RPC falhar
