@@ -69,6 +69,19 @@ export default class DataVisualizationAgent {
 
     // Para consultas agregadas (média, etc)
     if (actionResult.isAggregate && actionResult.results && actionResult.results.length > 0) {
+      // Se for agrupamento (ex: por setor), criar gráfico
+      if (actionResult.isGrouped && actionResult.chartConfig) {
+        console.log('[BMAD:DataVisualizationAgent] 📊 Creating grouped aggregate chart visualization')
+        visualizations.push({
+          type: 'chart',
+          data: actionResult.results,
+          config: actionResult.chartConfig
+        })
+        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        return visualizations
+      }
+      
+      // Para agregações simples (média, etc), criar card
       const aggregateResult = actionResult.results[0]
       if (aggregateResult.value !== undefined || aggregateResult.average !== undefined) {
         const value = aggregateResult.value || aggregateResult.average

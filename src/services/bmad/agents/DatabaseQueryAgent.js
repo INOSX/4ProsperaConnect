@@ -242,6 +242,85 @@ export default class DatabaseQueryAgent {
         }
       }
       
+      // Detectar análise de portfólio por setor
+      if (lowerText.includes('setor') || lowerText.includes('portfólio') || lowerText.includes('portfolio') || 
+          (lowerText.includes('empresa') && (lowerText.includes('cada') || lowerText.includes('por')))) {
+        console.log('[DatabaseQueryAgent] Detected portfolio/sector analysis query')
+        
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+        }
+        
+        const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        const companies = companiesResult.companies || []
+        
+        if (companies.length === 0) {
+          return {
+            success: true,
+            results: [],
+            summary: 'Nenhuma empresa encontrada para análise de portfólio',
+            isAggregate: true
+          }
+        }
+        
+        // Agrupar empresas por setor (industry)
+        const bySector = {}
+        let companiesWithoutSector = 0
+        
+        companies.forEach(company => {
+          const sector = company.industry || company.sector || 'Não especificado'
+          if (!bySector[sector]) {
+            bySector[sector] = 0
+          }
+          bySector[sector]++
+          if (sector === 'Não especificado') {
+            companiesWithoutSector++
+          }
+        })
+        
+        // Converter para array e ordenar por quantidade (maior primeiro)
+        const sectorData = Object.entries(bySector)
+          .map(([sector, count]) => ({
+            setor: sector,
+            quantidade: count,
+            percentual: ((count / companies.length) * 100).toFixed(1)
+          }))
+          .sort((a, b) => b.quantidade - a.quantidade)
+        
+        // Criar resumo
+        const topSector = sectorData[0]
+        const summary = `Análise do portfólio: Total de ${companies.length} empresas em ${sectorData.length} setores. ` +
+          `Setor mais representado: ${topSector.setor} com ${topSector.quantidade} empresa${topSector.quantidade !== 1 ? 's' : ''} (${topSector.percentual}%).`
+        
+        console.log('[DatabaseQueryAgent] Portfolio analysis result:', { 
+          totalCompanies: companies.length, 
+          sectors: sectorData.length,
+          topSector: topSector.setor
+        })
+        
+        return {
+          success: true,
+          results: sectorData,
+          summary: summary,
+          isAggregate: true,
+          isGrouped: true,
+          chartConfig: {
+            chartType: 'bar',
+            xColumn: 'setor',
+            yColumn: 'quantidade',
+            title: 'Distribuição de Empresas por Setor'
+          }
+        }
+      }
+      
       // Fallback para outras consultas agregadas
       return {
         success: true,
