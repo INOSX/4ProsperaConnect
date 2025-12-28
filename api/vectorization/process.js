@@ -94,6 +94,61 @@ async function generateBatch(texts) {
   return allEmbeddings
 }
 
+// Função para verificar se a dimensão da tabela está correta
+async function checkEmbeddingDimension(supabase) {
+  try {
+    // Tentar inserir um embedding de teste com 3072 dimensões
+    const testEmbedding = new Array(3072).fill(0.001) // Embedding de teste
+    const testRecord = {
+      table_name: '__dimension_test__',
+      record_id: '00000000-0000-0000-0000-000000000000', // UUID de teste
+      chunk_text: 'dimension test',
+      embedding: testEmbedding,
+      metadata: { test: true }
+    }
+
+    const { error: testError } = await supabase
+      .from('data_embeddings')
+      .upsert(testRecord, { onConflict: 'table_name,record_id' })
+      .select()
+
+    // Limpar o registro de teste
+    await supabase
+      .from('data_embeddings')
+      .delete()
+      .eq('table_name', '__dimension_test__')
+      .eq('record_id', '00000000-0000-0000-0000-000000000000')
+
+    if (testError) {
+      // Verificar se é erro de dimensão
+      if (testError.message && testError.message.includes('expected') && testError.message.includes('dimensions')) {
+        const dimensionMatch = testError.message.match(/expected (\d+) dimensions/i)
+        const providedMatch = testError.message.match(/not (\d+)/i)
+        const expectedDim = dimensionMatch ? dimensionMatch[1] : 'unknown'
+        const providedDim = providedMatch ? providedMatch[1] : 'unknown'
+        
+        return {
+          valid: false,
+          expectedDimensions: expectedDim,
+          providedDimensions: providedDim,
+          error: testError.message,
+          message: `The data_embeddings table expects ${expectedDim} dimensions but we're providing ${providedDim}. Please run migrate_embedding_dimensions.sql in Supabase SQL Editor to fix this.`
+        }
+      }
+      // Outro erro, mas não é de dimensão - pode ser permissão ou outro problema
+      console.warn('[checkEmbeddingDimension] Test upsert failed with non-dimension error:', testError.message)
+      return { valid: true, warning: testError.message } // Assumir que está OK se não for erro de dimensão
+    }
+
+    return { valid: true }
+  } catch (error) {
+    console.warn('[checkEmbeddingDimension] Error checking dimension:', error.message)
+    // Se houver erro na verificação, assumir que está OK e continuar
+    // O erro real aparecerá durante o processamento
+    return { valid: true, warning: error.message }
+  }
+}
+
 export default async function handler(req, res) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -135,6 +190,19 @@ export default async function handler(req, res) {
       case 'processPending': {
         // Processa registros que foram criados pelos triggers mas ainda não têm embedding
         const { batchSize = 50 } = params
+
+        // Verificar dimensão antes de processar
+        const dimensionCheck = await checkEmbeddingDimension(supabase)
+        if (!dimensionCheck.valid) {
+          return res.status(400).json({
+            success: false,
+            error: 'DIMENSION_MISMATCH',
+            message: dimensionCheck.message,
+            expectedDimensions: dimensionCheck.expectedDimensions,
+            providedDimensions: dimensionCheck.providedDimensions,
+            hint: 'Please run migrate_embedding_dimensions.sql in Supabase SQL Editor to fix this issue.'
+          })
+        }
 
         console.log('Processing pending embeddings...')
 
@@ -196,6 +264,19 @@ export default async function handler(req, res) {
 
         if (!tableName) {
           return res.status(400).json({ error: 'tableName is required' })
+        }
+
+        // Verificar dimensão antes de processar
+        const dimensionCheck = await checkEmbeddingDimension(supabase)
+        if (!dimensionCheck.valid) {
+          return res.status(400).json({
+            success: false,
+            error: 'DIMENSION_MISMATCH',
+            message: dimensionCheck.message,
+            expectedDimensions: dimensionCheck.expectedDimensions,
+            providedDimensions: dimensionCheck.providedDimensions,
+            hint: 'Please run migrate_embedding_dimensions.sql in Supabase SQL Editor to fix this issue.'
+          })
         }
 
         console.log(`Vectorizing table: ${tableName}`)
@@ -322,6 +403,30 @@ export default async function handler(req, res) {
               .select()
 
             if (upsertError) {
+              // Detectar erro de dimensão incorreta
+              if (upsertError.message && upsertError.message.includes('expected') && upsertError.message.includes('dimensions')) {
+                const dimensionMatch = upsertError.message.match(/expected (\d+) dimensions/i)
+                const providedMatch = upsertError.message.match(/not (\d+)/i)
+                const expectedDim = dimensionMatch ? dimensionMatch[1] : 'unknown'
+                const providedDim = providedMatch ? providedMatch[1] : 'unknown'
+                
+                console.error(`[vectorizeTable] ❌ DIMENSION MISMATCH ERROR for ${tableName}:${record.id}:`, {
+                  error: upsertError.message,
+                  expectedDimensions: expectedDim,
+                  providedDimensions: providedDim,
+                  embeddingLength: embedding.length,
+                  hint: 'The data_embeddings table embedding column has the wrong dimension. Execute migrate_embedding_dimensions.sql to fix this.'
+                })
+                
+                upsertErrors.push({ 
+                  recordId: record.id, 
+                  error: `Dimension mismatch: table expects ${expectedDim} dimensions but got ${providedDim}. Please run migrate_embedding_dimensions.sql in Supabase SQL Editor.`,
+                  code: 'DIMENSION_MISMATCH',
+                  details: upsertError.details
+                })
+                continue // Skip this record and continue with others
+              }
+              
               throw upsertError
             }
 
@@ -382,6 +487,19 @@ export default async function handler(req, res) {
       }
 
       case 'vectorizeAll': {
+        // Verificar dimensão antes de processar
+        const dimensionCheck = await checkEmbeddingDimension(supabase)
+        if (!dimensionCheck.valid) {
+          return res.status(400).json({
+            success: false,
+            error: 'DIMENSION_MISMATCH',
+            message: dimensionCheck.message,
+            expectedDimensions: dimensionCheck.expectedDimensions,
+            providedDimensions: dimensionCheck.providedDimensions,
+            hint: 'Please run migrate_embedding_dimensions.sql in Supabase SQL Editor to fix this issue.'
+          })
+        }
+
         // Vetoriza todas as tabelas configuradas
         const tables = ['companies', 'employees', 'prospects', 'cpf_clients', 'unbanked_companies']
         const results = []
@@ -588,15 +706,53 @@ export default async function handler(req, res) {
                   .select()
 
                 if (upsertError) {
+                  // Detectar erro de dimensão incorreta
+                  if (upsertError.message && upsertError.message.includes('expected') && upsertError.message.includes('dimensions')) {
+                    const dimensionMatch = upsertError.message.match(/expected (\d+) dimensions/i)
+                    const providedMatch = upsertError.message.match(/not (\d+)/i)
+                    const expectedDim = dimensionMatch ? dimensionMatch[1] : 'unknown'
+                    const providedDim = providedMatch ? providedMatch[1] : 'unknown'
+                    
+                    console.error(`[vectorizeAll] ❌ DIMENSION MISMATCH ERROR for ${tableName}:${record.id}:`, {
+                      error: upsertError.message,
+                      expectedDimensions: expectedDim,
+                      providedDimensions: providedDim,
+                      embeddingLength: embedding.length,
+                      hint: 'The data_embeddings table embedding column has the wrong dimension. Execute migrate_embedding_dimensions.sql to fix this.'
+                    })
+                    
+                    tableErrors.push({ 
+                      recordId: record.id, 
+                      error: `Dimension mismatch: table expects ${expectedDim} dimensions but got ${providedDim}. Please run migrate_embedding_dimensions.sql in Supabase SQL Editor.`,
+                      code: 'DIMENSION_MISMATCH',
+                      details: upsertError.details
+                    })
+                    continue // Skip this record and continue with others
+                  }
+                  
                   console.error(`[vectorizeAll] ❌ Supabase upsert error for ${tableName}:${record.id}:`, {
                     error: upsertError,
                     message: upsertError.message,
                     details: upsertError.details,
                     hint: upsertError.hint,
                     code: upsertError.code,
+                    status: upsertError.status,
+                    embeddingRecordSize: JSON.stringify(embeddingRecord).length,
+                    embeddingLength: embedding.length,
+                    chunkTextLength: text.length,
+                    metadataSize: JSON.stringify(limitedMetadata).length,
+                    embeddingType: typeof embedding,
+                    embeddingIsArray: Array.isArray(embedding),
+                    embeddingSample: embedding?.slice(0, 3)
+                  })
+                  tableErrors.push({ 
+                    recordId: record.id, 
+                    error: upsertError.message || 'Unknown error',
+                    details: upsertError.details,
+                    code: upsertError.code,
                     status: upsertError.status
                   })
-                  throw upsertError
+                  continue // Continue with next record instead of throwing
                 }
 
                 // Verificar se realmente foi salvo
