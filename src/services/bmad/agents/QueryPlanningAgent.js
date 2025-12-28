@@ -146,6 +146,7 @@ Se for consulta de agrupamento (groupBy), a query deve incluir GROUP BY e ORDER 
 Se for consulta temporal (timeSeries), use DATE_TRUNC para agrupar por período.
 Se for consulta de contagem, use COUNT(*) ou COUNT(campo).
 Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
+`
   }
 
   /**
