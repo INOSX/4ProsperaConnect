@@ -390,6 +390,22 @@ export default async function handler(req, res) {
           try {
             console.log(`[vectorizeAll] Processing table: ${tableName}`)
             
+            // Testar conexão com Supabase primeiro
+            const { data: testData, error: testError } = await supabase
+              .from('data_embeddings')
+              .select('id')
+              .limit(1)
+            
+            if (testError && !testError.message?.includes('does not exist')) {
+              console.error(`[vectorizeAll] ⚠️ Supabase connection test failed for ${tableName}:`, {
+                error: testError.message,
+                code: testError.code,
+                details: testError.details
+              })
+            } else {
+              console.log(`[vectorizeAll] ✅ Supabase connection OK for ${tableName}`)
+            }
+            
             // Buscar todos os registros da tabela diretamente
             const { data: records, error: fetchError } = await supabase
               .from(tableName)
