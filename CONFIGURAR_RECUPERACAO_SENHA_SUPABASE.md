@@ -21,25 +21,47 @@ Este guia explica como configurar o Supabase para que o fluxo de recuperação d
 
 ### 1.2 Adicionar URLs de Redirecionamento
 
-Na seção **Redirect URLs**, adicione as seguintes URLs:
+Na seção **Redirect URLs**, adicione as seguintes URLs (uma por linha):
 
+**URLs de Production:**
 ```
+https://4prosperaconnect.vercel.app/**
+https://4prosperaconnect.vercel.app/auth/callback
+```
+
+**URLs de Preview:**
+```
+https://4prosperaconnect-e7osun5be-inosx.vercel.app/**
 https://4prosperaconnect-e7osun5be-inosx.vercel.app/auth/callback
+```
+
+**URLs com Wildcard (para futuros previews):**
+```
+https://4prosperaconnect-*.vercel.app/**
+https://4prosperaconnect-*.vercel.app/auth/callback
+```
+
+**URLs de Desenvolvimento Local:**
+```
+http://localhost:3000/**
 http://localhost:3000/auth/callback
 ```
 
 **Importante:**
-- Adicione a URL de produção primeiro
-- Adicione também a URL de desenvolvimento (localhost) para testes
-- Clique em **Save** após adicionar cada URL
+- Adicione todas as URLs acima
+- O `**` permite qualquer caminho após o domínio
+- O `*` permite qualquer subdomínio de preview do Vercel
+- Clique em **Save** após adicionar todas as URLs
 
 ### 1.3 Configurar Site URL
 
-Na seção **Site URL**, defina:
+Na seção **Site URL**, defina a URL de **Production** (principal):
 
 ```
-https://4prosperaconnect-e7osun5be-inosx.vercel.app
+https://4prosperaconnect.vercel.app
 ```
+
+**Nota:** O Supabase usará esta URL como base para gerar links de email. As URLs de preview também funcionarão porque estão nas Redirect URLs.
 
 ---
 

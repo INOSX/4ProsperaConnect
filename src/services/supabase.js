@@ -12,7 +12,7 @@ if (!config.supabase.anonKey) {
 
 // Função para obter a URL de redirecionamento baseada no ambiente
 const getRedirectUrl = () => {
-  // No browser, usar a URL atual
+  // No browser, usar a URL atual (funciona para production e preview)
   if (typeof window !== 'undefined') {
     return `${window.location.origin}/auth/callback`
   }
