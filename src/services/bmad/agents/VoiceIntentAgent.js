@@ -40,6 +40,19 @@ export default class VoiceIntentAgent {
   async classifyIntent(text, user) {
     const lowerText = text.toLowerCase()
     
+    // Priorizar consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
+    const queryKeywords = ['média', 'média de', 'average', 'gráfico', 'chart', 'por período', 'por mês', 'por ano', 'tendência', 'evolução']
+    const hasQueryKeyword = queryKeywords.some(keyword => lowerText.includes(keyword))
+    
+    if (hasQueryKeyword) {
+      return {
+        intent: 'query_database',
+        params: this.extractParams(text, 'query_database'),
+        confidence: 0.9,
+        originalText: text
+      }
+    }
+    
     // Buscar padrões de intenção
     for (const [intent, patterns] of Object.entries(this.intentPatterns)) {
       for (const pattern of patterns) {
