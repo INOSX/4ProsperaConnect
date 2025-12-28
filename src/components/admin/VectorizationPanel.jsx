@@ -40,13 +40,33 @@ const VectorizationPanel = () => {
 
     setProcessing(true)
     setProgress({ message: 'Iniciando vetorização...' })
+    
+    console.log('[VectorizationPanel] Starting vectorizeAll...')
 
     try {
+      console.log('[VectorizationPanel] Calling VectorizationService.vectorizeAll()')
       const result = await VectorizationService.vectorizeAll()
-      alert(`Vetorização concluída! ${result.totalProcessed} registros processados.`)
+      console.log('[VectorizationPanel] VectorizeAll result:', result)
+      
+      const message = result.totalProcessed > 0 
+        ? `Vetorização concluída! ${result.totalProcessed} registros processados de ${result.successfulTables || 0} tabelas.`
+        : `Vetorização concluída, mas nenhum registro foi processado. Verifique se há dados nas tabelas e se a tabela data_embeddings existe.`
+      
+      alert(message)
+      
+      if (result.results && result.results.length > 0) {
+        console.log('[VectorizationPanel] Detailed results:', result.results)
+        const failedTables = result.results.filter(r => !r.success)
+        if (failedTables.length > 0) {
+          console.warn('[VectorizationPanel] Failed tables:', failedTables)
+          alert(`Atenção: ${failedTables.length} tabela(s) falharam. Verifique o console para detalhes.`)
+        }
+      }
+      
       await loadStatus()
     } catch (error) {
-      alert(`Erro: ${error.message}`)
+      console.error('[VectorizationPanel] Error in vectorizeAll:', error)
+      alert(`Erro: ${error.message || 'Erro desconhecido. Verifique o console para mais detalhes.'}`)
     } finally {
       setProcessing(false)
       setProgress(null)
@@ -113,25 +133,44 @@ const VectorizationPanel = () => {
           </button>
         </div>
 
-        {status && (
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" data-tour-id="vectorization-stats">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <p className="text-sm text-blue-600 font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-900">{status.total || 0}</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-green-600 font-medium">Vetorizados</p>
-                <p className="text-2xl font-bold text-green-900">{status.withEmbedding || 0}</p>
-              </div>
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <p className="text-sm text-yellow-600 font-medium">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-900">{status.pending || 0}</p>
-              </div>
-            </div>
+        <div className="mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" data-tour-id="vectorization-stats">
+            {status ? (
+              <>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-blue-600 font-medium">Total</p>
+                  <p className="text-2xl font-bold text-blue-900">{status.total || 0}</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-green-600 font-medium">Vetorizados</p>
+                  <p className="text-2xl font-bold text-green-900">{status.withEmbedding || 0}</p>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-600 font-medium">Pendentes</p>
+                  <p className="text-2xl font-bold text-yellow-900">{status.pending || 0}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-blue-600 font-medium">Total</p>
+                  <p className="text-2xl font-bold text-blue-900">0</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-green-600 font-medium">Vetorizados</p>
+                  <p className="text-2xl font-bold text-green-900">0</p>
+                </div>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <p className="text-sm text-yellow-600 font-medium">Pendentes</p>
+                  <p className="text-2xl font-bold text-yellow-900">0</p>
+                </div>
+              </>
+            )}
+          </div>
 
-            {status.byTable && (
-              <div className="space-y-2" data-tour-id="vectorization-status-table">
+          <div className="space-y-2" data-tour-id="vectorization-status-table">
+            {status?.byTable ? (
+              <>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Por Tabela:</h3>
                 {Object.entries(status.byTable).map(([table, stats]) => (
                   <div key={table} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -149,10 +188,14 @@ const VectorizationPanel = () => {
                     </div>
                   </div>
                 ))}
+              </>
+            ) : (
+              <div className="text-sm text-gray-500">
+                <p>Carregando status das tabelas...</p>
               </div>
             )}
           </div>
-        )}
+        </div>
 
         {progress && (
           <div className="mb-4 p-4 bg-blue-50 rounded-lg">
