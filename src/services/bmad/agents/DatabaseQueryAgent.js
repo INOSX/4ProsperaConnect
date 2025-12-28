@@ -84,26 +84,35 @@ export default class DatabaseQueryAgent {
    * Lida com consultas de contagem usando serviços apropriados
    */
   async handleCountQuery(text, user, params) {
+    console.log('[DatabaseQueryAgent] handleCountQuery called:', { text, hasUser: !!user, userId: user?.id })
+    
     try {
       const lowerText = text.toLowerCase()
       
       // Detectar qual tabela está sendo consultada
       if (lowerText.includes('empresa')) {
+        console.log('[DatabaseQueryAgent] Detected companies count query')
         const { CompanyService } = await import('../../../services/companyService')
         let userIsAdmin = false
         try {
           const { ClientService } = await import('../../../services/clientService')
+          console.log('[DatabaseQueryAgent] Checking admin status for user:', user?.id)
           const clientResult = await ClientService.getClientByUserId(user?.id)
           if (clientResult.success && clientResult.client) {
             userIsAdmin = clientResult.client.role === 'admin'
+            console.log('[DatabaseQueryAgent] User admin status:', userIsAdmin)
           }
         } catch (e) {
-          console.warn('Error checking admin status:', e)
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
         }
         
+        console.log('[DatabaseQueryAgent] Fetching companies for user:', user?.id, 'isAdmin:', userIsAdmin)
         const result = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        console.log('[DatabaseQueryAgent] CompanyService result:', { success: result?.success, companiesCount: result?.companies?.length })
+        
         if (result.success && result.companies) {
           const count = result.companies.length
+          console.log('[DatabaseQueryAgent] Count query successful:', count)
           return {
             success: true,
             results: [{ count, type: 'companies', label: 'Empresas' }],
@@ -111,12 +120,23 @@ export default class DatabaseQueryAgent {
             vectorSearchUsed: false,
             isCount: true
           }
+        } else {
+          console.warn('[DatabaseQueryAgent] CompanyService returned no companies:', result)
+          return {
+            success: true,
+            results: [{ count: 0, type: 'companies', label: 'Empresas' }],
+            summary: 'Total de empresas: 0',
+            vectorSearchUsed: false,
+            isCount: true
+          }
         }
       }
       
       // Para outras tabelas, usar busca semântica e contar resultados
+      console.log('[DatabaseQueryAgent] Using semantic search for count query')
       const vectorResults = await this.vectorSearch.semanticSearch(text, params?.tableName, 100)
       const count = vectorResults.results?.length || 0
+      console.log('[DatabaseQueryAgent] Semantic search count:', count)
       
       return {
         success: true,
@@ -126,11 +146,12 @@ export default class DatabaseQueryAgent {
         isCount: true
       }
     } catch (error) {
-      console.error('Error in handleCountQuery:', error)
+      console.error('[DatabaseQueryAgent] Error in handleCountQuery:', error)
       return {
         success: false,
-        error: error.message,
-        results: []
+        error: error.message || 'Erro ao processar consulta de contagem',
+        results: [],
+        stack: error.stack
       }
     }
   }
@@ -210,14 +231,29 @@ export default class DatabaseQueryAgent {
    * Método compatível com o orchestrator (executeQuery)
    */
   async executeQuery(intent, params, user, context) {
-    // Se for uma consulta para "conhecer" todos os dados
-    if (intent === 'get_all_data' || intent === 'know_all_data' || params?.getAll) {
-      return await this.getAllData(user, context)
-    }
+    console.log('[DatabaseQueryAgent] executeQuery called:', { intent, params, hasUser: !!user, hasContext: !!context })
+    
+    try {
+      // Se for uma consulta para "conhecer" todos os dados
+      if (intent === 'get_all_data' || intent === 'know_all_data' || params?.getAll) {
+        console.log('[DatabaseQueryAgent] Getting all data...')
+        return await this.getAllData(user, context)
+      }
 
-    // Caso contrário, usar busca semântica normal
-    const queryText = params?.query || params?.text || intent
-    return await this.query(queryText, user, context, params)
+      // Caso contrário, usar busca semântica normal
+      const queryText = params?.query || params?.text || intent
+      console.log('[DatabaseQueryAgent] Processing query:', { queryText, intent })
+      const result = await this.query(queryText, user, context, params)
+      console.log('[DatabaseQueryAgent] Query result:', { success: result?.success, hasResults: !!result?.results, error: result?.error, summary: result?.summary })
+      return result
+    } catch (error) {
+      console.error('[DatabaseQueryAgent] Error in executeQuery:', error)
+      return {
+        success: false,
+        error: error.message || 'Erro ao executar consulta',
+        results: []
+      }
+    }
   }
 
   determineSearchStrategy(text) {

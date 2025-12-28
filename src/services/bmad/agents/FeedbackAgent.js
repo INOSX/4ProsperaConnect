@@ -21,10 +21,20 @@ export default class FeedbackAgent {
     const intent = intentResult.intent
 
     if (intent === 'query_database' || intent === 'search_data') {
-      const count = actionResult.results?.length || 0
-      text = `Encontrei ${count} resultado${count !== 1 ? 's' : ''}.`
-      if (actionResult.summary) {
-        text += ` ${actionResult.summary}`
+      // Verificar se é uma consulta de contagem
+      if (actionResult.isCount && actionResult.results && actionResult.results.length > 0) {
+        const countResult = actionResult.results[0]
+        if (countResult.count !== undefined) {
+          text = actionResult.summary || `Total: ${countResult.count} ${countResult.label || 'registros'}.`
+        } else {
+          text = actionResult.summary || `Encontrei ${actionResult.results.length} resultado${actionResult.results.length !== 1 ? 's' : ''}.`
+        }
+      } else {
+        const count = actionResult.results?.length || 0
+        text = `Encontrei ${count} resultado${count !== 1 ? 's' : ''}.`
+        if (actionResult.summary) {
+          text += ` ${actionResult.summary}`
+        }
       }
     } else if (intent.startsWith('create_')) {
       const entity = intent.split('_')[1]

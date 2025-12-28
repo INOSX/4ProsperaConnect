@@ -102,21 +102,46 @@ export class BMADOrchestrator {
       if (intent === 'query_database' || intent === 'search_data' || intent === 'get_all_data' || intent === 'know_all_data') {
         // Busca no banco de dados usando busca semântica
         // Permite que o especialista "conheça" todos os registros
-        actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
+        console.log('[BMADOrchestrator] Processing database query:', { intent, text, params })
+        try {
+          actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
+          console.log('[BMADOrchestrator] Database query result:', { success: actionResult?.success, hasResults: !!actionResult?.results, error: actionResult?.error })
+        } catch (queryError) {
+          console.error('[BMADOrchestrator] Error in database query:', queryError)
+          actionResult = {
+            success: false,
+            error: queryError.message || 'Erro ao executar consulta',
+            results: []
+          }
+        }
+        
         const queryValidation = await this.supervisor.validateQueryResult(actionResult)
+        console.log('[BMADOrchestrator] Query validation:', { approved: queryValidation.approved, reason: queryValidation.reason })
         if (!queryValidation.approved) {
           return {
             success: false,
-            error: 'Erro ao executar consulta',
-            corrections: queryValidation.corrections
+            error: queryValidation.reason || 'Erro ao executar consulta',
+            corrections: queryValidation.corrections,
+            details: actionResult?.error
           }
         }
       } else if (intent.startsWith('query_') || intent.startsWith('search_')) {
         // Consultas genéricas também usam busca semântica
-        actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
+        console.log('[BMADOrchestrator] Processing generic query:', { intent, text })
+        try {
+          actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
+          console.log('[BMADOrchestrator] Generic query result:', { success: actionResult?.success, hasResults: !!actionResult?.results })
+        } catch (queryError) {
+          console.error('[BMADOrchestrator] Error in generic query:', queryError)
+          actionResult = {
+            success: false,
+            error: queryError.message || 'Erro ao executar consulta',
+            results: []
+          }
+        }
         const queryValidation = await this.supervisor.validateQueryResult(actionResult)
         if (!queryValidation.approved) {
-          console.warn('Query validation failed, continuing with results')
+          console.warn('[BMADOrchestrator] Query validation failed, continuing with results:', queryValidation.reason)
         }
       } else {
         // Ações específicas por domínio
