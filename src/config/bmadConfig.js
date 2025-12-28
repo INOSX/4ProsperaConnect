@@ -40,8 +40,8 @@ export const bmadConfig = {
 
   // Configurações de vetorização
   vectorization: {
-    embeddingModel: 'text-embedding-3-large',
-    embeddingDimensions: 3072,
+    embeddingModel: 'text-embedding-3-small',
+    embeddingDimensions: 1536, // Limite HNSW: 2000 dimensões
     chunkSize: 500, // tokens
     tablesToVectorize: [
       'companies',

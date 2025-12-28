@@ -71,8 +71,8 @@ vetorizar()
    - Exemplo: "Messiax 12345678000190 Tecnologia Software"
 
 3. **Gera embeddings** usando OpenAI
-   - Cada texto vira um vetor de 3072 números
-   - Custo: ~$0.00013 por embedding
+   - Cada texto vira um vetor de 1536 números (text-embedding-3-small)
+   - Custo: ~$0.00002 por embedding (mais econômico que large)
 
 4. **Salva na tabela** `data_embeddings`
    - Permite busca semântica depois

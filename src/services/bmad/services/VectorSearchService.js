@@ -6,7 +6,7 @@ import EmbeddingGenerator from '../utils/embeddingGenerator.js'
 
 export default class VectorSearchService {
   constructor() {
-    this.embeddingGenerator = new EmbeddingGenerator('text-embedding-3-large')
+    this.embeddingGenerator = new EmbeddingGenerator('text-embedding-3-small')
   }
 
   async semanticSearch(query, tableName = null, limit = 10) {

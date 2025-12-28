@@ -56,9 +56,9 @@ async function generateEmbedding(text) {
   }
 
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-large',
+    model: 'text-embedding-3-small',
     input: text,
-    dimensions: 3072
+    dimensions: 1536
   })
 
   return response.data[0].embedding
@@ -80,9 +80,9 @@ async function generateBatch(texts) {
     console.log(`[generateBatch] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(texts.length/batchSize)} (${batch.length} texts)`)
     
     const response = await openai.embeddings.create({
-      model: 'text-embedding-3-large',
+      model: 'text-embedding-3-small',
       input: batch,
-      dimensions: 3072
+      dimensions: 1536
     })
     
     const batchEmbeddings = response.data.map(item => item.embedding)
@@ -97,8 +97,8 @@ async function generateBatch(texts) {
 // Função para verificar se a dimensão da tabela está correta
 async function checkEmbeddingDimension(supabase) {
   try {
-    // Tentar inserir um embedding de teste com 3072 dimensões
-    const testEmbedding = new Array(3072).fill(0.001) // Embedding de teste
+    // Tentar inserir um embedding de teste com 1536 dimensões
+    const testEmbedding = new Array(1536).fill(0.001) // Embedding de teste
     const testRecord = {
       table_name: '__dimension_test__',
       record_id: '00000000-0000-0000-0000-000000000000', // UUID de teste
@@ -365,8 +365,8 @@ export default async function handler(req, res) {
             continue
           }
           
-          if (embedding.length !== 3072) {
-            console.warn(`[vectorizeTable] Embedding dimension mismatch for record ${record.id}: expected 3072, got ${embedding.length}`)
+          if (embedding.length !== 1536) {
+            console.warn(`[vectorizeTable] Embedding dimension mismatch for record ${record.id}: expected 1536, got ${embedding.length}`)
           }
 
           // Limitar tamanho do metadata para evitar payload muito grande
@@ -643,19 +643,19 @@ export default async function handler(req, res) {
                 continue
               }
               
-              if (embedding.length !== 3072) {
-                console.warn(`[vectorizeAll] Embedding dimension mismatch for record ${record.id}: expected 3072, got ${embedding.length}`)
+              if (embedding.length !== 1536) {
+                console.warn(`[vectorizeAll] Embedding dimension mismatch for record ${record.id}: expected 1536, got ${embedding.length}`)
               }
 
               // Validar formato do embedding antes de enviar
-              if (!Array.isArray(embedding) || embedding.length !== 3072) {
+              if (!Array.isArray(embedding) || embedding.length !== 1536) {
                 console.error(`[vectorizeAll] Invalid embedding format for record ${record.id}:`, {
                   isArray: Array.isArray(embedding),
                   length: embedding?.length,
-                  expectedLength: 3072,
+                  expectedLength: 1536,
                   firstFew: embedding?.slice(0, 5)
                 })
-                errors.push({ recordId: record.id, error: `Invalid embedding: expected array of 3072, got ${embedding?.length || 'null'}` })
+                errors.push({ recordId: record.id, error: `Invalid embedding: expected array of 1536, got ${embedding?.length || 'null'}` })
                 continue
               }
 

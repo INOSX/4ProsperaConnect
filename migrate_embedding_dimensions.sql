@@ -1,6 +1,7 @@
 -- Script de migração para corrigir a dimensão dos embeddings
 -- Execute este script no SQL Editor do Supabase APÓS executar create_vectorization_system.sql
--- Este script altera a coluna embedding de vector(1536) para vector(3072)
+-- Este script garante que a coluna embedding está configurada para vector(1536)
+-- NOTA: pgvector limita índices HNSW a 2000 dimensões, então usamos 1536 (text-embedding-3-small)
 
 -- ============================================
 -- 1. VERIFICAR DIMENSÃO ATUAL (opcional, apenas para diagnóstico)
@@ -27,10 +28,11 @@
 DROP INDEX IF EXISTS idx_data_embeddings_embedding;
 
 -- ============================================
--- 4. ALTERAR COLUNA EMBEDDING PARA 3072 DIMENSÕES
+-- 4. ALTERAR COLUNA EMBEDDING PARA 1536 DIMENSÕES
 -- ============================================
 -- Nota: Esta operação pode falhar se houver dados existentes com dimensão diferente
 -- Se isso acontecer, você precisará limpar os dados primeiro ou migrar manualmente
+-- 1536 é o padrão do text-embedding-3-small e está dentro do limite HNSW (2000)
 
 -- Primeiro, vamos tentar alterar diretamente
 DO $$
@@ -46,9 +48,9 @@ BEGIN
         -- Tentar alterar a coluna
         -- Se a tabela estiver vazia ou tiver apenas NULLs, isso funcionará
         ALTER TABLE public.data_embeddings 
-        ALTER COLUMN embedding TYPE vector(3072);
+        ALTER COLUMN embedding TYPE vector(1536);
         
-        RAISE NOTICE 'Coluna embedding alterada para vector(3072) com sucesso.';
+        RAISE NOTICE 'Coluna embedding alterada para vector(1536) com sucesso.';
     ELSE
         RAISE NOTICE 'Coluna embedding não encontrada. Execute create_vectorization_system.sql primeiro.';
     END IF;
@@ -64,9 +66,9 @@ EXCEPTION
         
         -- Tentar novamente
         ALTER TABLE public.data_embeddings 
-        ALTER COLUMN embedding TYPE vector(3072);
+        ALTER COLUMN embedding TYPE vector(1536);
         
-        RAISE NOTICE 'Coluna embedding alterada para vector(3072) após limpar dados antigos.';
+        RAISE NOTICE 'Coluna embedding alterada para vector(1536) após limpar dados antigos.';
 END $$;
 
 -- ============================================
@@ -96,7 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_data_embeddings_embedding
 -- A função já deve estar atualizada no create_vectorization_system.sql,
 -- mas vamos garantir que está correta:
 CREATE OR REPLACE FUNCTION semantic_search(
-    query_embedding vector(3072),
+    query_embedding vector(1536),
     table_filter TEXT DEFAULT NULL,
     similarity_threshold FLOAT DEFAULT 0.7,
     result_limit INT DEFAULT 10
@@ -130,7 +132,8 @@ $$ LANGUAGE plpgsql;
 -- CONCLUSÃO
 -- ============================================
 -- Após executar este script:
--- 1. A coluna embedding estará configurada para 3072 dimensões
+-- 1. A coluna embedding estará configurada para 1536 dimensões (compatível com HNSW)
 -- 2. Os embeddings antigos (se houver) terão sido limpos (serão NULL)
 -- 3. Execute "Vetorizar Todos os Dados" na página de vetorização para regenerar os embeddings
+-- 4. O código usará text-embedding-3-small que gera embeddings de 1536 dimensões
 

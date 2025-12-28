@@ -171,7 +171,7 @@ export default async function handler(req, res) {
 
 ## ⚠️ Importante
 
-- **Dimensões do embedding**: O sistema usa `text-embedding-3-large` com **3072 dimensões**
+- **Dimensões do embedding**: O sistema usa `text-embedding-3-small` com **1536 dimensões** (compatível com índices HNSW do pgvector, limite: 2000)
 - **Custo**: Cada embedding custa ~$0.00013 (muito barato)
 - **Performance**: Processamento em batch é mais eficiente
 - **Cache**: Embeddings são cacheados por 24 horas no frontend
