@@ -338,11 +338,67 @@ export default class DatabaseQueryAgent {
           ['aggregate', 'groupBy', 'timeSeries', 'count', 'crossTable'].includes(queryPlan.queryType)) {
         console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO QUERY SQL ==========')
         
+        // PRIORIDADE 1: Se a IA gerou uma SQL query completa, executá-la diretamente
         if (queryPlan.sqlQuery && queryPlan.sqlQuery.trim()) {
           console.log('[BMAD:DatabaseQueryAgent] ✅ Query SQL gerada pela IA encontrada:')
           console.log('[BMAD:DatabaseQueryAgent] 📝', queryPlan.sqlQuery)
+          console.log('[BMAD:DatabaseQueryAgent] 🚀 Executando SQL query diretamente via RPC...')
+          
+          try {
+            const { data, error } = await supabase.rpc('execute_dynamic_sql', {
+              sql_query: queryPlan.sqlQuery
+            })
+            
+            if (error) {
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro ao executar SQL via RPC:', error)
+              throw error
+            }
+            
+            // Verificar se há erro na resposta JSON
+            if (data && typeof data === 'object' && data.error) {
+              console.error('[BMAD:DatabaseQueryAgent] ❌ Erro na execução SQL:', data.message)
+              throw new Error(data.message || 'Erro ao executar query SQL')
+            }
+            
+            const results = Array.isArray(data) ? data : []
+            console.log('[BMAD:DatabaseQueryAgent] ✅ SQL executada com sucesso:', {
+              resultsCount: results.length,
+              firstResult: results[0] || null
+            })
+            
+            // Formatar resultado baseado no tipo de query
+            const isAggregate = queryPlan.queryType === 'aggregate' || queryPlan.aggregationType
+            const isGrouped = !!queryPlan.groupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')
+            const isCount = queryPlan.queryType === 'count' || queryPlan.sqlQuery.toLowerCase().includes('count(')
+            
+            return {
+              success: true,
+              results: results,
+              summary: queryPlan.description || `Encontrados ${results.length} resultados.`,
+              vectorSearchUsed: false,
+              strategy: 'sql',
+              isAggregate: isAggregate,
+              isGrouped: isGrouped,
+              isCount: isCount,
+              chartConfig: isGrouped ? {
+                chartType: queryPlan.queryType === 'timeSeries' ? 'line' : 'bar',
+                xColumn: queryPlan.groupBy || queryPlan.selectFields?.[0] || Object.keys(results[0] || {})[0],
+                yColumn: queryPlan.aggregationType === 'count' ? 'quantidade' : queryPlan.selectFields?.[1] || Object.keys(results[0] || {})[1],
+                title: queryPlan.description || 'Resultados da consulta'
+              } : undefined
+            }
+          } catch (rpcError) {
+            console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR SQL VIA RPC ==========')
+            console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', rpcError)
+            console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', rpcError.stack)
+            console.log('[BMAD:DatabaseQueryAgent] 🔄 Tentando fallback para métodos dinâmicos...')
+            
+            // Fallback: tentar métodos dinâmicos se RPC falhar
+            // (manter lógica antiga como fallback)
+          }
         }
         
+        // PRIORIDADE 2: Se não há SQL query, usar métodos dinâmicos (fallback)
         try {
           // Se tem GROUP BY, usar método de agrupamento dinâmico
           if (queryPlan.groupBy || (queryPlan.sqlQuery && queryPlan.sqlQuery.toLowerCase().includes('group by'))) {
