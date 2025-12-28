@@ -19,11 +19,16 @@ Foi criada uma função RPC no Supabase (`execute_dynamic_sql`) que permite exec
 1. Acesse o **SQL Editor** do Supabase:
    - https://supabase.com/dashboard/project/[SEU_PROJECT_ID]/sql
 
-2. Abra o arquivo `create_execute_dynamic_sql_rpc.sql` e copie todo o conteúdo
+2. **IMPORTANTE**: Se a função já existir, você precisa removê-la primeiro:
+   ```sql
+   DROP FUNCTION IF EXISTS execute_dynamic_sql(TEXT);
+   ```
 
-3. Cole no SQL Editor e clique em **Run** (ou pressione Ctrl+Enter)
+3. Abra o arquivo `create_execute_dynamic_sql_rpc.sql` e copie todo o conteúdo
 
-4. Verifique se a função foi criada com sucesso:
+4. Cole no SQL Editor e clique em **Run** (ou pressione Ctrl+Enter)
+
+5. Verifique se a função foi criada com sucesso:
    ```sql
    SELECT proname, prosrc 
    FROM pg_proc 
