@@ -179,8 +179,37 @@ $$ LANGUAGE plpgsql;
 -- Por enquanto, permitir acesso autenticado
 ALTER TABLE public.data_embeddings ENABLE ROW LEVEL SECURITY;
 
+-- Remover políticas existentes (se houver) antes de recriar
+DROP POLICY IF EXISTS "Authenticated users can view embeddings" ON public.data_embeddings;
+DROP POLICY IF EXISTS "Service role can insert embeddings" ON public.data_embeddings;
+DROP POLICY IF EXISTS "Service role can update embeddings" ON public.data_embeddings;
+DROP POLICY IF EXISTS "Service role can delete embeddings" ON public.data_embeddings;
+
+-- Política para SELECT (visualizar)
 CREATE POLICY "Authenticated users can view embeddings"
     ON public.data_embeddings
     FOR SELECT
     USING (auth.role() = 'authenticated');
+
+-- Política para INSERT (criar)
+-- Permite inserções do service role (usado pela API)
+CREATE POLICY "Service role can insert embeddings"
+    ON public.data_embeddings
+    FOR INSERT
+    WITH CHECK (true);
+
+-- Política para UPDATE (atualizar)
+-- Permite atualizações do service role (usado pela API)
+CREATE POLICY "Service role can update embeddings"
+    ON public.data_embeddings
+    FOR UPDATE
+    USING (true)
+    WITH CHECK (true);
+
+-- Política para DELETE (se necessário)
+-- Permite deleções do service role (usado pela API)
+CREATE POLICY "Service role can delete embeddings"
+    ON public.data_embeddings
+    FOR DELETE
+    USING (true);
 

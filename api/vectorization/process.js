@@ -184,19 +184,40 @@ export default async function handler(req, res) {
         console.log(`Vectorizing table: ${tableName}`)
 
         // Buscar todos os registros da tabela
-        const { data: records, error: fetchError } = await supabase
+        console.log(`[vectorizeTable] 🔍 Fetching records from table: ${tableName}`)
+        const { data: records, error: fetchError, count } = await supabase
           .from(tableName)
-          .select('*')
+          .select('*', { count: 'exact' })
 
         if (fetchError) {
+          console.error(`[vectorizeTable] ❌ Error fetching ${tableName}:`, {
+            error: fetchError,
+            message: fetchError.message,
+            details: fetchError.details,
+            hint: fetchError.hint,
+            code: fetchError.code
+          })
           throw fetchError
         }
 
+        console.log(`[vectorizeTable] 📊 Query result for ${tableName}:`, {
+          recordsFound: records?.length || 0,
+          count: count,
+          hasData: !!records,
+          isArray: Array.isArray(records),
+          firstRecord: records?.[0] ? {
+            id: records[0].id,
+            keys: Object.keys(records[0])
+          } : null
+        })
+
         if (!records || records.length === 0) {
+          console.log(`[vectorizeTable] ⚠️ No records found in table: ${tableName}`)
           return res.status(200).json({
             success: true,
             processed: 0,
-            message: `Nenhum registro encontrado na tabela ${tableName}`
+            total: 0,
+            message: `Nenhum registro encontrado na tabela ${tableName}. Verifique se a tabela existe e contém dados.`
           })
         }
 
@@ -276,21 +297,58 @@ export default async function handler(req, res) {
             })
           }
 
-          const { error: upsertError } = await supabase
-            .from('data_embeddings')
-            .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+          // Tentar upsert
+          try {
+            const { data: upsertData, error: upsertError } = await supabase
+              .from('data_embeddings')
+              .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+              .select()
 
-          if (!upsertError) {
+            if (upsertError) {
+              throw upsertError
+            }
+
+            // Verificar se realmente foi salvo
+            if (!upsertData || upsertData.length === 0) {
+              console.warn(`[vectorizeTable] ⚠️ Upsert returned no data for ${tableName}:${record.id}`)
+              errors.push({ 
+                recordId: record.id, 
+                error: 'Upsert returned no data'
+              })
+              continue
+            }
+
             processed++
-          } else {
-            console.error(`[vectorizeTable] Error upserting embedding for ${tableName}:${record.id}:`, {
+            if (i < 3 || i % 50 === 0) {
+              console.log(`[vectorizeTable] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                upsertData: upsertData[0] ? { 
+                  id: upsertData[0].id, 
+                  table_name: upsertData[0].table_name,
+                  hasEmbedding: !!upsertData[0].embedding
+                } : null
+              })
+            }
+          } catch (upsertError) {
+            console.error(`[vectorizeTable] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
               error: upsertError,
               message: upsertError.message,
               details: upsertError.details,
               hint: upsertError.hint,
+              code: upsertError.code,
+              embeddingRecordSize: JSON.stringify(embeddingRecord).length,
+              embeddingLength: embedding.length,
+              chunkTextLength: text.length,
+              metadataSize: JSON.stringify(limitedMetadata).length,
+              embeddingType: typeof embedding,
+              embeddingIsArray: Array.isArray(embedding),
+              embeddingSample: embedding?.slice(0, 3)
+            })
+            errors.push({ 
+              recordId: record.id, 
+              error: upsertError.message || 'Unknown error',
+              details: upsertError.details,
               code: upsertError.code
             })
-            errors.push({ recordId: record.id, error: upsertError.message })
           }
         }
         
@@ -332,18 +390,32 @@ export default async function handler(req, res) {
             }
 
             if (!records || records.length === 0) {
-              console.log(`[vectorizeAll] No records found in ${tableName}`)
+              console.log(`[vectorizeAll] ⚠️ No records found in table: ${tableName}`)
+              console.log(`[vectorizeAll] Query result:`, { 
+                hasData: !!records, 
+                dataLength: records?.length,
+                isArray: Array.isArray(records)
+              })
               results.push({
                 table: tableName,
                 success: true,
                 processed: 0,
                 total: 0,
-                message: `Nenhum registro encontrado na tabela ${tableName}`
+                message: `Nenhum registro encontrado na tabela ${tableName}. Verifique se a tabela existe e contém dados.`
               })
               continue
             }
 
-            console.log(`[vectorizeAll] Found ${records.length} records in ${tableName}`)
+            console.log(`[vectorizeAll] ✅ Found ${records.length} records in ${tableName}`, {
+              firstRecordId: records[0]?.id,
+              firstRecordKeys: Object.keys(records[0] || {}),
+              sampleRecord: records[0] ? {
+                id: records[0].id,
+                ...(records[0].name && { name: records[0].name }),
+                ...(records[0].company_name && { company_name: records[0].company_name }),
+                ...(records[0].email && { email: records[0].email })
+              } : null
+            })
 
             // Criar textos semânticos
             const texts = records.map(record => {
@@ -452,24 +524,58 @@ export default async function handler(req, res) {
                 })
               }
               
-              const { error: upsertError } = await supabase
-                .from('data_embeddings')
-                .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+              // Tentar upsert
+              try {
+                const { data: upsertData, error: upsertError } = await supabase
+                  .from('data_embeddings')
+                  .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+                  .select()
 
-              if (!upsertError) {
-                processed++
-                if (processed % 10 === 0) {
-                  console.log(`[vectorizeAll] Progress: ${processed}/${records.length} records processed from ${tableName}`)
+                if (upsertError) {
+                  throw upsertError
                 }
-              } else {
-                console.error(`[vectorizeAll] Error upserting embedding for ${tableName}:${record.id}:`, {
+
+                // Verificar se realmente foi salvo
+                if (!upsertData || upsertData.length === 0) {
+                  console.warn(`[vectorizeAll] ⚠️ Upsert returned no data for ${tableName}:${record.id}`)
+                  errors.push({ 
+                    recordId: record.id, 
+                    error: 'Upsert returned no data'
+                  })
+                  continue
+                }
+
+                processed++
+                if (processed % 10 === 0 || i < 3) {
+                  console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                    upsertData: upsertData[0] ? { 
+                      id: upsertData[0].id, 
+                      table_name: upsertData[0].table_name,
+                      hasEmbedding: !!upsertData[0].embedding
+                    } : null
+                  })
+                }
+              } catch (upsertError) {
+                console.error(`[vectorizeAll] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
                   error: upsertError,
                   message: upsertError.message,
                   details: upsertError.details,
                   hint: upsertError.hint,
+                  code: upsertError.code,
+                  embeddingRecordSize: JSON.stringify(embeddingRecord).length,
+                  embeddingLength: embedding.length,
+                  chunkTextLength: text.length,
+                  metadataSize: JSON.stringify(limitedMetadata).length,
+                  embeddingType: typeof embedding,
+                  embeddingIsArray: Array.isArray(embedding),
+                  embeddingSample: embedding?.slice(0, 3)
+                })
+                errors.push({ 
+                  recordId: record.id, 
+                  error: upsertError.message || 'Unknown error',
+                  details: upsertError.details,
                   code: upsertError.code
                 })
-                errors.push({ recordId: record.id, error: upsertError.message })
               }
             }
             
