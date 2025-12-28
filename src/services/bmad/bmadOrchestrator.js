@@ -232,17 +232,21 @@ export class BMADOrchestrator {
       })
 
       if (!finalValidation.approved) {
-        console.warn('[BMADOrchestrator] Final validation failed, attempting correction...')
+        console.warn('[BMAD:Orchestrator] ⚠️ Final validation failed, attempting correction...')
         // Tentar corrigir
         const corrected = await this.supervisor.attemptCorrection(finalValidation)
         if (corrected.success) {
-          console.log('[BMADOrchestrator] Correction successful')
+          console.log('[BMAD:Orchestrator] ✅ Correction successful')
+          const elapsed = Date.now() - startTime
+          console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
           return corrected.result
         }
-        console.error('[BMADOrchestrator] Correction failed, returning error')
+        console.error('[BMAD:Orchestrator] ❌ Correction failed, returning error')
         // Mesmo se a validação falhar, retornar resultado se tiver feedback
         if (feedback && feedback.text) {
-          console.warn('[BMADOrchestrator] Returning result despite validation failure (has feedback)')
+          console.warn('[BMAD:Orchestrator] ⚠️ Returning result despite validation failure (has feedback)')
+          const elapsed = Date.now() - startTime
+          console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
           return {
             success: true,
             response: feedback.text,
@@ -255,6 +259,8 @@ export class BMADOrchestrator {
             }
           }
         }
+        const elapsed = Date.now() - startTime
+        console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
         return {
           success: false,
           error: 'Erro ao processar comando',
@@ -264,20 +270,33 @@ export class BMADOrchestrator {
       }
 
       // 11. Gerar sugestões
+      console.log('[BMAD:Orchestrator] 📋 Step 11/12: Generating suggestions')
       const suggestions = await this.suggestion.generateSuggestions(
         text,
         intentResult,
         actionResult,
         await this.memory.getConversationHistory()
       )
+      console.log('[BMAD:Orchestrator] ✅ Suggestions generated:', suggestions.suggestions.length)
 
       // 12. Atualizar histórico
+      console.log('[BMAD:Orchestrator] 📋 Step 12/12: Updating conversation history')
       await this.memory.updateHistory({
         command: text,
         intent: intentResult,
         result: actionResult,
         feedback,
         timestamp: new Date()
+      })
+
+      const elapsed = Date.now() - startTime
+      console.log('[BMAD:Orchestrator] ✅ Command processing finished successfully in', elapsed + 'ms')
+      console.log('[BMAD:Orchestrator] 📊 Summary:', {
+        intent: intent,
+        qualityScore: finalValidation.qualityScore,
+        visualizations: visualizations.length,
+        suggestions: suggestions.suggestions.length,
+        vectorSearchUsed: actionResult?.vectorSearchUsed || false
       })
 
       return {
@@ -288,11 +307,13 @@ export class BMADOrchestrator {
         qualityScore: finalValidation.qualityScore,
         metadata: {
           intent: intent,
-          vectorSearchUsed: actionResult?.vectorSearchUsed || false
+          vectorSearchUsed: actionResult?.vectorSearchUsed || false,
+          processingTime: elapsed
         }
       }
     } catch (error) {
-      console.error('Error in BMADOrchestrator:', error)
+      const elapsed = Date.now() - startTime
+      console.error('[BMAD:Orchestrator] ❌ Error in command processing after', elapsed + 'ms:', error)
       return {
         success: false,
         error: error.message || 'Erro ao processar comando',
