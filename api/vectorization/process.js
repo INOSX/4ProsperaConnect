@@ -184,19 +184,40 @@ export default async function handler(req, res) {
         console.log(`Vectorizing table: ${tableName}`)
 
         // Buscar todos os registros da tabela
-        const { data: records, error: fetchError } = await supabase
+        console.log(`[vectorizeTable] 🔍 Fetching records from table: ${tableName}`)
+        const { data: records, error: fetchError, count } = await supabase
           .from(tableName)
-          .select('*')
+          .select('*', { count: 'exact' })
 
         if (fetchError) {
+          console.error(`[vectorizeTable] ❌ Error fetching ${tableName}:`, {
+            error: fetchError,
+            message: fetchError.message,
+            details: fetchError.details,
+            hint: fetchError.hint,
+            code: fetchError.code
+          })
           throw fetchError
         }
 
+        console.log(`[vectorizeTable] 📊 Query result for ${tableName}:`, {
+          recordsFound: records?.length || 0,
+          count: count,
+          hasData: !!records,
+          isArray: Array.isArray(records),
+          firstRecord: records?.[0] ? {
+            id: records[0].id,
+            keys: Object.keys(records[0])
+          } : null
+        })
+
         if (!records || records.length === 0) {
+          console.log(`[vectorizeTable] ⚠️ No records found in table: ${tableName}`)
           return res.status(200).json({
             success: true,
             processed: 0,
-            message: `Nenhum registro encontrado na tabela ${tableName}`
+            total: 0,
+            message: `Nenhum registro encontrado na tabela ${tableName}. Verifique se a tabela existe e contém dados.`
           })
         }
 
@@ -332,18 +353,32 @@ export default async function handler(req, res) {
             }
 
             if (!records || records.length === 0) {
-              console.log(`[vectorizeAll] No records found in ${tableName}`)
+              console.log(`[vectorizeAll] ⚠️ No records found in table: ${tableName}`)
+              console.log(`[vectorizeAll] Query result:`, { 
+                hasData: !!records, 
+                dataLength: records?.length,
+                isArray: Array.isArray(records)
+              })
               results.push({
                 table: tableName,
                 success: true,
                 processed: 0,
                 total: 0,
-                message: `Nenhum registro encontrado na tabela ${tableName}`
+                message: `Nenhum registro encontrado na tabela ${tableName}. Verifique se a tabela existe e contém dados.`
               })
               continue
             }
 
-            console.log(`[vectorizeAll] Found ${records.length} records in ${tableName}`)
+            console.log(`[vectorizeAll] ✅ Found ${records.length} records in ${tableName}`, {
+              firstRecordId: records[0]?.id,
+              firstRecordKeys: Object.keys(records[0] || {}),
+              sampleRecord: records[0] ? {
+                id: records[0].id,
+                ...(records[0].name && { name: records[0].name }),
+                ...(records[0].company_name && { company_name: records[0].company_name }),
+                ...(records[0].email && { email: records[0].email })
+              } : null
+            })
 
             // Criar textos semânticos
             const texts = records.map(record => {

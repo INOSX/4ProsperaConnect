@@ -48,18 +48,38 @@ const VectorizationPanel = () => {
       const result = await VectorizationService.vectorizeAll()
       console.log('[VectorizationPanel] VectorizeAll result:', result)
       
+      // Log detalhado de cada tabela
+      if (result.results && result.results.length > 0) {
+        console.log('[VectorizationPanel] 📋 Detailed results by table:')
+        result.results.forEach((tableResult, index) => {
+          console.log(`  ${index + 1}. ${tableResult.table}:`, {
+            success: tableResult.success,
+            processed: tableResult.processed || 0,
+            total: tableResult.total || 0,
+            message: tableResult.message,
+            error: tableResult.error
+          })
+        })
+      }
+      
       const message = result.totalProcessed > 0 
         ? `Vetorização concluída! ${result.totalProcessed} registros processados de ${result.successfulTables || 0} tabelas.`
-        : `Vetorização concluída, mas nenhum registro foi processado. Verifique se há dados nas tabelas e se a tabela data_embeddings existe.`
+        : `Vetorização concluída, mas nenhum registro foi processado.\n\nPossíveis causas:\n- As tabelas estão vazias (companies, employees, prospects, cpf_clients, unbanked_companies)\n- A tabela data_embeddings não existe (execute o script SQL primeiro)\n\nVerifique o console para detalhes de cada tabela.`
       
       alert(message)
       
       if (result.results && result.results.length > 0) {
-        console.log('[VectorizationPanel] Detailed results:', result.results)
         const failedTables = result.results.filter(r => !r.success)
+        const emptyTables = result.results.filter(r => r.success && (r.processed === 0 || r.total === 0))
+        
         if (failedTables.length > 0) {
-          console.warn('[VectorizationPanel] Failed tables:', failedTables)
+          console.warn('[VectorizationPanel] ❌ Failed tables:', failedTables)
           alert(`Atenção: ${failedTables.length} tabela(s) falharam. Verifique o console para detalhes.`)
+        }
+        
+        if (emptyTables.length > 0 && result.totalProcessed === 0) {
+          console.warn('[VectorizationPanel] ⚠️ Empty tables:', emptyTables.map(t => t.table))
+          console.log('[VectorizationPanel] 💡 Dica: Verifique se há dados nas tabelas:', emptyTables.map(t => t.table).join(', '))
         }
       }
       
