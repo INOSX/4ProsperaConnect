@@ -72,11 +72,29 @@ export default class VectorSearchService {
 
       // Calcular similaridade para cada resultado
       const { cosineSimilarity } = await import('../utils/vectorSearch.js')
+      const queryEmbeddingLength = queryEmbedding?.length || 0
+      
       const resultsWithSimilarity = data
-        .map(item => ({
-          ...item,
-          similarity: item.embedding ? cosineSimilarity(queryEmbedding, item.embedding) : 0
-        }))
+        .map(item => {
+          // Validar que os embeddings têm a mesma dimensão
+          if (!item.embedding || !Array.isArray(item.embedding)) {
+            return { ...item, similarity: 0 }
+          }
+          
+          const itemEmbeddingLength = item.embedding.length
+          if (queryEmbeddingLength !== itemEmbeddingLength) {
+            console.warn(`[fallbackVectorSearch] Embedding dimension mismatch: query=${queryEmbeddingLength}, item=${itemEmbeddingLength}`)
+            return { ...item, similarity: 0 }
+          }
+          
+          try {
+            const similarity = cosineSimilarity(queryEmbedding, item.embedding)
+            return { ...item, similarity }
+          } catch (error) {
+            console.warn(`[fallbackVectorSearch] Error calculating similarity:`, error)
+            return { ...item, similarity: 0 }
+          }
+        })
         .filter(item => item.similarity >= 0.7)
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
@@ -99,31 +117,11 @@ export default class VectorSearchService {
 
   async fallbackSearch(query, tableName, limit) {
     // Busca básica nas tabelas principais
-    const tables = tableName ? [tableName] : ['companies', 'employees', 'prospects']
-    const results = []
-
-    for (const table of tables) {
-      try {
-        const { data, error } = await supabase
-          .from(table)
-          .select('*')
-          .limit(limit)
-        
-        if (!error && data) {
-          results.push(...data.map(item => ({
-            record_id: item.id,
-            table_name: table,
-            metadata: item
-          })))
-        }
-      } catch (e) {
-        console.warn(`Error searching table ${table}:`, e)
-      }
-    }
-
+    // Usar serviços em vez de queries diretas para evitar problemas de RLS
+    // O DatabaseQueryAgent deve usar serviços apropriados diretamente
     return {
-      results: results.slice(0, limit),
-      summary: `Encontrados ${results.length} resultados`
+      results: [],
+      summary: 'Busca requer contexto de usuário. Use serviços apropriados no DatabaseQueryAgent.'
     }
   }
 

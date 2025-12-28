@@ -35,6 +35,11 @@ export default class DatabaseQueryAgent {
         return await this.handleTimeSeriesQuery(text, user, params)
       }
       
+      // Detectar consultas sobre empresas sem colaboradores
+      if (this.isCompaniesWithoutEmployeesQuery(text)) {
+        return await this.handleCompaniesWithoutEmployeesQuery(text, user, params)
+      }
+      
       // Decidir estratégia: SQL vs Vetorial vs Híbrida
       const strategy = this.determineSearchStrategy(text)
       
@@ -110,6 +115,18 @@ export default class DatabaseQueryAgent {
     const lowerText = text.toLowerCase()
     const timeKeywords = ['gráfico', 'chart', 'por período', 'por mês', 'por ano', 'ao longo do tempo', 'tendência', 'evolução', 'cadastramento', 'cadastro']
     return timeKeywords.some(keyword => lowerText.includes(keyword))
+  }
+
+  /**
+   * Detecta se a consulta é sobre empresas sem colaboradores
+   */
+  isCompaniesWithoutEmployeesQuery(text) {
+    if (!text) return false
+    const lowerText = text.toLowerCase()
+    const keywords = ['empresa', 'empresas']
+    const negativeKeywords = ['sem colaborador', 'sem funcionário', 'sem empregado', 'sem cadastrado', 'não tem', 'não têm', 'sem ter']
+    return keywords.some(kw => lowerText.includes(kw)) && 
+           negativeKeywords.some(kw => lowerText.includes(kw))
   }
 
   /**
@@ -199,6 +216,87 @@ export default class DatabaseQueryAgent {
         error: error.message || 'Erro ao calcular agregação',
         results: [],
         isAggregate: true
+      }
+    }
+  }
+
+  /**
+   * Lida com consultas sobre empresas sem colaboradores
+   */
+  async handleCompaniesWithoutEmployeesQuery(text, user, params) {
+    console.log('[DatabaseQueryAgent] handleCompaniesWithoutEmployeesQuery called:', { text, hasUser: !!user })
+    try {
+      // Buscar todas as empresas
+      const { CompanyService } = await import('../../../services/companyService')
+      let userIsAdmin = false
+      try {
+        const { ClientService } = await import('../../../services/clientService')
+        const clientResult = await ClientService.getClientByUserId(user?.id)
+        if (clientResult.success && clientResult.client) {
+          userIsAdmin = clientResult.client.role === 'admin'
+        }
+      } catch (e) {
+        console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+      }
+      
+      const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+      const companies = companiesResult.companies || []
+      
+      if (companies.length === 0) {
+        return {
+          success: true,
+          results: [],
+          summary: 'Nenhuma empresa encontrada',
+          companiesWithoutEmployees: 0,
+          totalCompanies: 0
+        }
+      }
+      
+      // Buscar colaboradores de cada empresa
+      const { EmployeeService } = await import('../../../services/employeeService')
+      const companiesWithoutEmployees = []
+      
+      for (const company of companies) {
+        try {
+          const employeesResult = await EmployeeService.getCompanyEmployees(company.id)
+          const employees = employeesResult.employees || []
+          if (employees.length === 0) {
+            companiesWithoutEmployees.push({
+              id: company.id,
+              name: company.company_name || company.trade_name,
+              cnpj: company.cnpj
+            })
+          }
+        } catch (e) {
+          console.warn(`[DatabaseQueryAgent] Error fetching employees for company ${company.id}:`, e)
+          // Se não conseguir buscar, considerar como sem colaboradores
+          companiesWithoutEmployees.push({
+            id: company.id,
+            name: company.company_name || company.trade_name,
+            cnpj: company.cnpj
+          })
+        }
+      }
+      
+      const count = companiesWithoutEmployees.length
+      const summary = count > 0 
+        ? `Sim, existem ${count} empresa${count !== 1 ? 's' : ''} sem colaborador${count !== 1 ? 'es' : ''} cadastrado${count !== 1 ? 's' : ''}.`
+        : 'Não, todas as empresas têm pelo menos um colaborador cadastrado.'
+      
+      return {
+        success: true,
+        results: companiesWithoutEmployees,
+        summary: summary,
+        companiesWithoutEmployees: count,
+        totalCompanies: companies.length,
+        isCount: true
+      }
+    } catch (error) {
+      console.error('[DatabaseQueryAgent] Error in handleCompaniesWithoutEmployeesQuery:', error)
+      return {
+        success: false,
+        error: error.message || 'Erro ao verificar empresas sem colaboradores',
+        results: []
       }
     }
   }

@@ -242,11 +242,50 @@ export default class SupervisorAgent {
    * Calcula relevância entre pergunta e resposta
    */
   calculateRelevance(question, answer) {
-    // Implementação simples - pode ser melhorada com NLP
-    const questionWords = question.toLowerCase().split(/\s+/)
-    const answerWords = answer.toLowerCase().split(/\s+/)
+    if (!question || !answer) return 0
+    
+    const lowerQuestion = question.toLowerCase()
+    const lowerAnswer = answer.toLowerCase()
+    
+    // Detectar respostas genéricas que não respondem à pergunta
+    const genericResponses = [
+      'encontrei', 'encontrados', 'resultados', 'resultado',
+      'dados encontrados', 'busca realizada'
+    ]
+    const isGenericResponse = genericResponses.some(gr => 
+      lowerAnswer.includes(gr) && !lowerAnswer.includes('sim') && !lowerAnswer.includes('não') && !lowerAnswer.includes('empresa')
+    )
+    
+    if (isGenericResponse && (lowerQuestion.includes('existem') || lowerQuestion.includes('tem') || lowerQuestion.includes('têm'))) {
+      // Resposta genérica para pergunta específica - baixa relevância
+      return 20
+    }
+    
+    // Detectar palavras-chave importantes na pergunta
+    const questionKeywords = []
+    if (lowerQuestion.includes('existem')) questionKeywords.push('existem')
+    if (lowerQuestion.includes('empresa')) questionKeywords.push('empresa')
+    if (lowerQuestion.includes('colaborador') || lowerQuestion.includes('funcionário')) questionKeywords.push('colaborador')
+    if (lowerQuestion.includes('sem')) questionKeywords.push('sem')
+    if (lowerQuestion.includes('média')) questionKeywords.push('média')
+    if (lowerQuestion.includes('quantas') || lowerQuestion.includes('quantos')) questionKeywords.push('quantidade')
+    
+    // Verificar se a resposta contém palavras-chave relevantes
+    const relevantKeywordsInAnswer = questionKeywords.filter(kw => lowerAnswer.includes(kw))
+    const keywordRelevance = questionKeywords.length > 0 
+      ? (relevantKeywordsInAnswer.length / questionKeywords.length) * 100 
+      : 50
+    
+    // Verificar palavras comuns
+    const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 3)
+    const answerWords = lowerAnswer.split(/\s+/).filter(w => w.length > 3)
     const commonWords = questionWords.filter(w => answerWords.includes(w))
-    return Math.min(100, (commonWords.length / questionWords.length) * 100)
+    const wordRelevance = questionWords.length > 0 
+      ? (commonWords.length / questionWords.length) * 100 
+      : 50
+    
+    // Combinar relevância de palavras-chave e palavras comuns
+    return Math.min(100, (keywordRelevance * 0.6 + wordRelevance * 0.4))
   }
 
   /**
