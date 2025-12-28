@@ -13,15 +13,50 @@ export default class DataVisualizationAgent {
     }
 
     // Para consultas de contagem, criar visualização de card
-    if (actionResult.isCount && actionResult.results && actionResult.results.length > 0) {
-      const countResult = actionResult.results[0]
-      if (countResult.count !== undefined) {
-        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card visualization:', countResult.count)
+    if (actionResult.isCount) {
+      // Se houver visualizationData específica, usar ela
+      if (actionResult.visualizationData && actionResult.visualizationData.length > 0) {
+        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card from visualizationData')
+        visualizations.push({
+          type: 'card',
+          data: actionResult.visualizationData,
+          config: {
+            title: actionResult.summary || 'Contagem'
+          }
+        })
+        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        return visualizations
+      }
+      
+      // Fallback: usar results[0] se disponível
+      if (actionResult.results && actionResult.results.length > 0) {
+        const countResult = actionResult.results[0]
+        if (countResult.count !== undefined || actionResult.companiesWithoutEmployees !== undefined) {
+          const count = countResult.count !== undefined ? countResult.count : actionResult.companiesWithoutEmployees
+          console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card visualization:', count)
+          visualizations.push({
+            type: 'card',
+            data: [{
+              label: countResult.label || 'Total',
+              value: count
+            }],
+            config: {
+              title: actionResult.summary || 'Contagem'
+            }
+          })
+          console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+          return visualizations
+        }
+      }
+      
+      // Se for apenas um count numérico
+      if (actionResult.companiesWithoutEmployees !== undefined) {
+        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card from companiesWithoutEmployees')
         visualizations.push({
           type: 'card',
           data: [{
-            label: countResult.label || 'Total',
-            value: countResult.count
+            label: 'Empresas sem Colaboradores',
+            value: actionResult.companiesWithoutEmployees
           }],
           config: {
             title: actionResult.summary || 'Contagem'
@@ -57,13 +92,21 @@ export default class DataVisualizationAgent {
     if (actionResult.isTimeSeries && actionResult.results && actionResult.results.length > 0) {
       const chartData = this.prepareChartData(actionResult.results)
       const config = actionResult.chartConfig || {
-        chartType: actionResult.chartType || 'line',
+        chartType: 'line',
         title: actionResult.summary || 'Gráfico Temporal',
         xColumn: 'period',
         yColumn: 'count'
       }
       
+      // Garantir que chartType está definido
+      if (!config.chartType) {
+        config.chartType = 'line'
+      }
+      
       console.log('[BMAD:DataVisualizationAgent] 📊 Creating time series chart:', config.chartType, 'with', chartData.length, 'data points')
+      console.log('[BMAD:DataVisualizationAgent] 📊 Chart config:', config)
+      console.log('[BMAD:DataVisualizationAgent] 📊 Chart data:', chartData)
+      
       visualizations.push({
         type: 'chart',
         data: chartData,

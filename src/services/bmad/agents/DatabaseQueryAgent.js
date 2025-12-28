@@ -17,32 +17,46 @@ export default class DatabaseQueryAgent {
     try {
       console.log('[BMAD:DatabaseQueryAgent] 🔍 Analyzing query type for:', text?.substring(0, 100))
       
+      // NOVO: Usar QueryPlanningAgent para planejar a consulta com IA
+      console.log('[BMAD:DatabaseQueryAgent] 🧠 Planning query with AI...')
+      let queryPlan = null
+      try {
+        queryPlan = await this.planningAgent.planQuery(text, 'query_database', context)
+        console.log('[BMAD:DatabaseQueryAgent] ✅ Query plan from AI:', queryPlan)
+      } catch (planError) {
+        console.warn('[BMAD:DatabaseQueryAgent] ⚠️ AI planning failed, using fallback:', planError)
+        queryPlan = null
+      }
+      
       // Detectar consultas sobre empresas sem colaboradores PRIMEIRO (antes de outras detecções)
       if (this.isCompaniesWithoutEmployeesQuery(text)) {
         console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Companies without employees query')
         return await this.handleCompaniesWithoutEmployeesQuery(text, user, params)
       }
       
-      // Detectar tipo de consulta
+      // Se temos um plano da IA com alta confiança, usar ele
+      if (queryPlan && queryPlan.confidence > 0.6) {
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Using AI query plan:', queryPlan.queryType, 'confidence:', queryPlan.confidence)
+        return await this.executePlannedQuery(queryPlan, text, user, params)
+      }
+      
+      // Fallback: Detectar tipo de consulta usando heurísticas
       const isCountQuery = this.isCountQuery(text)
       const isAggregateQuery = this.isAggregateQuery(text)
       const isTimeSeriesQuery = this.isTimeSeriesQuery(text)
       
       if (isCountQuery) {
-        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Count query')
-        // Para consultas de contagem, usar SQL direto
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Count query (heuristic)')
         return await this.handleCountQuery(text, user, params)
       }
       
       if (isAggregateQuery) {
-        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Aggregate query')
-        // Para consultas agregadas (média, soma, etc)
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Aggregate query (heuristic)')
         return await this.handleAggregateQuery(text, user, params)
       }
       
       if (isTimeSeriesQuery) {
-        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Time series query')
-        // Para consultas de gráficos temporais
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Time series query (heuristic)')
         return await this.handleTimeSeriesQuery(text, user, params)
       }
       
@@ -310,13 +324,26 @@ export default class DatabaseQueryAgent {
         summary: summary.substring(0, 100)
       })
       
+      // Criar visualização de card para empresas sem colaboradores
+      const visualizationData = count > 0 
+        ? [{
+            label: 'Empresas sem Colaboradores',
+            value: count,
+            companies: companiesWithoutEmployees.map(c => c.name).join(', ')
+          }]
+        : [{
+            label: 'Todas as empresas têm colaboradores',
+            value: 0
+          }]
+      
       return {
         success: true,
         results: companiesWithoutEmployees,
         summary: summary,
         companiesWithoutEmployees: count,
         totalCompanies: companies.length,
-        isCount: true
+        isCount: true,
+        visualizationData: visualizationData
       }
     } catch (error) {
       console.error('[BMAD:DatabaseQueryAgent] ❌ Error in handleCompaniesWithoutEmployeesQuery:', error)
@@ -392,8 +419,8 @@ export default class DatabaseQueryAgent {
           results: chartData,
           summary: `Gráfico de cadastramento de empresas por período. Total de ${companies.length} empresas em ${chartData.length} períodos.`,
           isTimeSeries: true,
-          chartType: 'line',
           chartConfig: {
+            chartType: 'line',
             xColumn: 'period',
             yColumn: 'count',
             title: 'Cadastramento de Empresas por Período'
@@ -703,6 +730,62 @@ export default class DatabaseQueryAgent {
       }
       return 0
     })
+  }
+
+  /**
+   * Executa uma consulta baseada no plano gerado pela IA
+   */
+  async executePlannedQuery(queryPlan, text, user, params) {
+    console.log('[BMAD:DatabaseQueryAgent] 🎯 Executing planned query:', queryPlan)
+    
+    try {
+      switch (queryPlan.queryType) {
+        case 'count':
+          return await this.handleCountQuery(text, user, params)
+        
+        case 'aggregate':
+          if (queryPlan.aggregationType === 'avg') {
+            return await this.handleAggregateQuery(text, user, params)
+          }
+          // Outros tipos de agregação podem ser adicionados aqui
+          return await this.handleAggregateQuery(text, user, params)
+        
+        case 'timeSeries':
+          return await this.handleTimeSeriesQuery(text, user, params)
+        
+        case 'semantic':
+          if (queryPlan.needsEmbedding) {
+            const limit = params?.limit || 20
+            const tableName = queryPlan.tables?.[0] || null
+            const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
+            return {
+              success: true,
+              results: this.formatVectorResults(vectorResults.results || []),
+              summary: vectorResults.summary || 'Resultados encontrados via busca semântica',
+              vectorSearchUsed: true,
+              totalResults: vectorResults.results?.length || 0
+            }
+          }
+          // Fallback para SQL se não precisar embedding
+          return await this.executeSQLQuery(text, user, params)
+        
+        case 'sql':
+        case 'crossTable':
+        default:
+          return await this.executeSQLQuery(text, user, params)
+      }
+    } catch (error) {
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Error executing planned query:', error)
+      // Fallback para busca semântica
+      const limit = params?.limit || 20
+      const vectorResults = await this.vectorSearch.semanticSearch(text, null, limit)
+      return {
+        success: true,
+        results: this.formatVectorResults(vectorResults.results || []),
+        summary: vectorResults.summary || 'Resultados encontrados',
+        vectorSearchUsed: true
+      }
+    }
   }
 }
 
