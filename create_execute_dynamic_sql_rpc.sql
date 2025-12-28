@@ -43,17 +43,25 @@ BEGIN
     );
   END IF;
   
-  -- Validar que não contém comandos perigosos (usando padrões mais específicos)
-  FOREACH pattern IN ARRAY dangerous_patterns
-  LOOP
-    IF UPPER(cleaned_query) ~* pattern THEN
-      RETURN json_build_object(
-        'error', TRUE,
-        'message', format('Query contém comando não permitido: %s', pattern),
-        'code', 'DANGEROUS_COMMAND'
-      );
-    END IF;
-  END LOOP;
+  -- Validar que não contém comandos perigosos
+  -- Verificar apenas no início da query ou após espaço/ponto-e-vírgula para evitar falsos positivos
+  -- Exemplo: "CREATE" em "created_at" não deve ser bloqueado
+  IF UPPER(cleaned_query) ~* '^\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|TRUNCATE|GRANT|REVOKE)\s+' THEN
+    RETURN json_build_object(
+      'error', TRUE,
+      'message', 'Query contém comandos não permitidos no início',
+      'code', 'DANGEROUS_COMMAND'
+    );
+  END IF;
+  
+  -- Verificar comandos perigosos após ponto-e-vírgula (múltiplas queries)
+  IF cleaned_query ~* ';\s*(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|TRUNCATE|GRANT|REVOKE)\s+' THEN
+    RETURN json_build_object(
+      'error', TRUE,
+      'message', 'Query contém múltiplos comandos, alguns não permitidos',
+      'code', 'DANGEROUS_COMMAND'
+    );
+  END IF;
   
   -- Executar query e retornar como JSON
   BEGIN
