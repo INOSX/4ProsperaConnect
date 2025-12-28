@@ -417,25 +417,31 @@ export default async function handler(req, res) {
               } : null
             })
 
-            // Criar textos semânticos
-            const texts = records.map(record => {
+            // Criar textos semânticos e mapear para registros válidos
+            const recordTextPairs = records.map(record => {
+              let text = ''
               if (tableName === 'companies') {
-                return `${record.company_name || ''} ${record.cnpj || ''} ${record.trade_name || ''} ${record.industry || ''}`.trim()
+                text = `${record.company_name || ''} ${record.cnpj || ''} ${record.trade_name || ''} ${record.industry || ''}`.trim()
               } else if (tableName === 'employees') {
-                return `${record.name || ''} ${record.email || ''} ${record.department || ''} ${record.position || ''}`.trim()
+                text = `${record.name || ''} ${record.email || ''} ${record.department || ''} ${record.position || ''}`.trim()
               } else if (tableName === 'prospects') {
-                return `${record.name || ''} ${record.cpf || ''} ${record.cnpj || ''} ${record.email || ''} ${record.market_signals || ''}`.trim()
+                text = `${record.name || ''} ${record.cpf || ''} ${record.cnpj || ''} ${record.email || ''} ${record.market_signals || ''}`.trim()
               } else if (tableName === 'cpf_clients') {
-                return `${record.name || ''} ${record.cpf || ''} ${record.email || ''} ${record.business_category || ''} ${record.notes || ''}`.trim()
+                text = `${record.name || ''} ${record.cpf || ''} ${record.email || ''} ${record.business_category || ''} ${record.notes || ''}`.trim()
               } else if (tableName === 'unbanked_companies') {
-                return `${record.company_name || ''} ${record.cnpj || ''} ${record.industry || ''} ${record.notes || ''}`.trim()
+                text = `${record.company_name || ''} ${record.cnpj || ''} ${record.industry || ''} ${record.notes || ''}`.trim()
+              } else {
+                text = JSON.stringify(record)
               }
-              return JSON.stringify(record)
+              return {
+                record,
+                text: text.substring(0, 10000) // Limitar tamanho do texto para embedding
+              }
             })
 
-            // Filtrar textos vazios
-            const validTexts = texts.filter(t => t && t.length > 0)
-            if (validTexts.length === 0) {
+            // Filtrar apenas pares com texto válido
+            const validPairs = recordTextPairs.filter(pair => pair.text && pair.text.length > 0)
+            if (validPairs.length === 0) {
               console.log(`[vectorizeAll] No valid texts generated for ${tableName}`)
               results.push({
                 table: tableName,
@@ -447,28 +453,26 @@ export default async function handler(req, res) {
               continue
             }
 
-            console.log(`[vectorizeAll] Generating embeddings for ${validTexts.length} texts from ${tableName}`)
+            console.log(`[vectorizeAll] Generating embeddings for ${validPairs.length} valid records from ${tableName} (total: ${records.length})`)
+
+            // Extrair apenas os textos válidos para gerar embeddings
+            const validTexts = validPairs.map(pair => pair.text)
 
             // Gerar embeddings em batch
             const embeddings = await generateBatch(validTexts)
             console.log(`[vectorizeAll] Generated ${embeddings.length} embeddings for ${tableName}`)
 
-            // Salvar embeddings
+            if (embeddings.length !== validPairs.length) {
+              console.error(`[vectorizeAll] ⚠️ Embedding count mismatch: expected ${validPairs.length}, got ${embeddings.length}`)
+            }
+
+            // Salvar embeddings - agora o índice corresponde diretamente
             let processed = 0
             let errors = []
             
-            for (let i = 0; i < records.length; i++) {
-              const record = records[i]
-              const text = texts[i]
-              
-              // Encontrar o embedding correspondente (pode ser diferente se alguns textos foram filtrados)
-              const textIndex = validTexts.indexOf(text)
-              if (textIndex === -1 || !text || text.length === 0) {
-                console.warn(`[vectorizeAll] Skipping record ${record.id} from ${tableName} - no valid text`)
-                continue
-              }
-              
-              const embedding = embeddings[textIndex]
+            for (let i = 0; i < validPairs.length; i++) {
+              const { record, text } = validPairs[i]
+              const embedding = embeddings[i]
               
               // Validar embedding
               if (!embedding || !Array.isArray(embedding)) {
@@ -516,7 +520,7 @@ export default async function handler(req, res) {
               }
 
               if (i < 3 || i % 50 === 0) {
-                console.log(`[vectorizeAll] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                console.log(`[vectorizeAll] Upserting record ${i+1}/${validPairs.length} from ${tableName} (ID: ${record.id})`, {
                   embeddingLength: embedding.length,
                   textLength: text.length,
                   metadataSize: JSON.stringify(limitedMetadata).length,
@@ -547,7 +551,7 @@ export default async function handler(req, res) {
 
                 processed++
                 if (processed % 10 === 0 || i < 3) {
-                  console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                  console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${validPairs.length} from ${tableName} (ID: ${record.id})`, {
                     upsertData: upsertData[0] ? { 
                       id: upsertData[0].id, 
                       table_name: upsertData[0].table_name,
@@ -583,14 +587,16 @@ export default async function handler(req, res) {
               console.warn(`[vectorizeAll] ${errors.length} errors occurred while processing ${tableName}:`, errors.slice(0, 5))
             }
 
-            console.log(`[vectorizeAll] Processed ${processed} of ${records.length} records from ${tableName}`)
+            console.log(`[vectorizeAll] Processed ${processed} of ${validPairs.length} valid records from ${tableName} (total: ${records.length})`)
 
             results.push({
               table: tableName,
               success: true,
               processed,
               total: records.length,
-              message: `Vetorizados ${processed} de ${records.length} registros da tabela ${tableName}`
+              validRecords: validPairs.length,
+              message: `Vetorizados ${processed} de ${records.length} registros da tabela ${tableName}`,
+              errors: errors.length > 0 ? errors : undefined
             })
           } catch (error) {
             console.error(`[vectorizeAll] Error processing ${tableName}:`, error)
