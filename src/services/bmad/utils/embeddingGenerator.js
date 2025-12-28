@@ -107,47 +107,96 @@ export class EmbeddingGenerator {
   }
 
   async generateBatch(texts) {
+    console.log('[BMAD:EmbeddingGenerator] 🔮 ========== GERANDO EMBEDDINGS EM BATCH ==========')
+    console.log('[BMAD:EmbeddingGenerator] 📝 Input:', {
+      textsCount: texts?.length || 0,
+      texts: texts?.map(t => t.substring(0, 50)) || [],
+      model: this.model
+    })
+    
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
+      console.error('[BMAD:EmbeddingGenerator] ❌ Array de textos vazio ou inválido')
       throw new Error('Texts array is required')
     }
 
+    const startTime = Date.now()
     try {
+      const requestBody = {
+        action: 'generateBatch',
+        texts: texts,
+        model: this.model
+      }
+      
+      console.log('[BMAD:EmbeddingGenerator] 📤 Enviando requisição batch para OpenAI Embeddings API:', {
+        model: this.model,
+        textsCount: texts.length,
+        action: requestBody.action
+      })
+      
       // Chamar API route para gerar embeddings em batch
       const response = await fetch('/api/openai/embeddings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          action: 'generateBatch',
-          texts: texts,
-          model: this.model
-        })
+        body: JSON.stringify(requestBody)
       })
+
+      const requestTime = Date.now() - startTime
+      console.log('[BMAD:EmbeddingGenerator] 📥 Resposta recebida em', requestTime + 'ms, status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error('[BMAD:EmbeddingGenerator] ❌ Erro na resposta:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData.error
+        })
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
       const result = await response.json()
+      console.log('[BMAD:EmbeddingGenerator] 📦 Dados recebidos:', {
+        success: result.success,
+        hasEmbeddings: !!result.embeddings,
+        embeddingsCount: result.embeddings?.length || 0,
+        model: result.model
+      })
       
       if (!result.success || !result.embeddings) {
+        console.error('[BMAD:EmbeddingGenerator] ❌ Falha ao gerar embeddings:', result)
         throw new Error('Failed to generate embeddings')
       }
 
       // Armazenar no cache
+      console.log('[BMAD:EmbeddingGenerator] 💾 Armazenando embeddings no cache...')
+      let cachedCount = 0
       texts.forEach((text, index) => {
         const cacheKey = `${this.model}:${text}`
         this.cache.set(cacheKey, {
           embedding: result.embeddings[index],
           timestamp: Date.now()
         })
+        cachedCount++
       })
+      console.log('[BMAD:EmbeddingGenerator] 💾', cachedCount, 'embeddings armazenados no cache')
 
+      const totalTime = Date.now() - startTime
+      console.log('[BMAD:EmbeddingGenerator] ✅ ========== EMBEDDINGS EM BATCH GERADOS COM SUCESSO ==========')
+      console.log('[BMAD:EmbeddingGenerator] 📊 Resumo:', {
+        embeddingsGenerated: result.embeddings.length,
+        dimensions: result.embeddings[0]?.length || 'N/A',
+        model: this.model,
+        totalTime: totalTime + 'ms',
+        cached: cachedCount
+      })
+      
       return result.embeddings
     } catch (error) {
-      console.error('Error generating embeddings batch:', error)
+      const totalTime = Date.now() - startTime
+      console.error('[BMAD:EmbeddingGenerator] ❌ ========== ERRO AO GERAR EMBEDDINGS EM BATCH ==========')
+      console.error('[BMAD:EmbeddingGenerator] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[BMAD:EmbeddingGenerator] ❌ Stack:', error.stack)
       throw error
     }
   }
