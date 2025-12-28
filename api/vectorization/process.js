@@ -297,19 +297,38 @@ export default async function handler(req, res) {
             })
           }
 
-          const { data: upsertData, error: upsertError } = await supabase
-            .from('data_embeddings')
-            .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
-            .select()
+          // Tentar upsert
+          try {
+            const { data: upsertData, error: upsertError } = await supabase
+              .from('data_embeddings')
+              .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+              .select()
 
-          if (!upsertError) {
+            if (upsertError) {
+              throw upsertError
+            }
+
+            // Verificar se realmente foi salvo
+            if (!upsertData || upsertData.length === 0) {
+              console.warn(`[vectorizeTable] ⚠️ Upsert returned no data for ${tableName}:${record.id}`)
+              errors.push({ 
+                recordId: record.id, 
+                error: 'Upsert returned no data'
+              })
+              continue
+            }
+
             processed++
             if (i < 3 || i % 50 === 0) {
               console.log(`[vectorizeTable] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
-                upsertData: upsertData?.[0] ? { id: upsertData[0].id, table_name: upsertData[0].table_name } : null
+                upsertData: upsertData[0] ? { 
+                  id: upsertData[0].id, 
+                  table_name: upsertData[0].table_name,
+                  hasEmbedding: !!upsertData[0].embedding
+                } : null
               })
             }
-          } else {
+          } catch (upsertError) {
             console.error(`[vectorizeTable] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
               error: upsertError,
               message: upsertError.message,
@@ -319,11 +338,14 @@ export default async function handler(req, res) {
               embeddingRecordSize: JSON.stringify(embeddingRecord).length,
               embeddingLength: embedding.length,
               chunkTextLength: text.length,
-              metadataSize: JSON.stringify(limitedMetadata).length
+              metadataSize: JSON.stringify(limitedMetadata).length,
+              embeddingType: typeof embedding,
+              embeddingIsArray: Array.isArray(embedding),
+              embeddingSample: embedding?.slice(0, 3)
             })
             errors.push({ 
               recordId: record.id, 
-              error: upsertError.message,
+              error: upsertError.message || 'Unknown error',
               details: upsertError.details,
               code: upsertError.code
             })
@@ -502,19 +524,38 @@ export default async function handler(req, res) {
                 })
               }
               
-              const { data: upsertData, error: upsertError } = await supabase
-                .from('data_embeddings')
-                .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
-                .select()
+              // Tentar upsert
+              try {
+                const { data: upsertData, error: upsertError } = await supabase
+                  .from('data_embeddings')
+                  .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+                  .select()
 
-              if (!upsertError) {
+                if (upsertError) {
+                  throw upsertError
+                }
+
+                // Verificar se realmente foi salvo
+                if (!upsertData || upsertData.length === 0) {
+                  console.warn(`[vectorizeAll] ⚠️ Upsert returned no data for ${tableName}:${record.id}`)
+                  errors.push({ 
+                    recordId: record.id, 
+                    error: 'Upsert returned no data'
+                  })
+                  continue
+                }
+
                 processed++
                 if (processed % 10 === 0 || i < 3) {
                   console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
-                    upsertData: upsertData?.[0] ? { id: upsertData[0].id, table_name: upsertData[0].table_name } : null
+                    upsertData: upsertData[0] ? { 
+                      id: upsertData[0].id, 
+                      table_name: upsertData[0].table_name,
+                      hasEmbedding: !!upsertData[0].embedding
+                    } : null
                   })
                 }
-              } else {
+              } catch (upsertError) {
                 console.error(`[vectorizeAll] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
                   error: upsertError,
                   message: upsertError.message,
@@ -524,11 +565,14 @@ export default async function handler(req, res) {
                   embeddingRecordSize: JSON.stringify(embeddingRecord).length,
                   embeddingLength: embedding.length,
                   chunkTextLength: text.length,
-                  metadataSize: JSON.stringify(limitedMetadata).length
+                  metadataSize: JSON.stringify(limitedMetadata).length,
+                  embeddingType: typeof embedding,
+                  embeddingIsArray: Array.isArray(embedding),
+                  embeddingSample: embedding?.slice(0, 3)
                 })
                 errors.push({ 
                   recordId: record.id, 
-                  error: upsertError.message,
+                  error: upsertError.message || 'Unknown error',
                   details: upsertError.details,
                   code: upsertError.code
                 })
