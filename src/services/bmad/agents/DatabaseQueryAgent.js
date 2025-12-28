@@ -15,12 +15,24 @@ export default class DatabaseQueryAgent {
    */
   async query(text, user, context, params) {
     try {
-      // Detectar se é uma consulta de contagem
+      // Detectar tipo de consulta
       const isCountQuery = this.isCountQuery(text)
+      const isAggregateQuery = this.isAggregateQuery(text)
+      const isTimeSeriesQuery = this.isTimeSeriesQuery(text)
       
       if (isCountQuery) {
         // Para consultas de contagem, usar SQL direto
         return await this.handleCountQuery(text, user, params)
+      }
+      
+      if (isAggregateQuery) {
+        // Para consultas agregadas (média, soma, etc)
+        return await this.handleAggregateQuery(text, user, params)
+      }
+      
+      if (isTimeSeriesQuery) {
+        // Para consultas de gráficos temporais
+        return await this.handleTimeSeriesQuery(text, user, params)
       }
       
       // Decidir estratégia: SQL vs Vetorial vs Híbrida
@@ -78,6 +90,208 @@ export default class DatabaseQueryAgent {
     const lowerText = text.toLowerCase()
     const countKeywords = ['quantas', 'quantos', 'total de', 'número de', 'contar', 'count']
     return countKeywords.some(keyword => lowerText.includes(keyword))
+  }
+
+  /**
+   * Detecta se a consulta é sobre média/agregação
+   */
+  isAggregateQuery(text) {
+    if (!text) return false
+    const lowerText = text.toLowerCase()
+    const aggregateKeywords = ['média', 'média de', 'average', 'avg', 'médio', 'médios']
+    return aggregateKeywords.some(keyword => lowerText.includes(keyword))
+  }
+
+  /**
+   * Detecta se a consulta é sobre gráfico temporal
+   */
+  isTimeSeriesQuery(text) {
+    if (!text) return false
+    const lowerText = text.toLowerCase()
+    const timeKeywords = ['gráfico', 'chart', 'por período', 'por mês', 'por ano', 'ao longo do tempo', 'tendência', 'evolução', 'cadastramento', 'cadastro']
+    return timeKeywords.some(keyword => lowerText.includes(keyword))
+  }
+
+  /**
+   * Lida com consultas agregadas (média, soma, etc)
+   */
+  async handleAggregateQuery(text, user, params) {
+    console.log('[DatabaseQueryAgent] handleAggregateQuery called:', { text, hasUser: !!user })
+    try {
+      const lowerText = text.toLowerCase()
+      
+      // Detectar média de colaboradores por empresa
+      if (lowerText.includes('média') && (lowerText.includes('colaborador') || lowerText.includes('funcionário')) && lowerText.includes('empresa')) {
+        console.log('[DatabaseQueryAgent] Detected average employees per company query')
+        
+        // Buscar todas as empresas
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+        }
+        
+        const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        const companies = companiesResult.companies || []
+        
+        if (companies.length === 0) {
+          return {
+            success: true,
+            results: [],
+            summary: 'Nenhuma empresa encontrada',
+            average: 0,
+            isAggregate: true
+          }
+        }
+        
+        // Buscar colaboradores de cada empresa
+        const { EmployeeService } = await import('../../../services/employeeService')
+        let totalEmployees = 0
+        let companiesWithEmployees = 0
+        
+        for (const company of companies) {
+          try {
+            const employeesResult = await EmployeeService.getCompanyEmployees(company.id)
+            const employees = employeesResult.employees || []
+            if (employees.length > 0) {
+              totalEmployees += employees.length
+              companiesWithEmployees++
+            }
+          } catch (e) {
+            console.warn(`[DatabaseQueryAgent] Error fetching employees for company ${company.id}:`, e)
+          }
+        }
+        
+        const average = companiesWithEmployees > 0 ? (totalEmployees / companiesWithEmployees).toFixed(2) : 0
+        
+        return {
+          success: true,
+          results: [{
+            metric: 'média_colaboradores_por_empresa',
+            value: parseFloat(average),
+            total_empresas: companies.length,
+            empresas_com_colaboradores: companiesWithEmployees,
+            total_colaboradores: totalEmployees
+          }],
+          summary: `A média de colaboradores por empresa é ${average}. Total de ${totalEmployees} colaboradores em ${companiesWithEmployees} empresas.`,
+          average: parseFloat(average),
+          isAggregate: true
+        }
+      }
+      
+      // Fallback para outras consultas agregadas
+      return {
+        success: true,
+        results: [],
+        summary: 'Consulta agregada não suportada ainda',
+        isAggregate: true
+      }
+    } catch (error) {
+      console.error('[DatabaseQueryAgent] Error in handleAggregateQuery:', error)
+      return {
+        success: false,
+        error: error.message || 'Erro ao calcular agregação',
+        results: [],
+        isAggregate: true
+      }
+    }
+  }
+
+  /**
+   * Lida com consultas de gráficos temporais
+   */
+  async handleTimeSeriesQuery(text, user, params) {
+    console.log('[DatabaseQueryAgent] handleTimeSeriesQuery called:', { text, hasUser: !!user })
+    try {
+      const lowerText = text.toLowerCase()
+      
+      // Detectar gráfico de cadastramento de empresas por período
+      if (lowerText.includes('empresa') && (lowerText.includes('cadastramento') || lowerText.includes('cadastro'))) {
+        console.log('[DatabaseQueryAgent] Detected company registration chart query')
+        
+        // Buscar todas as empresas
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+        }
+        
+        const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        const companies = companiesResult.companies || []
+        
+        if (companies.length === 0) {
+          return {
+            success: true,
+            results: [],
+            summary: 'Nenhuma empresa encontrada para gerar gráfico',
+            isTimeSeries: true
+          }
+        }
+        
+        // Agrupar empresas por período (mês/ano)
+        const byPeriod = {}
+        companies.forEach(company => {
+          if (company.created_at) {
+            const date = new Date(company.created_at)
+            const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            if (!byPeriod[period]) {
+              byPeriod[period] = 0
+            }
+            byPeriod[period]++
+          }
+        })
+        
+        // Converter para formato de gráfico
+        const chartData = Object.entries(byPeriod)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([period, count]) => ({
+            period,
+            count,
+            label: period
+          }))
+        
+        return {
+          success: true,
+          results: chartData,
+          summary: `Gráfico de cadastramento de empresas por período. Total de ${companies.length} empresas em ${chartData.length} períodos.`,
+          isTimeSeries: true,
+          chartType: 'line',
+          chartConfig: {
+            xColumn: 'period',
+            yColumn: 'count',
+            title: 'Cadastramento de Empresas por Período'
+          }
+        }
+      }
+      
+      // Fallback para outras consultas temporais
+      return {
+        success: true,
+        results: [],
+        summary: 'Consulta temporal não suportada ainda',
+        isTimeSeries: true
+      }
+    } catch (error) {
+      console.error('[DatabaseQueryAgent] Error in handleTimeSeriesQuery:', error)
+      return {
+        success: false,
+        error: error.message || 'Erro ao gerar gráfico temporal',
+        results: [],
+        isTimeSeries: true
+      }
+    }
   }
 
   /**
