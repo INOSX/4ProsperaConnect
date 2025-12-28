@@ -13,14 +13,8 @@
   },
   {
     "target": "[data-tour-id='specialist-connect-button']",
-    "title": "Conectar Especialista",
-    "content": "Clique aqui para conectar o especialista. Após conectar, você poderá começar a fazer perguntas e dar comandos por voz. O especialista estará pronto para ajudá-lo!",
-    "placement": "top"
-  },
-  {
-    "target": "[data-tour-id='specialist-microphone-button']",
-    "title": "Comandos de Voz",
-    "content": "Use este botão para falar com o especialista. Clique e fale seu comando ou pergunta. O sistema transcreve sua voz e processa o comando usando a arquitetura BMAD (Behavior, Model, Agent, Data).",
+    "title": "Conectar e Usar o Especialista",
+    "content": "Clique aqui para conectar o especialista. Após conectar, o botão mudará para 'Enviar Áudio' e você poderá começar a fazer perguntas e dar comandos por voz. O sistema transcreve sua voz e processa o comando usando a arquitetura BMAD (Behavior, Model, Agent, Data).",
     "placement": "top"
   },
   {

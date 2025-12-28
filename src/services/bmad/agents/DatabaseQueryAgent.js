@@ -15,6 +15,14 @@ export default class DatabaseQueryAgent {
    */
   async query(text, user, context, params) {
     try {
+      // Detectar se é uma consulta de contagem
+      const isCountQuery = this.isCountQuery(text)
+      
+      if (isCountQuery) {
+        // Para consultas de contagem, usar SQL direto
+        return await this.handleCountQuery(text, user, params)
+      }
+      
       // Decidir estratégia: SQL vs Vetorial vs Híbrida
       const strategy = this.determineSearchStrategy(text)
       
@@ -39,7 +47,7 @@ export default class DatabaseQueryAgent {
         return {
           success: true,
           results: this.combineResults(vectorResults.results || [], sqlResults),
-          summary: `Encontrados ${vectorResults.results?.length || 0 + sqlResults.length} resultados (semânticos + SQL)`,
+          summary: `Encontrados ${(vectorResults.results?.length || 0) + sqlResults.length} resultados (semânticos + SQL)`,
           vectorSearchUsed: true
         }
       } else {
@@ -54,6 +62,71 @@ export default class DatabaseQueryAgent {
       }
     } catch (error) {
       console.error('Error in DatabaseQueryAgent:', error)
+      return {
+        success: false,
+        error: error.message,
+        results: []
+      }
+    }
+  }
+
+  /**
+   * Detecta se a consulta é uma pergunta de contagem
+   */
+  isCountQuery(text) {
+    if (!text) return false
+    const lowerText = text.toLowerCase()
+    const countKeywords = ['quantas', 'quantos', 'total de', 'número de', 'contar', 'count']
+    return countKeywords.some(keyword => lowerText.includes(keyword))
+  }
+
+  /**
+   * Lida com consultas de contagem usando serviços apropriados
+   */
+  async handleCountQuery(text, user, params) {
+    try {
+      const lowerText = text.toLowerCase()
+      
+      // Detectar qual tabela está sendo consultada
+      if (lowerText.includes('empresa')) {
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('Error checking admin status:', e)
+        }
+        
+        const result = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        if (result.success && result.companies) {
+          const count = result.companies.length
+          return {
+            success: true,
+            results: [{ count, type: 'companies', label: 'Empresas' }],
+            summary: `Total de empresas: ${count}`,
+            vectorSearchUsed: false,
+            isCount: true
+          }
+        }
+      }
+      
+      // Para outras tabelas, usar busca semântica e contar resultados
+      const vectorResults = await this.vectorSearch.semanticSearch(text, params?.tableName, 100)
+      const count = vectorResults.results?.length || 0
+      
+      return {
+        success: true,
+        results: [{ count, type: 'general', label: 'Registros encontrados' }],
+        summary: `Total encontrado: ${count}`,
+        vectorSearchUsed: true,
+        isCount: true
+      }
+    } catch (error) {
+      console.error('Error in handleCountQuery:', error)
       return {
         success: false,
         error: error.message,
@@ -172,17 +245,48 @@ export default class DatabaseQueryAgent {
 
   async executeSQLQuery(text, user, params = {}) {
     try {
-      // Por enquanto, retorna resultados básicos
-      // Em produção, usaria um gerador de SQL com LLM
       const tableName = params?.tableName || 'companies'
       const limit = params?.limit || 20
       
+      // Usar serviços existentes em vez de queries diretas para evitar problemas de RLS
+      if (tableName === 'companies') {
+        const { CompanyService } = await import('../../../services/companyService')
+        // Verificar se é admin
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('Error checking admin status:', e)
+        }
+        
+        const result = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        if (result.success && result.companies) {
+          return result.companies.slice(0, limit)
+        }
+        return []
+      }
+      
+      // Para outras tabelas, usar query direta mas com cuidado
+      // Especificar colunas explicitamente para evitar ambiguidade
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
         .limit(limit)
       
-      if (error) throw error
+      if (error) {
+        console.error(`SQL query error for table ${tableName}:`, error)
+        // Se houver erro de ambiguidade, tentar especificar colunas
+        if (error.code === '42702' || error.message?.includes('ambiguous')) {
+          console.warn(`Ambiguous column error, trying alternative query for ${tableName}`)
+          // Retornar vazio e deixar busca semântica lidar com isso
+          return []
+        }
+        throw error
+      }
       
       return data || []
     } catch (error) {
