@@ -105,7 +105,23 @@ INSTRUÇÕES:
    - Tipo de agregação (count, sum, avg, max, min)
    - Campos a selecionar
 7. Se for consulta temporal, indique como agrupar por período
-8. Forneça instruções detalhadas de execução que permitam executar a query dinamicamente
+8. **CRITICAL**: Você DEVE gerar a QUERY SQL COMPLETA e EXECUTÁVEL no campo "sqlQuery"
+
+IMPORTANTE SOBRE A QUERY SQL:
+- Você DEVE gerar uma query SQL COMPLETA e VÁLIDA para PostgreSQL/Supabase
+- A query deve responder DIRETAMENTE à pergunta do usuário
+- Use os nomes exatos das tabelas e colunas do schema fornecido
+- Para agrupamento: use GROUP BY com o campo correto
+- Para contagem: use COUNT(*) ou COUNT(campo)
+- Para agregação: use AVG, SUM, MAX, MIN conforme necessário
+- Para série temporal: use DATE_TRUNC('month', created_at) ou similar
+- Para ordenação: use ORDER BY quando fizer sentido (ex: ORDER BY quantidade DESC)
+- A query deve ser executável e retornar os dados que respondem à pergunta
+- Exemplo para "Quais são os setores mais representados?": 
+  SELECT industry, COUNT(*) AS quantidade 
+  FROM companies 
+  GROUP BY industry 
+  ORDER BY quantidade DESC
 
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
@@ -119,9 +135,17 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
   "filters": [{"field": "campo", "operator": "=", "value": "valor"}],
   "timeGrouping": "month|year|day|null",
   "description": "Descrição detalhada do que a consulta deve fazer",
+  "sqlQuery": "SELECT ... FROM ... WHERE ... GROUP BY ... ORDER BY ...",
   "executionSteps": ["passo1", "passo2", "passo3"],
   "expectedResultFormat": "array|object|count|chart"
-}`
+}
+
+O campo "sqlQuery" é OBRIGATÓRIO quando strategy for "sql" ou queryType for "sql", "aggregate", "groupBy", "timeSeries" ou "count".
+A query SQL deve ser completa, válida e pronta para execução no Supabase.
+Se for consulta de agrupamento (groupBy), a query deve incluir GROUP BY e ORDER BY apropriados.
+Se for consulta temporal (timeSeries), use DATE_TRUNC para agrupar por período.
+Se for consulta de contagem, use COUNT(*) ou COUNT(campo).
+Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
   }
 
   /**
@@ -198,10 +222,18 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
         filters: rawPlan.filters || [],
         timeGrouping: rawPlan.timeGrouping || null,
         description: rawPlan.description || '',
+        sqlQuery: rawPlan.sqlQuery || null, // Query SQL completa gerada pela IA
         executionSteps: rawPlan.executionSteps || [],
         expectedResultFormat: rawPlan.expectedResultFormat || 'array',
         approach: rawPlan.approach || rawPlan.description || '',
         confidence: 0.8
+      }
+      
+      // Log da query SQL gerada pela IA
+      if (finalPlan.sqlQuery) {
+        console.log('[BMAD:QueryPlanningAgent] 📝 Query SQL gerada pela IA:', finalPlan.sqlQuery)
+      } else if (finalPlan.strategy === 'sql' || ['sql', 'aggregate', 'groupBy', 'timeSeries', 'count'].includes(finalPlan.queryType)) {
+        console.warn('[BMAD:QueryPlanningAgent] ⚠️ Query SQL não foi gerada pela IA, mas deveria ter sido gerada')
       }
       
       const totalTime = Date.now() - startTime

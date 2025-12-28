@@ -886,60 +886,202 @@ export default class DatabaseQueryAgent {
 
   /**
    * Executa uma consulta baseada no plano gerado pela IA - DINÂMICO
-   * Interpreta o plano e executa dinamicamente sem código fixo
+   * DECISÃO INTELIGENTE: Respeita a estratégia determinada pela IA (semantic, sql, hybrid)
+   * - semantic: Usa vectorstore (busca semântica)
+   * - sql: Usa SQL direto (agregações, contagens, agrupamentos)
+   * - hybrid: Combina ambos (busca semântica + SQL)
    */
   async executePlannedQuery(queryPlan, text, user, params) {
-    console.log('[BMAD:DatabaseQueryAgent] 🎯 Executing planned query dynamically:', queryPlan)
+    console.log('[BMAD:DatabaseQueryAgent] 🎯 ========== EXECUTANDO QUERY PLANEJADA PELA IA ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano recebido:', {
+      queryType: queryPlan.queryType,
+      strategy: queryPlan.strategy,
+      hasSqlQuery: !!queryPlan.sqlQuery,
+      sqlQuery: queryPlan.sqlQuery?.substring(0, 200),
+      groupBy: queryPlan.groupBy,
+      tables: queryPlan.tables,
+      needsEmbedding: queryPlan.needsEmbedding
+    })
     
     try {
-      // Se o plano tem groupBy, executar agrupamento dinâmico
-      if (queryPlan.groupBy) {
-        return await this.executeDynamicGroupBy(queryPlan, user, params)
+      const strategy = queryPlan.strategy || 'semantic'
+      console.log('[BMAD:DatabaseQueryAgent] 🎯 Estratégia determinada pela IA:', strategy)
+      
+      // DECISÃO 1: ESTRATÉGIA SEMANTIC (Vectorstore)
+      if (strategy === 'semantic' || (queryPlan.needsEmbedding && !queryPlan.sqlQuery)) {
+        console.log('[BMAD:DatabaseQueryAgent] 🔍 ========== EXECUTANDO NO VECTORSTORE ==========')
+        console.log('[BMAD:DatabaseQueryAgent] 🔍 Usando busca semântica no vectorstore...')
+        
+        const limit = params?.limit || 20
+        const tableName = queryPlan.tables?.[0] || params?.tableName || null
+        console.log('[BMAD:DatabaseQueryAgent] 🔍 Parâmetros da busca:', { limit, tableName, query: text?.substring(0, 100) })
+        
+        const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
+        console.log('[BMAD:DatabaseQueryAgent] ✅ Resultados do vectorstore:', {
+          resultsCount: vectorResults.results?.length || 0,
+          hasResults: !!vectorResults.results && vectorResults.results.length > 0,
+          summary: vectorResults.summary?.substring(0, 100)
+        })
+        
+        return {
+          success: true,
+          results: this.formatVectorResults(vectorResults.results || []),
+          summary: vectorResults.summary || 'Resultados encontrados via busca semântica',
+          vectorSearchUsed: true,
+          totalResults: vectorResults.results?.length || 0,
+          strategy: 'semantic'
+        }
       }
       
-      // Se for agregação com instruções de execução, seguir os passos
-      if (queryPlan.queryType === 'aggregate' && queryPlan.executionSteps?.length > 0) {
-        return await this.executeDynamicAggregate(queryPlan, user, params)
-      }
-      
-      // Casos específicos mantidos apenas como fallback
-      switch (queryPlan.queryType) {
-        case 'count':
-          return await this.handleCountQuery(text, user, params)
+      // DECISÃO 2: ESTRATÉGIA SQL (Queries SQL diretas)
+      if (strategy === 'sql' || queryPlan.sqlQuery || 
+          ['aggregate', 'groupBy', 'timeSeries', 'count', 'crossTable'].includes(queryPlan.queryType)) {
+        console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO QUERY SQL ==========')
         
-        case 'timeSeries':
-          return await this.handleTimeSeriesQuery(text, user, params)
+        if (queryPlan.sqlQuery && queryPlan.sqlQuery.trim()) {
+          console.log('[BMAD:DatabaseQueryAgent] ✅ Query SQL gerada pela IA encontrada:')
+          console.log('[BMAD:DatabaseQueryAgent] 📝', queryPlan.sqlQuery)
+        }
         
-        case 'semantic':
-          if (queryPlan.needsEmbedding) {
-            const limit = params?.limit || 20
-            const tableName = queryPlan.tables?.[0] || null
-            const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
-            return {
-              success: true,
-              results: this.formatVectorResults(vectorResults.results || []),
-              summary: vectorResults.summary || 'Resultados encontrados via busca semântica',
-              vectorSearchUsed: true,
-              totalResults: vectorResults.results?.length || 0
-            }
+        try {
+          // Se tem GROUP BY, usar método de agrupamento dinâmico
+          if (queryPlan.groupBy || (queryPlan.sqlQuery && queryPlan.sqlQuery.toLowerCase().includes('group by'))) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query tem GROUP BY, executando agrupamento dinâmico...')
+            const result = await this.executeDynamicGroupBy(queryPlan, user, params)
+            return { ...result, strategy: 'sql' }
           }
-          return await this.executeSQLQuery(text, user, params)
+          
+          // Se é agregação, usar método de agregação dinâmica
+          if (queryPlan.queryType === 'aggregate' || queryPlan.aggregationType) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é agregação, executando agregação dinâmica...')
+            const result = await this.executeDynamicAggregate(queryPlan, user, params)
+            return { ...result, strategy: 'sql' }
+          }
+          
+          // Se é série temporal, usar método de série temporal
+          if (queryPlan.queryType === 'timeSeries' || queryPlan.timeGrouping) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é série temporal, executando série temporal...')
+            const result = await this.handleTimeSeriesQuery(text, user, params)
+            return { ...result, strategy: 'sql' }
+          }
+          
+          // Se é contagem simples
+          if (queryPlan.queryType === 'count' || (queryPlan.sqlQuery && queryPlan.sqlQuery.toLowerCase().includes('count('))) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é contagem, executando contagem...')
+            const result = await this.handleCountQuery(text, user, params)
+            return { ...result, strategy: 'sql' }
+          }
+          
+          // Para outras queries SQL, usar método SQL padrão
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Query SQL genérica, usando método SQL padrão...')
+          const sqlResults = await this.executeSQLQuery(text, user, params)
+          return {
+            success: true,
+            results: sqlResults,
+            summary: queryPlan.description || `Encontrados ${sqlResults.length} resultados.`,
+            vectorSearchUsed: false,
+            strategy: 'sql'
+          }
+        } catch (sqlError) {
+          console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR QUERY SQL ==========')
+          console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', sqlError)
+          console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', sqlError.stack)
+          console.log('[BMAD:DatabaseQueryAgent] 🔄 Tentando fallback para vectorstore...')
+          
+          // Fallback: tentar vectorstore se SQL falhar
+          const limit = params?.limit || 20
+          const tableName = queryPlan.tables?.[0] || null
+          const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
+          return {
+            success: true,
+            results: this.formatVectorResults(vectorResults.results || []),
+            summary: vectorResults.summary || 'Resultados encontrados via busca semântica (fallback)',
+            vectorSearchUsed: true,
+            strategy: 'semantic',
+            fallback: true
+          }
+        }
+      }
+      
+      // DECISÃO 3: ESTRATÉGIA HYBRID (Combina vectorstore + SQL)
+      if (strategy === 'hybrid') {
+        console.log('[BMAD:DatabaseQueryAgent] 🔀 ========== EXECUTANDO ESTRATÉGIA HÍBRIDA ==========')
+        console.log('[BMAD:DatabaseQueryAgent] 🔀 Combinando busca semântica + SQL...')
         
-        case 'sql':
-        case 'crossTable':
-        default:
-          return await this.executeSQLQuery(text, user, params)
+        try {
+          // Primeiro: busca semântica no vectorstore
+          const limit = params?.limit || 20
+          const tableName = queryPlan.tables?.[0] || null
+          console.log('[BMAD:DatabaseQueryAgent] 🔍 Passo 1: Busca semântica no vectorstore...')
+          const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
+          
+          // Segundo: query SQL complementar
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Passo 2: Query SQL complementar...')
+          const sqlResults = await this.executeSQLQuery(text, user, params)
+          
+          // Combinar resultados
+          console.log('[BMAD:DatabaseQueryAgent] 🔀 Passo 3: Combinando resultados...')
+          const combinedResults = this.combineResults(vectorResults.results || [], sqlResults)
+          
+          console.log('[BMAD:DatabaseQueryAgent] ✅ Resultados híbridos:', {
+            vectorCount: vectorResults.results?.length || 0,
+            sqlCount: sqlResults.length,
+            combinedCount: combinedResults.length
+          })
+          
+          return {
+            success: true,
+            results: combinedResults,
+            summary: `Encontrados ${combinedResults.length} resultados (${vectorResults.results?.length || 0} semânticos + ${sqlResults.length} SQL)`,
+            vectorSearchUsed: true,
+            strategy: 'hybrid',
+            totalResults: combinedResults.length
+          }
+        } catch (hybridError) {
+          console.error('[BMAD:DatabaseQueryAgent] ❌ Erro na estratégia híbrida:', hybridError)
+          // Fallback: usar apenas vectorstore
+          const limit = params?.limit || 20
+          const vectorResults = await this.vectorSearch.semanticSearch(text, null, limit)
+          return {
+            success: true,
+            results: this.formatVectorResults(vectorResults.results || []),
+            summary: vectorResults.summary || 'Resultados encontrados via busca semântica',
+            vectorSearchUsed: true,
+            strategy: 'semantic',
+            fallback: true
+          }
+        }
+      }
+      
+      // FALLBACK: Se estratégia não reconhecida, usar vectorstore como padrão
+      console.log('[BMAD:DatabaseQueryAgent] ⚠️ Estratégia não reconhecida, usando vectorstore como padrão...')
+      const limit = params?.limit || 20
+      const tableName = queryPlan.tables?.[0] || null
+      const vectorResults = await this.vectorSearch.semanticSearch(text, tableName, limit)
+      return {
+        success: true,
+        results: this.formatVectorResults(vectorResults.results || []),
+        summary: vectorResults.summary || 'Resultados encontrados via busca semântica',
+        vectorSearchUsed: true,
+        strategy: 'semantic',
+        fallback: true
       }
     } catch (error) {
-      console.error('[BMAD:DatabaseQueryAgent] ❌ Error executing planned query:', error)
-      // Fallback para busca semântica
+      console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR QUERY PLANEJADA ==========')
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', error.stack)
+      console.log('[BMAD:DatabaseQueryAgent] 🔄 Usando fallback final (busca semântica)...')
+      
+      // Fallback final: busca semântica
       const limit = params?.limit || 20
       const vectorResults = await this.vectorSearch.semanticSearch(text, null, limit)
       return {
         success: true,
         results: this.formatVectorResults(vectorResults.results || []),
         summary: vectorResults.summary || 'Resultados encontrados',
-        vectorSearchUsed: true
+        vectorSearchUsed: true,
+        strategy: 'semantic',
+        fallback: true
       }
     }
   }
