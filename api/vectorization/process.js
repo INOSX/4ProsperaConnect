@@ -250,16 +250,30 @@ export default async function handler(req, res) {
             console.warn(`[vectorizeTable] Embedding dimension mismatch for record ${record.id}: expected 3072, got ${embedding.length}`)
           }
 
+          // Limitar tamanho do metadata para evitar payload muito grande
+          const limitedMetadata = {
+            id: record.id,
+            ...(record.company_name && { company_name: record.company_name }),
+            ...(record.name && { name: record.name }),
+            ...(record.email && { email: record.email }),
+            ...(record.cnpj && { cnpj: record.cnpj }),
+            ...(record.cpf && { cpf: record.cpf })
+          }
+
           const embeddingRecord = {
             table_name: tableName,
             record_id: record.id,
-            chunk_text: text,
+            chunk_text: text.substring(0, 10000), // Limitar tamanho do texto
             embedding: embedding, // Array direto
-            metadata: record
+            metadata: limitedMetadata
           }
 
           if (i < 3 || i % 50 === 0) {
-            console.log(`[vectorizeTable] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`)
+            console.log(`[vectorizeTable] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+              embeddingLength: embedding.length,
+              textLength: text.length,
+              metadataSize: JSON.stringify(limitedMetadata).length
+            })
           }
 
           const { error: upsertError } = await supabase
@@ -411,19 +425,30 @@ export default async function handler(req, res) {
                 continue
               }
 
+              // Limitar tamanho do metadata para evitar payload muito grande
+              const limitedMetadata = {
+                id: record.id,
+                ...(record.company_name && { company_name: record.company_name }),
+                ...(record.name && { name: record.name }),
+                ...(record.email && { email: record.email }),
+                ...(record.cnpj && { cnpj: record.cnpj }),
+                ...(record.cpf && { cpf: record.cpf })
+              }
+
               const embeddingRecord = {
                 table_name: tableName,
                 record_id: record.id,
-                chunk_text: text,
+                chunk_text: text.substring(0, 10000), // Limitar tamanho do texto
                 embedding: embedding, // Array direto - Supabase/pgvector aceita array
-                metadata: record
+                metadata: limitedMetadata
               }
 
               if (i < 3 || i % 50 === 0) {
                 console.log(`[vectorizeAll] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
                   embeddingLength: embedding.length,
                   textLength: text.length,
-                  hasMetadata: !!record
+                  metadataSize: JSON.stringify(limitedMetadata).length,
+                  embeddingFirstFew: embedding.slice(0, 3)
                 })
               }
               
