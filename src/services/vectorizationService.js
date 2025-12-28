@@ -64,6 +64,7 @@ class VectorizationService {
    */
   async vectorizeAll() {
     try {
+      console.log('[VectorizationService] Starting vectorizeAll...')
       const response = await fetch('/api/vectorization/process', {
         method: 'POST',
         headers: {
@@ -74,14 +75,26 @@ class VectorizationService {
         })
       })
 
+      console.log('[VectorizationService] Response status:', response.status, response.statusText)
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to vectorize all tables')
+        let errorData
+        try {
+          errorData = await response.json()
+          console.error('[VectorizationService] Error response:', errorData)
+        } catch (e) {
+          const text = await response.text()
+          console.error('[VectorizationService] Error response (not JSON):', text)
+          throw new Error(`HTTP ${response.status}: ${text || response.statusText}`)
+        }
+        throw new Error(errorData.error || errorData.message || 'Failed to vectorize all tables')
       }
 
-      return await response.json()
+      const result = await response.json()
+      console.log('[VectorizationService] VectorizeAll result:', result)
+      return result
     } catch (error) {
-      console.error('Error vectorizing all tables:', error)
+      console.error('[VectorizationService] Error vectorizing all tables:', error)
       throw error
     }
   }

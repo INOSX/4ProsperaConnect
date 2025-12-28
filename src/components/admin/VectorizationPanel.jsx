@@ -40,13 +40,33 @@ const VectorizationPanel = () => {
 
     setProcessing(true)
     setProgress({ message: 'Iniciando vetorização...' })
+    
+    console.log('[VectorizationPanel] Starting vectorizeAll...')
 
     try {
+      console.log('[VectorizationPanel] Calling VectorizationService.vectorizeAll()')
       const result = await VectorizationService.vectorizeAll()
-      alert(`Vetorização concluída! ${result.totalProcessed} registros processados.`)
+      console.log('[VectorizationPanel] VectorizeAll result:', result)
+      
+      const message = result.totalProcessed > 0 
+        ? `Vetorização concluída! ${result.totalProcessed} registros processados de ${result.successfulTables || 0} tabelas.`
+        : `Vetorização concluída, mas nenhum registro foi processado. Verifique se há dados nas tabelas e se a tabela data_embeddings existe.`
+      
+      alert(message)
+      
+      if (result.results && result.results.length > 0) {
+        console.log('[VectorizationPanel] Detailed results:', result.results)
+        const failedTables = result.results.filter(r => !r.success)
+        if (failedTables.length > 0) {
+          console.warn('[VectorizationPanel] Failed tables:', failedTables)
+          alert(`Atenção: ${failedTables.length} tabela(s) falharam. Verifique o console para detalhes.`)
+        }
+      }
+      
       await loadStatus()
     } catch (error) {
-      alert(`Erro: ${error.message}`)
+      console.error('[VectorizationPanel] Error in vectorizeAll:', error)
+      alert(`Erro: ${error.message || 'Erro desconhecido. Verifique o console para mais detalhes.'}`)
     } finally {
       setProcessing(false)
       setProgress(null)

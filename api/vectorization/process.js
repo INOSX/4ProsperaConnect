@@ -210,21 +210,48 @@ export default async function handler(req, res) {
         })
 
         // Gerar embeddings em batch
+        console.log(`[vectorizeTable] Generating embeddings for ${texts.length} texts from ${tableName}...`)
         const embeddings = await generateBatch(texts)
+        console.log(`[vectorizeTable] Generated ${embeddings.length} embeddings`, {
+          firstEmbeddingLength: embeddings[0]?.length,
+          firstEmbeddingType: typeof embeddings[0],
+          firstEmbeddingIsArray: Array.isArray(embeddings[0])
+        })
 
         // Salvar embeddings
         let processed = 0
+        let errors = []
+        
         for (let i = 0; i < records.length; i++) {
           const record = records[i]
           const embedding = embeddings[i]
           const text = texts[i]
 
+          // Validar embedding
+          if (!embedding || !Array.isArray(embedding)) {
+            console.error(`[vectorizeTable] Invalid embedding for record ${record.id}:`, {
+              embeddingType: typeof embedding,
+              isArray: Array.isArray(embedding),
+              embeddingLength: embedding?.length
+            })
+            errors.push({ recordId: record.id, error: 'Invalid embedding format' })
+            continue
+          }
+          
+          if (embedding.length !== 3072) {
+            console.warn(`[vectorizeTable] Embedding dimension mismatch for record ${record.id}: expected 3072, got ${embedding.length}`)
+          }
+
           const embeddingRecord = {
             table_name: tableName,
             record_id: record.id,
             chunk_text: text,
-            embedding: embedding,
+            embedding: embedding, // Array direto
             metadata: record
+          }
+
+          if (i < 3 || i % 50 === 0) {
+            console.log(`[vectorizeTable] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`)
           }
 
           const { error: upsertError } = await supabase
@@ -234,8 +261,19 @@ export default async function handler(req, res) {
           if (!upsertError) {
             processed++
           } else {
-            console.error(`Error upserting embedding for ${tableName}:${record.id}:`, upsertError)
+            console.error(`[vectorizeTable] Error upserting embedding for ${tableName}:${record.id}:`, {
+              error: upsertError,
+              message: upsertError.message,
+              details: upsertError.details,
+              hint: upsertError.hint,
+              code: upsertError.code
+            })
+            errors.push({ recordId: record.id, error: upsertError.message })
           }
+        }
+        
+        if (errors.length > 0) {
+          console.warn(`[vectorizeTable] ${errors.length} errors occurred while processing ${tableName}:`, errors.slice(0, 5))
         }
 
         return res.status(200).json({
@@ -323,6 +361,8 @@ export default async function handler(req, res) {
 
             // Salvar embeddings
             let processed = 0
+            let errors = []
+            
             for (let i = 0; i < records.length; i++) {
               const record = records[i]
               const text = texts[i]
@@ -335,24 +375,73 @@ export default async function handler(req, res) {
               }
               
               const embedding = embeddings[textIndex]
+              
+              // Validar embedding
+              if (!embedding || !Array.isArray(embedding)) {
+                console.error(`[vectorizeAll] Invalid embedding for record ${record.id} from ${tableName}:`, {
+                  embeddingType: typeof embedding,
+                  isArray: Array.isArray(embedding),
+                  embeddingLength: embedding?.length
+                })
+                errors.push({ recordId: record.id, error: 'Invalid embedding format' })
+                continue
+              }
+              
+              if (embedding.length !== 3072) {
+                console.warn(`[vectorizeAll] Embedding dimension mismatch for record ${record.id}: expected 3072, got ${embedding.length}`)
+              }
+
+              // Validar formato do embedding antes de enviar
+              if (!Array.isArray(embedding) || embedding.length !== 3072) {
+                console.error(`[vectorizeAll] Invalid embedding format for record ${record.id}:`, {
+                  isArray: Array.isArray(embedding),
+                  length: embedding?.length,
+                  expectedLength: 3072,
+                  firstFew: embedding?.slice(0, 5)
+                })
+                errors.push({ recordId: record.id, error: `Invalid embedding: expected array of 3072, got ${embedding?.length || 'null'}` })
+                continue
+              }
 
               const embeddingRecord = {
                 table_name: tableName,
                 record_id: record.id,
                 chunk_text: text,
-                embedding: embedding,
+                embedding: embedding, // Array direto - Supabase/pgvector aceita array
                 metadata: record
               }
 
+              if (i < 3 || i % 50 === 0) {
+                console.log(`[vectorizeAll] Upserting record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                  embeddingLength: embedding.length,
+                  textLength: text.length,
+                  hasMetadata: !!record
+                })
+              }
+              
               const { error: upsertError } = await supabase
                 .from('data_embeddings')
                 .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
 
               if (!upsertError) {
                 processed++
+                if (processed % 10 === 0) {
+                  console.log(`[vectorizeAll] Progress: ${processed}/${records.length} records processed from ${tableName}`)
+                }
               } else {
-                console.error(`[vectorizeAll] Error upserting embedding for ${tableName}:${record.id}:`, upsertError)
+                console.error(`[vectorizeAll] Error upserting embedding for ${tableName}:${record.id}:`, {
+                  error: upsertError,
+                  message: upsertError.message,
+                  details: upsertError.details,
+                  hint: upsertError.hint,
+                  code: upsertError.code
+                })
+                errors.push({ recordId: record.id, error: upsertError.message })
               }
+            }
+            
+            if (errors.length > 0) {
+              console.warn(`[vectorizeAll] ${errors.length} errors occurred while processing ${tableName}:`, errors.slice(0, 5))
             }
 
             console.log(`[vectorizeAll] Processed ${processed} of ${records.length} records from ${tableName}`)
