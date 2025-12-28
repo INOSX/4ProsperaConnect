@@ -93,29 +93,44 @@ export class HeyGenStreamingService {
       }
 
       const data = await response.json()
-      // Garantir que sempre retornamos um array
-      let avatars = data.data || data.avatars || data || []
+      console.log('🔵 listAvatars response structure:', { 
+        hasData: !!data.data, 
+        hasAvatars: !!data.avatars,
+        keys: Object.keys(data),
+        dataType: typeof data,
+        isArray: Array.isArray(data)
+      })
       
-      // Se não for um array, tentar converter
-      if (!Array.isArray(avatars)) {
-        console.warn('⚠️ listAvatars did not return an array:', typeof avatars, avatars)
-        // Se for um objeto, tentar extrair array de propriedades
-        if (typeof avatars === 'object' && avatars !== null) {
-          // Tentar encontrar array dentro do objeto
-          const keys = Object.keys(avatars)
+      // Garantir que sempre retornamos um array
+      // A API pode retornar: { data: {...}, avatars: [...], talking_photos: [...] }
+      let avatars = []
+      
+      if (Array.isArray(data)) {
+        avatars = data
+      } else if (data && typeof data === 'object') {
+        // Tentar diferentes propriedades possíveis
+        if (Array.isArray(data.avatars)) {
+          avatars = data.avatars
+        } else if (Array.isArray(data.data)) {
+          avatars = data.data
+        } else if (data.data && Array.isArray(data.data.avatars)) {
+          avatars = data.data.avatars
+        } else {
+          // Se for objeto, tentar encontrar qualquer array dentro
+          const keys = Object.keys(data)
           for (const key of keys) {
-            if (Array.isArray(avatars[key])) {
-              avatars = avatars[key]
-              break
+            if (Array.isArray(data[key]) && data[key].length > 0) {
+              // Preferir 'avatars' sobre outros arrays
+              if (key === 'avatars' || avatars.length === 0) {
+                avatars = data[key]
+                if (key === 'avatars') break
+              }
             }
           }
         }
-        // Se ainda não for array, retornar vazio
-        if (!Array.isArray(avatars)) {
-          return []
-        }
       }
       
+      console.log(`✅ Extracted ${avatars.length} avatars from response`)
       return avatars
     } catch (error) {
       console.error('Error listing avatars:', error)
@@ -335,7 +350,17 @@ export class HeyGenStreamingService {
 
       let sessionData
       try {
+        console.log('🔵 Calling createStartAvatar with config:', sessionConfig)
+        console.log('🔵 Calling createStartAvatar with config:', sessionConfig)
         sessionData = await this.avatar.createStartAvatar(sessionConfig)
+        console.log('✅ createStartAvatar succeeded:', { 
+          sessionId: sessionData?.session_id,
+          hasSessionData: !!sessionData
+        })
+        console.log('✅ createStartAvatar succeeded:', { 
+          sessionId: sessionData?.session_id,
+          hasSessionData: !!sessionData
+        })
       } catch (error) {
         // Log detalhado do erro para debug
         console.error('❌ Error creating avatar session:', {
@@ -378,12 +403,31 @@ export class HeyGenStreamingService {
         throw error
       }
 
-      this.sessionId = sessionData.session_id
+      this.sessionId = sessionData?.session_id || sessionData?.sessionId
       console.log('✅ Session created with SDK:', this.sessionId)
 
       // Aguardar o stream ficar pronto se listeners foram configurados
+      // Mas não bloquear a conexão se o stream demorar
       if (streamReadyPromise) {
-        await streamReadyPromise
+        console.log('⏳ Waiting for stream to be ready...')
+        // Usar Promise.race com timeout, mas não rejeitar se timeout
+        Promise.race([
+          streamReadyPromise.then(() => {
+            console.log('✅ Stream is ready!')
+          }),
+          new Promise((resolve) => {
+            setTimeout(() => {
+              console.log('⚠️ Stream setup taking longer than expected, continuing anyway...')
+              resolve()
+            }, 30000) // 30 segundos - tempo razoável
+          })
+        ]).catch((streamError) => {
+          console.error('⚠️ Stream setup error (continuing anyway):', streamError)
+          // Não rejeitar a sessão inteira se o stream não estiver pronto
+          // O stream pode ficar pronto depois - marcar como conectado mesmo assim
+        })
+        // Não usar await aqui - deixar o stream inicializar em background
+        // A sessão já foi criada, então podemos continuar
       }
 
       return sessionData
