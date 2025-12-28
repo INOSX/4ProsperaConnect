@@ -253,39 +253,141 @@ export default async function handler(req, res) {
 
         for (const tableName of tables) {
           try {
-            // Chamar recursivamente para cada tabela
-            const response = await fetch(`${req.headers.origin || 'http://localhost:3000'}/api/vectorization/process`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                action: 'vectorizeTable',
-                tableName
+            console.log(`[vectorizeAll] Processing table: ${tableName}`)
+            
+            // Buscar todos os registros da tabela diretamente
+            const { data: records, error: fetchError } = await supabase
+              .from(tableName)
+              .select('*')
+
+            if (fetchError) {
+              console.error(`[vectorizeAll] Error fetching ${tableName}:`, fetchError)
+              results.push({
+                table: tableName,
+                success: false,
+                processed: 0,
+                error: fetchError.message
               })
+              continue
+            }
+
+            if (!records || records.length === 0) {
+              console.log(`[vectorizeAll] No records found in ${tableName}`)
+              results.push({
+                table: tableName,
+                success: true,
+                processed: 0,
+                total: 0,
+                message: `Nenhum registro encontrado na tabela ${tableName}`
+              })
+              continue
+            }
+
+            console.log(`[vectorizeAll] Found ${records.length} records in ${tableName}`)
+
+            // Criar textos semânticos
+            const texts = records.map(record => {
+              if (tableName === 'companies') {
+                return `${record.company_name || ''} ${record.cnpj || ''} ${record.trade_name || ''} ${record.industry || ''}`.trim()
+              } else if (tableName === 'employees') {
+                return `${record.name || ''} ${record.email || ''} ${record.department || ''} ${record.position || ''}`.trim()
+              } else if (tableName === 'prospects') {
+                return `${record.name || ''} ${record.cpf || ''} ${record.cnpj || ''} ${record.email || ''} ${record.market_signals || ''}`.trim()
+              } else if (tableName === 'cpf_clients') {
+                return `${record.name || ''} ${record.cpf || ''} ${record.email || ''} ${record.business_category || ''} ${record.notes || ''}`.trim()
+              } else if (tableName === 'unbanked_companies') {
+                return `${record.company_name || ''} ${record.cnpj || ''} ${record.industry || ''} ${record.notes || ''}`.trim()
+              }
+              return JSON.stringify(record)
             })
 
-            const result = await response.json()
+            // Filtrar textos vazios
+            const validTexts = texts.filter(t => t && t.length > 0)
+            if (validTexts.length === 0) {
+              console.log(`[vectorizeAll] No valid texts generated for ${tableName}`)
+              results.push({
+                table: tableName,
+                success: true,
+                processed: 0,
+                total: records.length,
+                message: `Nenhum texto válido gerado para ${tableName}`
+              })
+              continue
+            }
+
+            console.log(`[vectorizeAll] Generating embeddings for ${validTexts.length} texts from ${tableName}`)
+
+            // Gerar embeddings em batch
+            const embeddings = await generateBatch(validTexts)
+            console.log(`[vectorizeAll] Generated ${embeddings.length} embeddings for ${tableName}`)
+
+            // Salvar embeddings
+            let processed = 0
+            for (let i = 0; i < records.length; i++) {
+              const record = records[i]
+              const text = texts[i]
+              
+              // Encontrar o embedding correspondente (pode ser diferente se alguns textos foram filtrados)
+              const textIndex = validTexts.indexOf(text)
+              if (textIndex === -1 || !text || text.length === 0) {
+                console.warn(`[vectorizeAll] Skipping record ${record.id} from ${tableName} - no valid text`)
+                continue
+              }
+              
+              const embedding = embeddings[textIndex]
+
+              const embeddingRecord = {
+                table_name: tableName,
+                record_id: record.id,
+                chunk_text: text,
+                embedding: embedding,
+                metadata: record
+              }
+
+              const { error: upsertError } = await supabase
+                .from('data_embeddings')
+                .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+
+              if (!upsertError) {
+                processed++
+              } else {
+                console.error(`[vectorizeAll] Error upserting embedding for ${tableName}:${record.id}:`, upsertError)
+              }
+            }
+
+            console.log(`[vectorizeAll] Processed ${processed} of ${records.length} records from ${tableName}`)
+
             results.push({
               table: tableName,
-              ...result
+              success: true,
+              processed,
+              total: records.length,
+              message: `Vetorizados ${processed} de ${records.length} registros da tabela ${tableName}`
             })
           } catch (error) {
+            console.error(`[vectorizeAll] Error processing ${tableName}:`, error)
             results.push({
               table: tableName,
               success: false,
-              error: error.message
+              processed: 0,
+              error: error.message || 'Erro desconhecido'
             })
           }
         }
 
         const totalProcessed = results.reduce((sum, r) => sum + (r.processed || 0), 0)
+        const successfulTables = results.filter(r => r.success).length
+        const failedTables = results.filter(r => !r.success).length
+
+        console.log(`[vectorizeAll] Completed: ${totalProcessed} total records, ${successfulTables} successful tables, ${failedTables} failed tables`)
 
         return res.status(200).json({
           success: true,
           results,
           totalProcessed,
-          message: `Vetorização completa. Total: ${totalProcessed} registros processados`
+          successfulTables,
+          failedTables,
+          message: `Vetorização completa. Total: ${totalProcessed} registros processados de ${successfulTables} tabelas`
         })
       }
 
