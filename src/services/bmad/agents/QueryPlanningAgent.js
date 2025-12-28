@@ -105,10 +105,23 @@ INSTRUÇÕES:
    - Tipo de agregação (count, sum, avg, max, min)
    - Campos a selecionar
 7. Se for consulta temporal, indique como agrupar por período
-8. Forneça instruções detalhadas de execução que permitam executar a query dinamicamente
+8. **CRITICAL**: Você DEVE gerar a QUERY SQL COMPLETA e EXECUTÁVEL no campo "sqlQuery"
 
-IMPORTANTE: Você deve gerar a QUERY SQL COMPLETA e EXECUTÁVEL que responda à pergunta do usuário.
-A query deve ser válida para PostgreSQL/Supabase e considerar RLS (Row Level Security).
+IMPORTANTE SOBRE A QUERY SQL:
+- Você DEVE gerar uma query SQL COMPLETA e VÁLIDA para PostgreSQL/Supabase
+- A query deve responder DIRETAMENTE à pergunta do usuário
+- Use os nomes exatos das tabelas e colunas do schema fornecido
+- Para agrupamento: use GROUP BY com o campo correto
+- Para contagem: use COUNT(*) ou COUNT(campo)
+- Para agregação: use AVG, SUM, MAX, MIN conforme necessário
+- Para série temporal: use DATE_TRUNC('month', created_at) ou similar
+- Para ordenação: use ORDER BY quando fizer sentido (ex: ORDER BY quantidade DESC)
+- A query deve ser executável e retornar os dados que respondem à pergunta
+- Exemplo para "Quais são os setores mais representados?": 
+  SELECT industry, COUNT(*) AS quantidade 
+  FROM companies 
+  GROUP BY industry 
+  ORDER BY quantidade DESC
 
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
