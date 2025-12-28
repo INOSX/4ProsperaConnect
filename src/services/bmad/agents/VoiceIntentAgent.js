@@ -38,8 +38,16 @@ export default class VoiceIntentAgent {
   }
 
   async classifyIntent(text, user) {
-    console.log('[BMAD:VoiceIntentAgent] 🔍 Classifying intent for text:', text?.substring(0, 100))
+    console.log('[BMAD:VoiceIntentAgent] 🔍 ========== CLASSIFICANDO INTENÇÃO ==========')
+    console.log('[BMAD:VoiceIntentAgent] 📝 Input:', {
+      text: text?.substring(0, 200),
+      textLength: text?.length || 0,
+      userId: user?.id,
+      userEmail: user?.email
+    })
+    
     const lowerText = text.toLowerCase()
+    console.log('[BMAD:VoiceIntentAgent] 🔄 Texto normalizado (primeiros 100 chars):', lowerText.substring(0, 100))
     
     // Priorizar consultas sobre empresas sem colaboradores como query_database
     const companiesWithoutEmployeesKeywords = [
@@ -59,7 +67,12 @@ export default class VoiceIntentAgent {
         confidence: 0.95,
         originalText: text
       }
-      console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (companies without employees):', result.intent, 'confidence:', result.confidence)
+      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (empresas sem colaboradores):', {
+        intent: result.intent,
+        confidence: result.confidence,
+        params: result.params
+      })
+      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
       return result
     }
     
@@ -75,7 +88,13 @@ export default class VoiceIntentAgent {
         confidence: 0.9,
         originalText: text
       }
-      console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (query keyword):', result.intent, 'confidence:', result.confidence, 'params:', params)
+      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (palavra-chave de query):', {
+        intent: result.intent,
+        confidence: result.confidence,
+        params: result.params,
+        matchedKeyword: queryKeywords.find(kw => lowerText.includes(kw))
+      })
+      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
       return result
     }
     
@@ -90,8 +109,14 @@ export default class VoiceIntentAgent {
             confidence: 0.8,
             originalText: text
           }
-          console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (pattern match):', result.intent, 'pattern:', pattern, 'confidence:', result.confidence, 'params:', params)
-          return result
+        console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (padrão correspondente):', {
+          intent: result.intent,
+          pattern: pattern,
+          confidence: result.confidence,
+          params: result.params
+        })
+        console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+        return result
         }
       }
     }
@@ -105,14 +130,26 @@ export default class VoiceIntentAgent {
       confidence: 0.6,
       originalText: text
     }
-    console.log('[BMAD:VoiceIntentAgent] ⚠️ Intent classified (default fallback):', result.intent, 'confidence:', result.confidence, 'params:', params)
-    return result
+        console.log('[BMAD:VoiceIntentAgent] ⚠️ Intenção classificada (fallback padrão):', {
+          intent: result.intent,
+          confidence: result.confidence,
+          params: result.params,
+          reason: 'Nenhum padrão específico encontrado'
+        })
+        console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+        return result
   }
 
   extractParams(text, intent) {
-    console.log('[BMAD:VoiceIntentAgent] 🔧 Extracting params for intent:', intent)
+    console.log('[BMAD:VoiceIntentAgent] 🔧 ========== EXTRAINDO PARÂMETROS ==========')
+    console.log('[BMAD:VoiceIntentAgent] 📝 Input:', {
+      text: text?.substring(0, 100),
+      intent: intent
+    })
+    
     const params = {}
     const lowerText = text.toLowerCase()
+    let extractedCount = 0
 
     // Extrair CNPJ
     const cnpjMatch = text.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/)
