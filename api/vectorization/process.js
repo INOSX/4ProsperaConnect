@@ -297,21 +297,36 @@ export default async function handler(req, res) {
             })
           }
 
-          const { error: upsertError } = await supabase
+          const { data: upsertData, error: upsertError } = await supabase
             .from('data_embeddings')
             .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+            .select()
 
           if (!upsertError) {
             processed++
+            if (i < 3 || i % 50 === 0) {
+              console.log(`[vectorizeTable] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                upsertData: upsertData?.[0] ? { id: upsertData[0].id, table_name: upsertData[0].table_name } : null
+              })
+            }
           } else {
-            console.error(`[vectorizeTable] Error upserting embedding for ${tableName}:${record.id}:`, {
+            console.error(`[vectorizeTable] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
               error: upsertError,
               message: upsertError.message,
               details: upsertError.details,
               hint: upsertError.hint,
+              code: upsertError.code,
+              embeddingRecordSize: JSON.stringify(embeddingRecord).length,
+              embeddingLength: embedding.length,
+              chunkTextLength: text.length,
+              metadataSize: JSON.stringify(limitedMetadata).length
+            })
+            errors.push({ 
+              recordId: record.id, 
+              error: upsertError.message,
+              details: upsertError.details,
               code: upsertError.code
             })
-            errors.push({ recordId: record.id, error: upsertError.message })
           }
         }
         
@@ -487,24 +502,36 @@ export default async function handler(req, res) {
                 })
               }
               
-              const { error: upsertError } = await supabase
+              const { data: upsertData, error: upsertError } = await supabase
                 .from('data_embeddings')
                 .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
+                .select()
 
               if (!upsertError) {
                 processed++
-                if (processed % 10 === 0) {
-                  console.log(`[vectorizeAll] Progress: ${processed}/${records.length} records processed from ${tableName}`)
+                if (processed % 10 === 0 || i < 3) {
+                  console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${records.length} from ${tableName} (ID: ${record.id})`, {
+                    upsertData: upsertData?.[0] ? { id: upsertData[0].id, table_name: upsertData[0].table_name } : null
+                  })
                 }
               } else {
-                console.error(`[vectorizeAll] Error upserting embedding for ${tableName}:${record.id}:`, {
+                console.error(`[vectorizeAll] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
                   error: upsertError,
                   message: upsertError.message,
                   details: upsertError.details,
                   hint: upsertError.hint,
+                  code: upsertError.code,
+                  embeddingRecordSize: JSON.stringify(embeddingRecord).length,
+                  embeddingLength: embedding.length,
+                  chunkTextLength: text.length,
+                  metadataSize: JSON.stringify(limitedMetadata).length
+                })
+                errors.push({ 
+                  recordId: record.id, 
+                  error: upsertError.message,
+                  details: upsertError.details,
                   code: upsertError.code
                 })
-                errors.push({ recordId: record.id, error: upsertError.message })
               }
             }
             
