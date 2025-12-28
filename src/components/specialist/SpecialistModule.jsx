@@ -203,27 +203,37 @@ const SpecialistModule = () => {
       // Buscar avatar Dexter
       let dexterAvatarId = null
       try {
-        const avatars = await streamingService.listAvatars()
+        const avatarsResult = await streamingService.listAvatars()
         
-        if (!Array.isArray(avatars)) {
-          throw new Error('listAvatars did not return an array')
+        // O listAvatars pode retornar um array diretamente ou um objeto com avatars
+        let avatars = []
+        if (Array.isArray(avatarsResult)) {
+          avatars = avatarsResult
+        } else if (avatarsResult && typeof avatarsResult === 'object') {
+          // Se for objeto, tentar extrair o array de avatars
+          avatars = avatarsResult.avatars || avatarsResult.data || []
         }
         
-        const dexterAvatar = avatars.find(avatar => 
-          avatar.name === 'Dexter' || 
-          avatar.avatar_name === 'Dexter' ||
-          avatar.id === '1732323365' ||
-          avatar.id === 'Dexter_Casual_Front_public' ||
-          avatar.id === 'Dexter_Lawyer_Sitting_public' ||
-          avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
-          avatar.name === 'Dexter_Lawyer_Sitting_public'
-        )
-        if (dexterAvatar) {
-          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
-          console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+        if (avatars.length > 0) {
+          const dexterAvatar = avatars.find(avatar => 
+            avatar.name === 'Dexter' || 
+            avatar.avatar_name === 'Dexter' ||
+            avatar.id === '1732323365' || 
+            avatar.id === 'Dexter_Casual_Front_public' ||
+            avatar.id === 'Dexter_Lawyer_Sitting_public' ||
+            avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
+            avatar.name === 'Dexter_Lawyer_Sitting_public'
+          )
+          if (dexterAvatar) {
+            dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
+            console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+          } else {
+            dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
+            console.log('⚠️ Dexter avatar not found in list, using fallback:', dexterAvatarId)
+          }
         } else {
           dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-          console.log('⚠️ Dexter avatar not found in list, using fallback:', dexterAvatarId)
+          console.log('⚠️ No avatars returned, using fallback:', dexterAvatarId)
         }
       } catch (error) {
         console.warn('⚠️ Error listing avatars, using fallback:', error)
@@ -263,13 +273,32 @@ const SpecialistModule = () => {
       }
       
       const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current, null, handleDisconnect, forceNewToken)
+      
+      // Marcar como conectado mesmo se o stream ainda não estiver pronto
+      // O stream pode inicializar em background
       setAvatarConnected(true)
       isReconnectingRef.current = false
+      
+      // Tentar configurar o vídeo
       try {
-        videoRef.current.muted = false
-        videoRef.current.volume = 1.0
-        await videoRef.current.play().catch(() => {})
+        if (videoRef.current) {
+          videoRef.current.muted = false
+          videoRef.current.volume = 1.0
+          // Aguardar um pouco para o stream estar disponível
+          setTimeout(async () => {
+            try {
+              if (videoRef.current && streamingService.avatar?.mediaStream) {
+                videoRef.current.srcObject = streamingService.avatar.mediaStream
+                await videoRef.current.play()
+                console.log('✅ Video started playing')
+              }
+            } catch (err) {
+              console.warn('⚠️ Video play error (will retry):', err)
+            }
+          }, 2000)
+        }
       } catch (_) {}
+      
       setRecordingStatus('Especialista conectado!')
       setTimeout(() => setRecordingStatus(''), 2000)
     } catch (error) {
