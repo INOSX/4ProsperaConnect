@@ -45,7 +45,10 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
           )}
         </button>
 
-        <div className="flex items-center space-x-2">
+        <button
+          onClick={() => navigate('/modules')}
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
+        >
           <div className="h-8 w-8 bg-gradient-primary rounded-lg flex items-center justify-center">
             <BarChart3 className="h-5 w-5 text-white" />
           </div>
@@ -53,7 +56,7 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
             <h1 className="text-xl font-bold text-gray-900">4Prospera</h1>
             <p className="text-xs text-gray-500">Dashboard Inteligente</p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Right side */}
