@@ -56,16 +56,24 @@ async function generateBatch(texts) {
   const batchSize = 100
   const allEmbeddings = []
 
+  console.log(`[generateBatch] Processing ${texts.length} texts in batches of ${batchSize}`)
+
   for (let i = 0; i < texts.length; i += batchSize) {
     const batch = texts.slice(i, i + batchSize)
+    console.log(`[generateBatch] Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(texts.length/batchSize)} (${batch.length} texts)`)
+    
     const response = await openai.embeddings.create({
       model: 'text-embedding-3-large',
       input: batch,
       dimensions: 3072
     })
-    allEmbeddings.push(...response.data.map(item => item.embedding))
+    
+    const batchEmbeddings = response.data.map(item => item.embedding)
+    console.log(`[generateBatch] Generated ${batchEmbeddings.length} embeddings, first embedding length: ${batchEmbeddings[0]?.length}`)
+    allEmbeddings.push(...batchEmbeddings)
   }
 
+  console.log(`[generateBatch] Total embeddings generated: ${allEmbeddings.length}`)
   return allEmbeddings
 }
 
