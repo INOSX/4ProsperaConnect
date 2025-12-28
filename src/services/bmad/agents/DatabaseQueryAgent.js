@@ -15,30 +15,38 @@ export default class DatabaseQueryAgent {
    */
   async query(text, user, context, params) {
     try {
+      console.log('[BMAD:DatabaseQueryAgent] 🔍 Analyzing query type for:', text?.substring(0, 100))
+      
+      // Detectar consultas sobre empresas sem colaboradores PRIMEIRO (antes de outras detecções)
+      if (this.isCompaniesWithoutEmployeesQuery(text)) {
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Companies without employees query')
+        return await this.handleCompaniesWithoutEmployeesQuery(text, user, params)
+      }
+      
       // Detectar tipo de consulta
       const isCountQuery = this.isCountQuery(text)
       const isAggregateQuery = this.isAggregateQuery(text)
       const isTimeSeriesQuery = this.isTimeSeriesQuery(text)
       
       if (isCountQuery) {
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Count query')
         // Para consultas de contagem, usar SQL direto
         return await this.handleCountQuery(text, user, params)
       }
       
       if (isAggregateQuery) {
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Aggregate query')
         // Para consultas agregadas (média, soma, etc)
         return await this.handleAggregateQuery(text, user, params)
       }
       
       if (isTimeSeriesQuery) {
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Time series query')
         // Para consultas de gráficos temporais
         return await this.handleTimeSeriesQuery(text, user, params)
       }
       
-      // Detectar consultas sobre empresas sem colaboradores
-      if (this.isCompaniesWithoutEmployeesQuery(text)) {
-        return await this.handleCompaniesWithoutEmployeesQuery(text, user, params)
-      }
+      console.log('[BMAD:DatabaseQueryAgent] 📋 Detected: Generic query (using semantic search)')
       
       // Decidir estratégia: SQL vs Vetorial vs Híbrida
       const strategy = this.determineSearchStrategy(text)
@@ -123,10 +131,23 @@ export default class DatabaseQueryAgent {
   isCompaniesWithoutEmployeesQuery(text) {
     if (!text) return false
     const lowerText = text.toLowerCase()
-    const keywords = ['empresa', 'empresas']
-    const negativeKeywords = ['sem colaborador', 'sem funcionário', 'sem empregado', 'sem cadastrado', 'não tem', 'não têm', 'sem ter']
-    return keywords.some(kw => lowerText.includes(kw)) && 
-           negativeKeywords.some(kw => lowerText.includes(kw))
+    const keywords = ['empresa', 'empresas', 'empresa que', 'empresas que']
+    const negativeKeywords = [
+      'sem colaborador', 'sem colaboradores', 'sem funcionário', 'sem funcionários',
+      'sem empregado', 'sem empregados', 'sem cadastrado', 'sem cadastrados',
+      'não tem', 'não têm', 'sem ter', 'não tem colaborador', 'não tem funcionário',
+      'que não tem', 'que não têm', 'que não tem colaborador', 'que não têm colaborador',
+      'sem nenhum colaborador', 'sem nenhum funcionário'
+    ]
+    const hasKeyword = keywords.some(kw => lowerText.includes(kw))
+    const hasNegativeKeyword = negativeKeywords.some(kw => lowerText.includes(kw))
+    
+    if (hasKeyword && hasNegativeKeyword) {
+      console.log('[DatabaseQueryAgent] ✅ Detected companies without employees query')
+      return true
+    }
+    
+    return false
   }
 
   /**
@@ -224,7 +245,7 @@ export default class DatabaseQueryAgent {
    * Lida com consultas sobre empresas sem colaboradores
    */
   async handleCompaniesWithoutEmployeesQuery(text, user, params) {
-    console.log('[DatabaseQueryAgent] handleCompaniesWithoutEmployeesQuery called:', { text, hasUser: !!user })
+    console.log('[BMAD:DatabaseQueryAgent] 🏢 Handling companies without employees query:', { text, hasUser: !!user })
     try {
       // Buscar todas as empresas
       const { CompanyService } = await import('../../../services/companyService')
@@ -283,6 +304,12 @@ export default class DatabaseQueryAgent {
         ? `Sim, existem ${count} empresa${count !== 1 ? 's' : ''} sem colaborador${count !== 1 ? 'es' : ''} cadastrado${count !== 1 ? 's' : ''}.`
         : 'Não, todas as empresas têm pelo menos um colaborador cadastrado.'
       
+      console.log('[BMAD:DatabaseQueryAgent] ✅ Companies without employees query result:', { 
+        count, 
+        totalCompanies: companies.length,
+        summary: summary.substring(0, 100)
+      })
+      
       return {
         success: true,
         results: companiesWithoutEmployees,
@@ -292,7 +319,7 @@ export default class DatabaseQueryAgent {
         isCount: true
       }
     } catch (error) {
-      console.error('[DatabaseQueryAgent] Error in handleCompaniesWithoutEmployeesQuery:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Error in handleCompaniesWithoutEmployeesQuery:', error)
       return {
         success: false,
         error: error.message || 'Erro ao verificar empresas sem colaboradores',

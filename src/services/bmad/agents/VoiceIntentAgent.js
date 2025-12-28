@@ -41,6 +41,28 @@ export default class VoiceIntentAgent {
     console.log('[BMAD:VoiceIntentAgent] 🔍 Classifying intent for text:', text?.substring(0, 100))
     const lowerText = text.toLowerCase()
     
+    // Priorizar consultas sobre empresas sem colaboradores como query_database
+    const companiesWithoutEmployeesKeywords = [
+      'empresa que não tem', 'empresas que não têm', 'empresa sem colaborador',
+      'empresas sem colaboradores', 'empresa sem funcionário', 'empresas sem funcionários',
+      'não tem colaborador', 'não têm colaboradores', 'sem colaborador cadastrado',
+      'sem funcionário cadastrado', 'existem empresas que não', 'tem empresa que não tem',
+      'empresa que não têm', 'empresas que não tem'
+    ]
+    const hasCompaniesWithoutEmployeesKeyword = companiesWithoutEmployeesKeywords.some(keyword => lowerText.includes(keyword))
+    
+    if (hasCompaniesWithoutEmployeesKeyword) {
+      const params = this.extractParams(text, 'query_database')
+      const result = {
+        intent: 'query_database',
+        params,
+        confidence: 0.95,
+        originalText: text
+      }
+      console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (companies without employees):', result.intent, 'confidence:', result.confidence)
+      return result
+    }
+    
     // Priorizar consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
     const queryKeywords = ['média', 'média de', 'average', 'gráfico', 'chart', 'por período', 'por mês', 'por ano', 'tendência', 'evolução']
     const hasQueryKeyword = queryKeywords.some(keyword => lowerText.includes(keyword))

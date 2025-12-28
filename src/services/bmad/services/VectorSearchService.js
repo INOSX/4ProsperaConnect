@@ -52,6 +52,7 @@ export default class VectorSearchService {
   }
 
   async fallbackVectorSearch(queryEmbedding, tableName, limit) {
+    console.log('[BMAD:VectorSearchService] 🔍 Fallback vector search:', { tableName, limit, queryEmbeddingLength: queryEmbedding?.length })
     // Buscar embeddings e calcular similaridade manualmente
     try {
       let query = supabase
@@ -67,8 +68,11 @@ export default class VectorSearchService {
       const { data, error } = await query
 
       if (error || !data || data.length === 0) {
+        console.log('[BMAD:VectorSearchService] ⚠️ No embeddings found, using fallback search')
         return await this.fallbackSearch('', tableName, limit)
       }
+
+      console.log('[BMAD:VectorSearchService] 📊 Found', data.length, 'embeddings to process')
 
       // Calcular similaridade para cada resultado
       const { cosineSimilarity } = await import('../utils/vectorSearch.js')
@@ -83,7 +87,7 @@ export default class VectorSearchService {
           
           const itemEmbeddingLength = item.embedding.length
           if (queryEmbeddingLength !== itemEmbeddingLength) {
-            console.warn(`[fallbackVectorSearch] Embedding dimension mismatch: query=${queryEmbeddingLength}, item=${itemEmbeddingLength}`)
+            console.warn('[BMAD:VectorSearchService] ⚠️ Embedding dimension mismatch:', { query: queryEmbeddingLength, item: itemEmbeddingLength })
             return { ...item, similarity: 0 }
           }
           
@@ -91,13 +95,15 @@ export default class VectorSearchService {
             const similarity = cosineSimilarity(queryEmbedding, item.embedding)
             return { ...item, similarity }
           } catch (error) {
-            console.warn(`[fallbackVectorSearch] Error calculating similarity:`, error)
+            console.warn('[BMAD:VectorSearchService] ⚠️ Error calculating similarity:', error)
             return { ...item, similarity: 0 }
           }
         })
         .filter(item => item.similarity >= 0.7)
         .sort((a, b) => b.similarity - a.similarity)
         .slice(0, limit)
+      
+      console.log('[BMAD:VectorSearchService] ✅ Found', resultsWithSimilarity.length, 'similar results')
 
       return {
         results: resultsWithSimilarity.map(item => ({
