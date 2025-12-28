@@ -64,24 +64,32 @@ TECNOLOGIAS:
 CONSULTA DO USUÁRIO: "${userQuery}"
 
 INSTRUÇÕES:
-1. Analise a consulta do usuário
-2. Determine o tipo de consulta (count, aggregate, timeSeries, semantic, crossTable, list)
+1. Analise a consulta do usuário detalhadamente
+2. Determine o tipo de consulta (count, aggregate, timeSeries, semantic, sql, crossTable, list, groupBy)
 3. Identifique quais tabelas são necessárias
 4. Determine a estratégia de busca (semantic, sql, hybrid)
 5. Se for busca semântica, indique se precisa gerar embedding
-6. Se for SQL, sugira a estrutura da query (mas não gere SQL completo por segurança)
+6. Se for agregação ou agrupamento, especifique:
+   - Campo para agrupar (groupBy)
+   - Tipo de agregação (count, sum, avg, max, min)
+   - Campos a selecionar
 7. Se for consulta temporal, indique como agrupar por período
+8. Forneça instruções detalhadas de execução que permitam executar a query dinamicamente
 
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
-  "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list",
+  "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list|groupBy",
   "tables": ["table1", "table2"],
   "strategy": "semantic|sql|hybrid",
   "needsEmbedding": true|false,
-  "aggregationType": "avg|sum|count|max|min|null",
+  "aggregationType": "avg|sum|count|max|min|groupBy|null",
+  "groupBy": "nome_do_campo|null",
+  "selectFields": ["campo1", "campo2"],
+  "filters": [{"field": "campo", "operator": "=", "value": "valor"}],
   "timeGrouping": "month|year|day|null",
-  "description": "Descrição do que a consulta deve fazer",
-  "approach": "Como executar esta consulta"
+  "description": "Descrição detalhada do que a consulta deve fazer",
+  "executionSteps": ["passo1", "passo2", "passo3"],
+  "expectedResultFormat": "array|object|count|chart"
 }`
   }
 
@@ -125,9 +133,14 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
         strategy: plan.strategy || 'sql',
         needsEmbedding: plan.needsEmbedding || false,
         aggregationType: plan.aggregationType || null,
+        groupBy: plan.groupBy || null,
+        selectFields: plan.selectFields || [],
+        filters: plan.filters || [],
         timeGrouping: plan.timeGrouping || null,
         description: plan.description || '',
-        approach: plan.approach || '',
+        executionSteps: plan.executionSteps || [],
+        expectedResultFormat: plan.expectedResultFormat || 'array',
+        approach: plan.approach || plan.description || '',
         confidence: 0.8
       }
     } catch (error) {
