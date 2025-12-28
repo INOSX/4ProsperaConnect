@@ -1,13 +1,18 @@
 /**
  * DatabaseQueryAgent - Consultas ao banco de dados com busca SQL e vetorial
  * Permite que o especialista "conheça" e processe todos os registros do banco
+ * Agora usa IA para planejar consultas dinâmicas
  */
 import { supabase } from '../../../services/supabase'
 import VectorSearchService from '../services/VectorSearchService.js'
+import DatabaseKnowledgeAgent from './DatabaseKnowledgeAgent.js'
+import QueryPlanningAgent from './QueryPlanningAgent.js'
 
 export default class DatabaseQueryAgent {
   constructor() {
     this.vectorSearch = new VectorSearchService()
+    this.knowledgeAgent = new DatabaseKnowledgeAgent()
+    this.planningAgent = new QueryPlanningAgent()
   }
 
   /**
@@ -364,7 +369,13 @@ export default class DatabaseQueryAgent {
       const lowerText = text.toLowerCase()
       
       // Detectar gráfico de cadastramento de empresas por período
-      if (lowerText.includes('empresa') && (lowerText.includes('cadastramento') || lowerText.includes('cadastro'))) {
+      // Melhorar detecção: aceitar "gráfico de empresas" ou "empresas por período"
+      const hasEmpresa = lowerText.includes('empresa')
+      const hasGrafico = lowerText.includes('gráfico') || lowerText.includes('grafico')
+      const hasPeriodo = lowerText.includes('período') || lowerText.includes('periodo') || lowerText.includes('por data') || lowerText.includes('por mês') || lowerText.includes('por ano')
+      const hasCadastro = lowerText.includes('cadastramento') || lowerText.includes('cadastro') || lowerText.includes('cadastradas')
+      
+      if (hasEmpresa && (hasGrafico || hasPeriodo) && (hasCadastro || hasPeriodo)) {
         console.log('[DatabaseQueryAgent] Detected company registration chart query')
         
         // Buscar todas as empresas
@@ -424,6 +435,68 @@ export default class DatabaseQueryAgent {
             xColumn: 'period',
             yColumn: 'count',
             title: 'Cadastramento de Empresas por Período'
+          }
+        }
+      }
+      
+      // Fallback: tentar gerar gráfico genérico de empresas por período mesmo sem palavras-chave específicas
+      if (lowerText.includes('empresa') && (lowerText.includes('período') || lowerText.includes('periodo') || lowerText.includes('por data') || lowerText.includes('por mês'))) {
+        console.log('[DatabaseQueryAgent] Attempting generic company time series query')
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+        }
+        
+        const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        const companies = companiesResult.companies || []
+        
+        if (companies.length === 0) {
+          return {
+            success: true,
+            results: [],
+            summary: 'Nenhuma empresa encontrada para gerar gráfico',
+            isTimeSeries: true
+          }
+        }
+        
+        // Agrupar empresas por período (mês/ano)
+        const byPeriod = {}
+        companies.forEach(company => {
+          if (company.created_at) {
+            const date = new Date(company.created_at)
+            const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+            if (!byPeriod[period]) {
+              byPeriod[period] = 0
+            }
+            byPeriod[period]++
+          }
+        })
+        
+        const chartData = Object.entries(byPeriod)
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([period, count]) => ({
+            period,
+            count,
+            label: period
+          }))
+        
+        return {
+          success: true,
+          results: chartData,
+          summary: `Gráfico de empresas por período. Total de ${companies.length} empresas em ${chartData.length} períodos.`,
+          isTimeSeries: true,
+          chartConfig: {
+            chartType: 'line',
+            xColumn: 'period',
+            yColumn: 'count',
+            title: 'Empresas por Período'
           }
         }
       }
