@@ -9,7 +9,15 @@ export class EmbeddingGenerator {
   }
 
   async generateEmbedding(text) {
+    console.log('[BMAD:EmbeddingGenerator] 🔮 ========== GERANDO EMBEDDING ==========')
+    console.log('[BMAD:EmbeddingGenerator] 📝 Input:', {
+      text: text?.substring(0, 200),
+      textLength: text?.length || 0,
+      model: this.model
+    })
+    
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      console.error('[BMAD:EmbeddingGenerator] ❌ Texto vazio ou inválido')
       throw new Error('Text is required and must be non-empty')
     }
 
@@ -17,31 +25,58 @@ export class EmbeddingGenerator {
     const cacheKey = `${this.model}:${text}`
     const cached = this.cache.get(cacheKey)
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
+      console.log('[BMAD:EmbeddingGenerator] ✅ Embedding encontrado no cache')
+      console.log('[BMAD:EmbeddingGenerator] 📤 Retornando embedding do cache (dimensões:', cached.embedding?.length || 'N/A', ')')
       return cached.embedding
     }
+    console.log('[BMAD:EmbeddingGenerator] 🔄 Embedding não encontrado no cache, gerando novo...')
 
+    const startTime = Date.now()
     try {
+      const requestBody = {
+        action: 'generateEmbedding',
+        text: text,
+        model: this.model
+      }
+      
+      console.log('[BMAD:EmbeddingGenerator] 📤 Enviando requisição para OpenAI Embeddings API:', {
+        model: this.model,
+        textLength: text.length,
+        action: requestBody.action
+      })
+      
       // Chamar API route para gerar embedding
       const response = await fetch('/api/openai/embeddings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          action: 'generateEmbedding',
-          text: text,
-          model: this.model
-        })
+        body: JSON.stringify(requestBody)
       })
+
+      const requestTime = Date.now() - startTime
+      console.log('[BMAD:EmbeddingGenerator] 📥 Resposta recebida em', requestTime + 'ms, status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error('[BMAD:EmbeddingGenerator] ❌ Erro na resposta:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData.error
+        })
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
       const result = await response.json()
+      console.log('[BMAD:EmbeddingGenerator] 📦 Dados recebidos:', {
+        success: result.success,
+        hasEmbedding: !!result.embedding,
+        embeddingDimensions: result.embedding?.length || 'N/A',
+        model: result.model
+      })
       
       if (!result.success || !result.embedding) {
+        console.error('[BMAD:EmbeddingGenerator] ❌ Falha ao gerar embedding:', result)
         throw new Error('Failed to generate embedding')
       }
 
@@ -50,10 +85,23 @@ export class EmbeddingGenerator {
         embedding: result.embedding,
         timestamp: Date.now()
       })
+      console.log('[BMAD:EmbeddingGenerator] 💾 Embedding armazenado no cache')
 
+      const totalTime = Date.now() - startTime
+      console.log('[BMAD:EmbeddingGenerator] ✅ ========== EMBEDDING GERADO COM SUCESSO ==========')
+      console.log('[BMAD:EmbeddingGenerator] 📊 Resumo:', {
+        dimensions: result.embedding.length,
+        model: this.model,
+        totalTime: totalTime + 'ms',
+        cached: false
+      })
+      
       return result.embedding
     } catch (error) {
-      console.error('Error generating embedding:', error)
+      const totalTime = Date.now() - startTime
+      console.error('[BMAD:EmbeddingGenerator] ❌ ========== ERRO AO GERAR EMBEDDING ==========')
+      console.error('[BMAD:EmbeddingGenerator] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[BMAD:EmbeddingGenerator] ❌ Stack:', error.stack)
       throw error
     }
   }

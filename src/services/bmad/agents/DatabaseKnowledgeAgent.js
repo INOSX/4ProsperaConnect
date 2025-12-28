@@ -139,20 +139,28 @@ export default class DatabaseKnowledgeAgent {
    * Obtém informações sobre uma tabela específica
    */
   getTableInfo(tableName) {
-    return this.databaseSchema[tableName] || null
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo informações da tabela:', tableName)
+    const info = this.databaseSchema[tableName] || null
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Informações:', info ? 'Encontrada' : 'Não encontrada')
+    return info
   }
 
   /**
    * Obtém todas as tabelas disponíveis
    */
   getAvailableTables() {
-    return Object.keys(this.databaseSchema)
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo tabelas disponíveis...')
+    const tables = Object.keys(this.databaseSchema)
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Tabelas disponíveis:', tables.length, 'tabelas:', tables)
+    return tables
   }
 
   /**
    * Obtém informações sobre tecnologias usadas
    */
   getTechnologies() {
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo informações de tecnologias...')
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Tecnologias:', JSON.stringify(this.technologies, null, 2))
     return this.technologies
   }
 
@@ -203,44 +211,63 @@ export default class DatabaseKnowledgeAgent {
    * Gera sugestões de como executar uma consulta
    */
   suggestQueryApproach(userQuery, intent) {
+    console.log('[BMAD:DatabaseKnowledgeAgent] 💡 ========== SUGERINDO ABORDAGEM DE QUERY ==========')
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📝 Input:', {
+      userQuery: userQuery?.substring(0, 200),
+      intent: intent
+    })
+    
     const suggestions = []
 
     // Analisar a query para sugerir abordagem
     const lowerQuery = userQuery.toLowerCase()
+    console.log('[BMAD:DatabaseKnowledgeAgent] 🔍 Analisando query para padrões...')
 
     if (lowerQuery.includes('média') || lowerQuery.includes('average')) {
-      suggestions.push({
+      const suggestion = {
         type: 'aggregate',
         approach: 'Usar função AVG() do SQL',
         tables: ['employees', 'companies']
-      })
+      }
+      suggestions.push(suggestion)
+      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão agregada adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('gráfico') || lowerQuery.includes('por período') || lowerQuery.includes('por mês')) {
-      suggestions.push({
+      const suggestion = {
         type: 'timeSeries',
         approach: 'Agrupar por período usando created_at',
         tables: ['companies', 'employees']
-      })
+      }
+      suggestions.push(suggestion)
+      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão temporal adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('sem colaborador') || lowerQuery.includes('sem funcionário')) {
-      suggestions.push({
+      const suggestion = {
         type: 'crossTable',
         approach: 'Buscar todas empresas, depois verificar quais não têm employees',
         tables: ['companies', 'employees'],
         join: 'LEFT JOIN employees ON companies.id = employees.company_id WHERE employees.id IS NULL'
-      })
+      }
+      suggestions.push(suggestion)
+      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão cross-table adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('buscar') || lowerQuery.includes('encontrar') || lowerQuery.includes('procurar')) {
-      suggestions.push({
+      const suggestion = {
         type: 'semantic',
         approach: 'Usar busca semântica com embeddings',
         requiresEmbedding: true
-      })
+      }
+      suggestions.push(suggestion)
+      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão semântica adicionada:', suggestion.type)
     }
 
+    console.log('[BMAD:DatabaseKnowledgeAgent] ✅ ========== SUGESTÕES GERADAS ==========')
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Total de sugestões:', suggestions.length)
+    console.log('[BMAD:DatabaseKnowledgeAgent] 📋 Sugestões:', JSON.stringify(suggestions, null, 2))
+    
     return suggestions
   }
 }
