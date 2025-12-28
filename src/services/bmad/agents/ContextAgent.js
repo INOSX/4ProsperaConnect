@@ -5,7 +5,14 @@ import { ClientService } from '../../../services/clientService'
 
 export default class ContextAgent {
   async collectContext(user, additionalContext = {}) {
-    console.log('[BMAD:ContextAgent] 📦 Collecting context for user:', user?.id)
+    console.log('[BMAD:ContextAgent] 📦 ========== COLETANDO CONTEXTO ==========')
+    console.log('[BMAD:ContextAgent] 📝 Input:', {
+      userId: user?.id,
+      userEmail: user?.email,
+      hasAdditionalContext: !!additionalContext,
+      additionalContextKeys: Object.keys(additionalContext || {})
+    })
+    
     const context = {
       userContext: {},
       pageContext: additionalContext.pageContext || {},
@@ -15,8 +22,14 @@ export default class ContextAgent {
     try {
       // Coletar contexto do usuário
       if (user) {
-        console.log('[BMAD:ContextAgent] 🔍 Fetching user context...')
+        console.log('[BMAD:ContextAgent] 🔍 Buscando contexto do usuário...')
         const clientResult = await ClientService.getClientByUserId(user.id)
+        console.log('[BMAD:ContextAgent] 📥 Resultado do ClientService:', {
+          success: clientResult.success,
+          hasClient: !!clientResult.client,
+          clientRole: clientResult.client?.role
+        })
+        
         if (clientResult.success && clientResult.client) {
           context.userContext = {
             userId: user.id,
@@ -25,10 +38,12 @@ export default class ContextAgent {
             companyId: clientResult.client.company_id,
             userType: clientResult.client.user_type
           }
-          console.log('[BMAD:ContextAgent] ✅ User context collected:', { role: context.userContext.role, companyId: context.userContext.companyId })
+          console.log('[BMAD:ContextAgent] ✅ Contexto do usuário coletado:', JSON.stringify(context.userContext, null, 2))
         } else {
-          console.log('[BMAD:ContextAgent] ⚠️ User context not found')
+          console.log('[BMAD:ContextAgent] ⚠️ Contexto do usuário não encontrado')
         }
+      } else {
+        console.log('[BMAD:ContextAgent] ⚠️ Usuário não fornecido')
       }
 
       // Coletar contexto da página atual
@@ -38,13 +53,19 @@ export default class ContextAgent {
           search: window.location.search,
           ...context.pageContext
         }
-        console.log('[BMAD:ContextAgent] ✅ Page context collected:', context.pageContext.pathname)
+        console.log('[BMAD:ContextAgent] ✅ Contexto da página coletado:', JSON.stringify(context.pageContext, null, 2))
+      } else {
+        console.log('[BMAD:ContextAgent] ⚠️ Window não disponível (ambiente server-side)')
       }
 
-      console.log('[BMAD:ContextAgent] ✅ Context collection complete')
+      console.log('[BMAD:ContextAgent] ✅ ========== COLETA DE CONTEXTO CONCLUÍDA ==========')
+      console.log('[BMAD:ContextAgent] 📤 Contexto completo:', JSON.stringify(context, null, 2))
       return context
     } catch (error) {
-      console.error('[BMAD:ContextAgent] ❌ Error collecting context:', error)
+      console.error('[BMAD:ContextAgent] ❌ ========== ERRO NA COLETA DE CONTEXTO ==========')
+      console.error('[BMAD:ContextAgent] ❌ Erro:', error)
+      console.error('[BMAD:ContextAgent] ❌ Stack:', error.stack)
+      console.log('[BMAD:ContextAgent] 📤 Retornando contexto parcial:', JSON.stringify(context, null, 2))
       return context
     }
   }

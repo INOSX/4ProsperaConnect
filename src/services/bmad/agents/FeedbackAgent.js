@@ -3,13 +3,21 @@
  */
 export default class FeedbackAgent {
   async generateFeedback(originalText, actionResult, visualizations, intentResult) {
-    console.log('[BMAD:FeedbackAgent] 💬 Generating feedback for intent:', intentResult?.intent)
+    console.log('[BMAD:FeedbackAgent] 💬 ========== GERANDO FEEDBACK ==========')
+    console.log('[BMAD:FeedbackAgent] 📝 Input:', {
+      originalText: originalText?.substring(0, 100),
+      intent: intentResult?.intent,
+      hasActionResult: !!actionResult,
+      actionResultSuccess: actionResult?.success,
+      visualizationsCount: visualizations?.length || 0
+    })
+    
     let text = ''
 
     if (!actionResult || !actionResult.success) {
       text = actionResult?.error || 'Não foi possível processar sua solicitação.'
-      console.log('[BMAD:FeedbackAgent] ❌ Action failed, returning error feedback:', text)
-      return {
+      console.log('[BMAD:FeedbackAgent] ❌ Ação falhou, retornando feedback de erro:', text)
+      const errorFeedback = {
         text,
         voiceConfig: {
           speed: 1.0,
@@ -17,7 +25,11 @@ export default class FeedbackAgent {
         },
         visualizations: []
       }
+      console.log('[BMAD:FeedbackAgent] 📤 Feedback de erro:', JSON.stringify(errorFeedback, null, 2))
+      return errorFeedback
     }
+    
+    console.log('[BMAD:FeedbackAgent] ✅ Ação bem-sucedida, gerando feedback positivo...')
 
     // Gerar resposta baseada no tipo de ação
     const intent = intentResult.intent
@@ -61,8 +73,7 @@ export default class FeedbackAgent {
       text = 'Ação executada com sucesso!'
     }
 
-    console.log('[BMAD:FeedbackAgent] ✅ Feedback generated:', text?.substring(0, 100))
-    return {
+    const finalFeedback = {
       text,
       voiceConfig: {
         speed: 1.0,
@@ -70,6 +81,17 @@ export default class FeedbackAgent {
       },
       visualizations: visualizations || []
     }
+    
+    console.log('[BMAD:FeedbackAgent] ✅ ========== FEEDBACK GERADO COM SUCESSO ==========')
+    console.log('[BMAD:FeedbackAgent] 📤 Feedback completo:', {
+      text: text?.substring(0, 200),
+      textLength: text?.length || 0,
+      voiceConfig: finalFeedback.voiceConfig,
+      visualizationsCount: finalFeedback.visualizations.length
+    })
+    console.log('[BMAD:FeedbackAgent] 📋 Feedback JSON:', JSON.stringify(finalFeedback, null, 2))
+    
+    return finalFeedback
   }
 
   capitalize(str) {

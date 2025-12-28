@@ -17,28 +17,59 @@ export default class QueryPlanningAgent {
    * Planeja uma consulta usando IA
    */
   async planQuery(userQuery, intent, context = {}) {
-    console.log('[BMAD:QueryPlanningAgent] 🧠 Planning query with AI:', userQuery?.substring(0, 100))
+    console.log('[BMAD:QueryPlanningAgent] 🧠 ========== INICIANDO PLANEJAMENTO DE QUERY ==========')
+    console.log('[BMAD:QueryPlanningAgent] 📝 Input:', {
+      userQuery: userQuery?.substring(0, 200),
+      intent: intent,
+      contextKeys: Object.keys(context || {})
+    })
     
     try {
       // Obter conhecimento do banco
+      console.log('[BMAD:QueryPlanningAgent] 📚 Obtendo conhecimento do banco...')
       const schema = this.knowledgeAgent.databaseSchema
       const technologies = this.knowledgeAgent.getTechnologies()
       const availableTables = this.knowledgeAgent.getAvailableTables()
+      
+      console.log('[BMAD:QueryPlanningAgent] 📚 Conhecimento obtido:', {
+        tablesCount: availableTables.length,
+        tables: availableTables,
+        hasSchema: !!schema,
+        hasTechnologies: !!technologies
+      })
 
       // Construir prompt para OpenAI
+      console.log('[BMAD:QueryPlanningAgent] 🔨 Construindo prompt para OpenAI...')
       const prompt = this.buildPlanningPrompt(userQuery, schema, technologies, availableTables, context)
+      console.log('[BMAD:QueryPlanningAgent] 📄 Prompt construído (tamanho:', prompt.length, 'caracteres)')
 
       // Chamar OpenAI para planejar a query
+      console.log('[BMAD:QueryPlanningAgent] 🤖 Chamando OpenAI para planejar query...')
       const plan = await this.callOpenAIForPlanning(prompt)
 
-      console.log('[BMAD:QueryPlanningAgent] ✅ Query plan generated:', plan)
+      console.log('[BMAD:QueryPlanningAgent] ✅ ========== PLANO GERADO COM SUCESSO ==========')
+      console.log('[BMAD:QueryPlanningAgent] 📋 Plano completo:', JSON.stringify(plan, null, 2))
+      console.log('[BMAD:QueryPlanningAgent] 📊 Resumo do plano:', {
+        queryType: plan.queryType,
+        tables: plan.tables,
+        strategy: plan.strategy,
+        groupBy: plan.groupBy,
+        aggregationType: plan.aggregationType,
+        confidence: plan.confidence,
+        description: plan.description?.substring(0, 100)
+      })
 
       return plan
     } catch (error) {
-      console.error('[BMAD:QueryPlanningAgent] ❌ Error planning query:', error)
+      console.error('[BMAD:QueryPlanningAgent] ❌ ========== ERRO NO PLANEJAMENTO ==========')
+      console.error('[BMAD:QueryPlanningAgent] ❌ Erro:', error)
+      console.error('[BMAD:QueryPlanningAgent] ❌ Stack:', error.stack)
       
       // Fallback: usar heurísticas simples
-      return this.fallbackPlanning(userQuery, intent)
+      console.log('[BMAD:QueryPlanningAgent] 🔄 Usando fallback (heurísticas)...')
+      const fallbackPlan = this.fallbackPlanning(userQuery, intent)
+      console.log('[BMAD:QueryPlanningAgent] 🔄 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
+      return fallbackPlan
     }
   }
 
@@ -97,54 +128,94 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
    * Chama OpenAI para planejar a query
    */
   async callOpenAIForPlanning(prompt) {
+    console.log('[BMAD:QueryPlanningAgent] 🌐 Preparando requisição para OpenAI API...')
+    const startTime = Date.now()
+    
     try {
+      const requestBody = {
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em planejamento de consultas de banco de dados. Responda APENAS em JSON válido, sem markdown, sem explicações adicionais.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        model: 'gpt-4o-mini',
+        temperature: 0.3,
+        response_format: { type: 'json_object' }
+      }
+      
+      console.log('[BMAD:QueryPlanningAgent] 📤 Enviando requisição:', {
+        model: requestBody.model,
+        temperature: requestBody.temperature,
+        messagesCount: requestBody.messages.length,
+        promptLength: prompt.length
+      })
+      
       const response = await fetch('/api/openai/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: 'Você é um especialista em planejamento de consultas de banco de dados. Responda APENAS em JSON válido, sem markdown, sem explicações adicionais.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          model: 'gpt-4o-mini',
-          temperature: 0.3,
-          response_format: { type: 'json_object' }
-        })
+        body: JSON.stringify(requestBody)
       })
 
+      const requestTime = Date.now() - startTime
+      console.log('[BMAD:QueryPlanningAgent] 📥 Resposta recebida em', requestTime + 'ms, status:', response.status)
+
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`)
+        const errorText = await response.text()
+        console.error('[BMAD:QueryPlanningAgent] ❌ Erro na resposta:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText?.substring(0, 200)
+        })
+        throw new Error(`OpenAI API error: ${response.status} - ${errorText?.substring(0, 100)}`)
       }
 
       const data = await response.json()
-      const plan = JSON.parse(data.choices[0].message.content)
+      console.log('[BMAD:QueryPlanningAgent] 📦 Dados recebidos:', {
+        hasChoices: !!data.choices,
+        choicesCount: data.choices?.length || 0,
+        hasMessage: !!data.choices?.[0]?.message,
+        hasContent: !!data.choices?.[0]?.message?.content
+      })
+      
+      const rawPlan = JSON.parse(data.choices[0].message.content)
+      console.log('[BMAD:QueryPlanningAgent] 📋 Plano bruto da IA:', JSON.stringify(rawPlan, null, 2))
 
-      return {
-        queryType: plan.queryType || 'sql',
-        tables: plan.tables || [],
-        strategy: plan.strategy || 'sql',
-        needsEmbedding: plan.needsEmbedding || false,
-        aggregationType: plan.aggregationType || null,
-        groupBy: plan.groupBy || null,
-        selectFields: plan.selectFields || [],
-        filters: plan.filters || [],
-        timeGrouping: plan.timeGrouping || null,
-        description: plan.description || '',
-        executionSteps: plan.executionSteps || [],
-        expectedResultFormat: plan.expectedResultFormat || 'array',
-        approach: plan.approach || plan.description || '',
+      const finalPlan = {
+        queryType: rawPlan.queryType || 'sql',
+        tables: rawPlan.tables || [],
+        strategy: rawPlan.strategy || 'sql',
+        needsEmbedding: rawPlan.needsEmbedding || false,
+        aggregationType: rawPlan.aggregationType || null,
+        groupBy: rawPlan.groupBy || null,
+        selectFields: rawPlan.selectFields || [],
+        filters: rawPlan.filters || [],
+        timeGrouping: rawPlan.timeGrouping || null,
+        description: rawPlan.description || '',
+        executionSteps: rawPlan.executionSteps || [],
+        expectedResultFormat: rawPlan.expectedResultFormat || 'array',
+        approach: rawPlan.approach || rawPlan.description || '',
         confidence: 0.8
       }
+      
+      const totalTime = Date.now() - startTime
+      console.log('[BMAD:QueryPlanningAgent] ✅ Plano processado em', totalTime + 'ms')
+      console.log('[BMAD:QueryPlanningAgent] 📊 Plano final formatado:', JSON.stringify(finalPlan, null, 2))
+
+      return finalPlan
     } catch (error) {
-      console.error('[BMAD:QueryPlanningAgent] Error calling OpenAI:', error)
+      const totalTime = Date.now() - startTime
+      console.error('[BMAD:QueryPlanningAgent] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[BMAD:QueryPlanningAgent] ❌ Detalhes do erro:', {
+        message: error.message,
+        stack: error.stack?.substring(0, 500)
+      })
       throw error
     }
   }
@@ -153,14 +224,19 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
    * Fallback: planejamento usando heurísticas
    */
   fallbackPlanning(userQuery, intent) {
-    console.log('[BMAD:QueryPlanningAgent] ⚠️ Using fallback planning')
+    console.log('[BMAD:QueryPlanningAgent] ⚠️ ========== USANDO FALLBACK (HEURÍSTICAS) ==========')
+    console.log('[BMAD:QueryPlanningAgent] ⚠️ Input para fallback:', { userQuery: userQuery?.substring(0, 100), intent })
     
     const lowerQuery = userQuery.toLowerCase()
+    console.log('[BMAD:QueryPlanningAgent] 🔍 Buscando sugestões de abordagem...')
     const suggestions = this.knowledgeAgent.suggestQueryApproach(userQuery, intent)
+    console.log('[BMAD:QueryPlanningAgent] 💡 Sugestões encontradas:', suggestions.length, 'sugestões')
 
     if (suggestions.length > 0) {
       const suggestion = suggestions[0]
-      return {
+      console.log('[BMAD:QueryPlanningAgent] ✅ Usando primeira sugestão:', JSON.stringify(suggestion, null, 2))
+      
+      const fallbackPlan = {
         queryType: suggestion.type,
         tables: suggestion.tables || [],
         strategy: suggestion.type === 'semantic' ? 'semantic' : 'sql',
@@ -171,10 +247,14 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
         approach: suggestion.approach || '',
         confidence: 0.6
       }
+      
+      console.log('[BMAD:QueryPlanningAgent] 📋 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
+      return fallbackPlan
     }
 
     // Default: busca semântica
-    return {
+    console.log('[BMAD:QueryPlanningAgent] 🔄 Nenhuma sugestão encontrada, usando padrão (busca semântica)')
+    const defaultPlan = {
       queryType: 'semantic',
       tables: [],
       strategy: 'semantic',
@@ -185,6 +265,8 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
       approach: 'Usar busca vetorial com embeddings',
       confidence: 0.5
     }
+    console.log('[BMAD:QueryPlanningAgent] 📋 Plano padrão:', JSON.stringify(defaultPlan, null, 2))
+    return defaultPlan
   }
 }
 

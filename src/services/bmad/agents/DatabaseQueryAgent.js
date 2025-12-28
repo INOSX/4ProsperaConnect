@@ -948,11 +948,26 @@ export default class DatabaseQueryAgent {
    * Executa agrupamento dinâmico baseado no plano da IA
    */
   async executeDynamicGroupBy(queryPlan, user, params) {
-    console.log('[BMAD:DatabaseQueryAgent] 📊 Executing dynamic groupBy:', queryPlan.groupBy)
+    console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO AGRUPAMENTO DINÂMICO ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano recebido:', {
+      groupBy: queryPlan.groupBy,
+      tables: queryPlan.tables,
+      aggregationType: queryPlan.aggregationType,
+      selectFields: queryPlan.selectFields,
+      filters: queryPlan.filters,
+      executionSteps: queryPlan.executionSteps
+    })
     
     try {
       const tableName = queryPlan.tables?.[0] || 'companies'
       const groupByField = queryPlan.groupBy
+      
+      console.log('[BMAD:DatabaseQueryAgent] 🎯 Configuração:', {
+        tableName,
+        groupByField,
+        userId: user?.id,
+        userEmail: user?.email
+      })
       
       // Buscar dados usando serviços apropriados
       if (tableName === 'companies') {
@@ -968,10 +983,18 @@ export default class DatabaseQueryAgent {
           console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
         }
         
+        console.log('[BMAD:DatabaseQueryAgent] 🔍 Buscando empresas...')
         const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
         const companies = companiesResult.companies || []
         
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Empresas encontradas:', {
+          total: companies.length,
+          success: companiesResult.success,
+          hasCompanies: companies.length > 0
+        })
+        
         if (companies.length === 0) {
+          console.log('[BMAD:DatabaseQueryAgent] ⚠️ Nenhuma empresa encontrada')
           return {
             success: true,
             results: [],
@@ -982,16 +1005,37 @@ export default class DatabaseQueryAgent {
         }
         
         // Agrupar dinamicamente pelo campo especificado
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Agrupando empresas por:', groupByField)
         const grouped = {}
-        companies.forEach(company => {
+        let groupedCount = 0
+        let unspecifiedCount = 0
+        
+        companies.forEach((company, index) => {
           const value = company[groupByField] || company[groupByField.toLowerCase()] || 'Não especificado'
           if (!grouped[value]) {
             grouped[value] = 0
+            groupedCount++
           }
           grouped[value]++
+          if (value === 'Não especificado') {
+            unspecifiedCount++
+          }
+          
+          // Log a cada 10 empresas processadas
+          if ((index + 1) % 10 === 0) {
+            console.log('[BMAD:DatabaseQueryAgent] ⏳ Processadas', index + 1, 'de', companies.length, 'empresas')
+          }
+        })
+        
+        console.log('[BMAD:DatabaseQueryAgent] ✅ Agrupamento concluído:', {
+          totalGroups: groupedCount,
+          groups: Object.keys(grouped),
+          unspecifiedCount,
+          totalCompanies: companies.length
         })
         
         // Converter para array formatado
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Formatando resultados...')
         const resultData = Object.entries(grouped)
           .map(([key, count]) => {
             const result = {
@@ -1011,6 +1055,11 @@ export default class DatabaseQueryAgent {
           })
           .sort((a, b) => b.quantidade - a.quantidade)
         
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Resultados formatados:', {
+          totalItems: resultData.length,
+          top3: resultData.slice(0, 3).map(r => ({ [groupByField]: r[groupByField], quantidade: r.quantidade }))
+        })
+        
         // Criar resumo baseado na descrição do plano
         const topItem = resultData[0]
         const summary = queryPlan.description || 
@@ -1021,7 +1070,7 @@ export default class DatabaseQueryAgent {
         const chartType = queryPlan.expectedResultFormat === 'chart' ? 'bar' : 
                           (resultData.length <= 5 ? 'pie' : 'bar')
         
-        return {
+        const finalResult = {
           success: true,
           results: resultData,
           summary: summary,
@@ -1034,16 +1083,36 @@ export default class DatabaseQueryAgent {
             title: `Distribuição por ${groupByField}`
           }
         }
+        
+        console.log('[BMAD:DatabaseQueryAgent] ✅ ========== AGRUPAMENTO CONCLUÍDO ==========')
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Resultado final:', {
+          success: finalResult.success,
+          resultsCount: finalResult.results.length,
+          summary: finalResult.summary?.substring(0, 150),
+          chartType: finalResult.chartConfig.chartType,
+          isGrouped: finalResult.isGrouped
+        })
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Dados completos:', JSON.stringify(finalResult, null, 2))
+        
+        return finalResult
       }
       
       // Para outras tabelas, usar busca direta
+      console.log('[BMAD:DatabaseQueryAgent] ⚠️ Tabela não suportada para agrupamento:', tableName)
       return {
         success: false,
         error: `Agrupamento por ${groupByField} na tabela ${tableName} ainda não suportado`,
         results: []
       }
     } catch (error) {
-      console.error('[BMAD:DatabaseQueryAgent] ❌ Error in executeDynamicGroupBy:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO NO AGRUPAMENTO DINÂMICO ==========')
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', error.stack)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Contexto:', {
+        groupBy: queryPlan.groupBy,
+        tableName: queryPlan.tables?.[0],
+        userId: user?.id
+      })
       return {
         success: false,
         error: error.message || 'Erro ao executar agrupamento dinâmico',
@@ -1056,15 +1125,31 @@ export default class DatabaseQueryAgent {
    * Executa agregação dinâmica seguindo os passos do plano da IA
    */
   async executeDynamicAggregate(queryPlan, user, params) {
-    console.log('[BMAD:DatabaseQueryAgent] 📊 Executing dynamic aggregate with steps:', queryPlan.executionSteps)
+    console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO AGREGAÇÃO DINÂMICA ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano:', {
+      queryType: queryPlan.queryType,
+      aggregationType: queryPlan.aggregationType,
+      groupBy: queryPlan.groupBy,
+      executionSteps: queryPlan.executionSteps,
+      description: queryPlan.description
+    })
     
     // Se tiver groupBy, usar executeDynamicGroupBy
     if (queryPlan.groupBy) {
+      console.log('[BMAD:DatabaseQueryAgent] 🔄 Redirecionando para executeDynamicGroupBy (tem groupBy)')
       return await this.executeDynamicGroupBy(queryPlan, user, params)
     }
     
     // Caso contrário, usar handleAggregateQuery existente como fallback
-    return await this.handleAggregateQuery('', user, params)
+    console.log('[BMAD:DatabaseQueryAgent] 🔄 Usando handleAggregateQuery como fallback')
+    const result = await this.handleAggregateQuery('', user, params)
+    console.log('[BMAD:DatabaseQueryAgent] 📊 Resultado da agregação:', {
+      success: result.success,
+      hasResults: !!result.results,
+      resultsCount: result.results?.length || 0,
+      summary: result.summary?.substring(0, 100)
+    })
+    return result
   }
 }
 

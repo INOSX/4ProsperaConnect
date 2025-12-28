@@ -12,62 +12,92 @@ export default class SupervisorAgent {
    * Validação inicial (pré-processamento)
    */
   async validateInitial(text) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating initial input...')
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO INICIAL ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      text: text?.substring(0, 100),
+      textLength: text?.length || 0,
+      textType: typeof text,
+      isEmpty: !text || text.trim().length === 0
+    })
     
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Empty or invalid text')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Texto vazio ou inválido')
+      const result = {
         approved: false,
         reason: 'Texto vazio ou inválido',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (text.length > 1000) {
-      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Text too long', text.length, 'chars')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Texto muito longo', text.length, 'caracteres (máximo: 1000)')
+      const result = {
         approved: false,
         reason: 'Texto muito longo (máximo 1000 caracteres)',
         qualityScore: 50
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
-    console.log('[BMAD:SupervisorAgent] ✅ Initial validation passed:', text.length, 'chars')
-    return {
+    console.log('[BMAD:SupervisorAgent] ✅ Validação inicial aprovada:', text.length, 'caracteres')
+    const result = {
       approved: true,
       qualityScore: 100
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida intenção classificada
    */
   async validateIntent(intentResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating intent:', intentResult?.intent, 'confidence:', intentResult?.confidence)
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE INTENÇÃO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      intent: intentResult?.intent,
+      confidence: intentResult?.confidence,
+      hasIntent: !!intentResult?.intent,
+      hasConfidence: intentResult?.confidence !== undefined,
+      fullIntentResult: JSON.stringify(intentResult, null, 2)
+    })
     
     if (!intentResult || !intentResult.intent) {
-      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: No intent identified')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Intenção não identificada')
+      const result = {
         approved: false,
         reason: 'Intenção não identificada',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (intentResult.confidence < 0.5) {
-      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: Low confidence', intentResult.confidence)
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Confiança muito baixa', intentResult.confidence, '(mínimo: 0.5)')
+      const result = {
         approved: false,
         reason: 'Confiança na classificação muito baixa',
         qualityScore: intentResult.confidence * 100
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
-    console.log('[BMAD:SupervisorAgent] ✅ Intent validation passed:', intentResult.intent, 'qualityScore:', (intentResult.confidence * 100).toFixed(1))
-    return {
+    const qualityScore = intentResult.confidence * 100
+    console.log('[BMAD:SupervisorAgent] ✅ Validação de intenção aprovada:', {
+      intent: intentResult.intent,
+      confidence: intentResult.confidence,
+      qualityScore: qualityScore.toFixed(1)
+    })
+    const result = {
       approved: true,
-      qualityScore: intentResult.confidence * 100
+      qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
