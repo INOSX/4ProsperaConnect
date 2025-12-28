@@ -5,11 +5,34 @@ export default class DataVisualizationAgent {
   async generateVisualizations(actionResult, intent) {
     const visualizations = []
 
-    if (!actionResult || !actionResult.data) {
+    if (!actionResult) {
       return visualizations
     }
 
-    const data = actionResult.data
+    // Para consultas de contagem, criar visualização de card
+    if (actionResult.isCount && actionResult.results && actionResult.results.length > 0) {
+      const countResult = actionResult.results[0]
+      if (countResult.count !== undefined) {
+        visualizations.push({
+          type: 'card',
+          data: [{
+            label: countResult.label || 'Total',
+            value: countResult.count
+          }],
+          config: {
+            title: actionResult.summary || 'Contagem'
+          }
+        })
+        return visualizations
+      }
+    }
+
+    // Usar results ou data (compatibilidade)
+    const data = actionResult.results || actionResult.data
+    
+    if (!data) {
+      return visualizations
+    }
 
     // Se for array de objetos, criar tabela
     if (Array.isArray(data) && data.length > 0) {

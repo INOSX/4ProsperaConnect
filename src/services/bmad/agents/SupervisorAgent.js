@@ -211,6 +211,13 @@ export default class SupervisorAgent {
         finalData.feedback.text
       )
       scores.push(relevance)
+    } else {
+      // Se não tiver feedback mas tiver actionResult com summary, considerar relevante
+      if (finalData.actionResult && finalData.actionResult.summary) {
+        scores.push(70)
+      } else {
+        scores.push(50)
+      }
     }
 
     // Verificar completude
@@ -219,10 +226,14 @@ export default class SupervisorAgent {
 
     const qualityScore = scores.reduce((a, b) => a + b, 0) / scores.length
 
+    // Para consultas de contagem, ser mais tolerante
+    const isCountQuery = finalData.actionResult?.isCount
+    const threshold = isCountQuery ? 50 : 70
+
     return {
-      approved: qualityScore >= 70,
+      approved: qualityScore >= threshold,
       qualityScore,
-      issues: qualityScore < 70 ? ['Qualidade abaixo do threshold'] : [],
+      issues: qualityScore < threshold ? ['Qualidade abaixo do threshold'] : [],
       corrections: []
     }
   }
