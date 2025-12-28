@@ -76,19 +76,29 @@ const SpecialistModule = () => {
             setRecordingStatus('Processando comando com BMAD...')
             
             // Processar comando através do BMAD Orchestrator
+            console.log('[SpecialistModule] Processing command:', text)
             const result = await bmadOrchestrator.processCommand(text, user, {
               pageContext: {
                 pathname: window.location.pathname
               }
             })
 
+            console.log('[SpecialistModule] Command result:', { 
+              success: result?.success, 
+              hasResponse: !!result?.response, 
+              error: result?.error,
+              hasVisualizations: !!result?.visualizations?.length
+            })
+
             let responseText = text
 
             if (result.success) {
               responseText = result.response || 'Comando executado com sucesso!'
+              console.log('[SpecialistModule] Success response:', responseText)
               
               // Atualizar visualizações se houver
               if (result.visualizations && result.visualizations.length > 0) {
+                console.log('[SpecialistModule] Setting visualizations:', result.visualizations.length)
                 setVisualizations(result.visualizations)
               }
 
@@ -98,6 +108,11 @@ const SpecialistModule = () => {
               }
             } else {
               responseText = result.error || 'Erro ao processar comando'
+              console.error('[SpecialistModule] Command failed:', { 
+                error: result.error, 
+                details: result.details,
+                stack: result.stack 
+              })
             }
             
             // Enviar resposta para o avatar falar
