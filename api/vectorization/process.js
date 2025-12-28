@@ -13,8 +13,25 @@ function getSupabaseClient() {
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Supabase credentials not configured. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.')
   }
+
+  // Validar que está usando SERVICE_ROLE_KEY (não ANON_KEY)
+  const isServiceRole = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!isServiceRole) {
+    console.warn('⚠️ Using ANON_KEY instead of SERVICE_ROLE_KEY. This may cause permission issues.')
+  } else {
+    console.log('✅ Using SUPABASE_SERVICE_ROLE_KEY for vectorization operations')
+  }
   
-  return createClient(supabaseUrl, supabaseKey)
+  const client = createClient(supabaseUrl, supabaseKey)
+  
+  // Testar conexão
+  console.log('🔍 Supabase client initialized:', {
+    url: supabaseUrl,
+    hasServiceRoleKey: isServiceRole,
+    keyLength: supabaseKey.length
+  })
+  
+  return client
 }
 
 // Inicializar OpenAI
@@ -454,13 +471,20 @@ export default async function handler(req, res) {
             }
 
             console.log(`[vectorizeAll] Generating embeddings for ${validPairs.length} valid records from ${tableName} (total: ${records.length})`)
+            console.log(`[vectorizeAll] Sample text from ${tableName}:`, validPairs[0]?.text?.substring(0, 100))
 
             // Extrair apenas os textos válidos para gerar embeddings
             const validTexts = validPairs.map(pair => pair.text)
 
             // Gerar embeddings em batch
+            console.log(`[vectorizeAll] Calling generateBatch with ${validTexts.length} texts for ${tableName}`)
             const embeddings = await generateBatch(validTexts)
             console.log(`[vectorizeAll] Generated ${embeddings.length} embeddings for ${tableName}`)
+            console.log(`[vectorizeAll] First embedding sample for ${tableName}:`, {
+              isArray: Array.isArray(embeddings[0]),
+              length: embeddings[0]?.length,
+              firstFew: embeddings[0]?.slice(0, 3)
+            })
 
             if (embeddings.length !== validPairs.length) {
               console.error(`[vectorizeAll] ⚠️ Embedding count mismatch: expected ${validPairs.length}, got ${embeddings.length}`)
@@ -530,42 +554,68 @@ export default async function handler(req, res) {
               
               // Tentar upsert
               try {
+                if (i === 0) {
+                  console.log(`[vectorizeAll] 🔍 First upsert attempt for ${tableName}:`, {
+                    table_name: embeddingRecord.table_name,
+                    record_id: embeddingRecord.record_id,
+                    chunk_text_length: embeddingRecord.chunk_text.length,
+                    embedding_length: embeddingRecord.embedding.length,
+                    metadata_keys: Object.keys(embeddingRecord.metadata),
+                    supabase_url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'configured' : 'missing',
+                    service_role_key: process.env.SUPABASE_SERVICE_ROLE_KEY ? 'configured' : 'missing'
+                  })
+                }
+
                 const { data: upsertData, error: upsertError } = await supabase
                   .from('data_embeddings')
                   .upsert(embeddingRecord, { onConflict: 'table_name,record_id' })
                   .select()
 
                 if (upsertError) {
+                  console.error(`[vectorizeAll] ❌ Supabase upsert error for ${tableName}:${record.id}:`, {
+                    error: upsertError,
+                    message: upsertError.message,
+                    details: upsertError.details,
+                    hint: upsertError.hint,
+                    code: upsertError.code,
+                    status: upsertError.status
+                  })
                   throw upsertError
                 }
 
                 // Verificar se realmente foi salvo
                 if (!upsertData || upsertData.length === 0) {
-                  console.warn(`[vectorizeAll] ⚠️ Upsert returned no data for ${tableName}:${record.id}`)
+                  console.warn(`[vectorizeAll] ⚠️ Upsert returned no data for ${tableName}:${record.id}`, {
+                    upsertData,
+                    embeddingRecordKeys: Object.keys(embeddingRecord)
+                  })
                   errors.push({ 
                     recordId: record.id, 
-                    error: 'Upsert returned no data'
+                    error: 'Upsert returned no data',
+                    details: 'Supabase returned success but no data in response'
                   })
                   continue
                 }
 
                 processed++
-                if (processed % 10 === 0 || i < 3) {
+                if (i === 0 || processed % 10 === 0 || i < 3) {
                   console.log(`[vectorizeAll] ✅ Successfully upserted record ${i+1}/${validPairs.length} from ${tableName} (ID: ${record.id})`, {
                     upsertData: upsertData[0] ? { 
                       id: upsertData[0].id, 
                       table_name: upsertData[0].table_name,
-                      hasEmbedding: !!upsertData[0].embedding
+                      hasEmbedding: !!upsertData[0].embedding,
+                      embeddingLength: upsertData[0].embedding?.length
                     } : null
                   })
                 }
               } catch (upsertError) {
-                console.error(`[vectorizeAll] ❌ Error upserting embedding for ${tableName}:${record.id}:`, {
+                console.error(`[vectorizeAll] ❌ Exception during upsert for ${tableName}:${record.id}:`, {
                   error: upsertError,
                   message: upsertError.message,
                   details: upsertError.details,
                   hint: upsertError.hint,
                   code: upsertError.code,
+                  status: upsertError.status,
                   embeddingRecordSize: JSON.stringify(embeddingRecord).length,
                   embeddingLength: embedding.length,
                   chunkTextLength: text.length,
@@ -578,7 +628,8 @@ export default async function handler(req, res) {
                   recordId: record.id, 
                   error: upsertError.message || 'Unknown error',
                   details: upsertError.details,
-                  code: upsertError.code
+                  code: upsertError.code,
+                  status: upsertError.status
                 })
               }
             }
@@ -589,15 +640,22 @@ export default async function handler(req, res) {
 
             console.log(`[vectorizeAll] Processed ${processed} of ${validPairs.length} valid records from ${tableName} (total: ${records.length})`)
 
-            results.push({
+            const result = {
               table: tableName,
-              success: true,
+              success: processed > 0 || errors.length === 0, // Success se processou algo OU não houve erros
               processed,
               total: records.length,
               validRecords: validPairs.length,
               message: `Vetorizados ${processed} de ${records.length} registros da tabela ${tableName}`,
               errors: errors.length > 0 ? errors : undefined
-            })
+            }
+
+            if (processed === 0 && errors.length === 0) {
+              console.warn(`[vectorizeAll] ⚠️ No records processed and no errors for ${tableName}. This might indicate a silent failure.`)
+              result.warning = 'No records processed despite valid data. Check server logs for details.'
+            }
+
+            results.push(result)
           } catch (error) {
             console.error(`[vectorizeAll] Error processing ${tableName}:`, error)
             results.push({
