@@ -157,27 +157,55 @@ export class BMADOrchestrator {
       }
 
       // 7. Gerar visualizações
-      const visualizations = await this.visualization.generateVisualizations(
-        actionResult,
-        intent
-      )
+      console.log('[BMADOrchestrator] Generating visualizations...')
+      let visualizations = []
+      try {
+        visualizations = await this.visualization.generateVisualizations(
+          actionResult,
+          intent
+        )
+        console.log('[BMADOrchestrator] Visualizations generated:', { count: visualizations?.length || 0 })
+      } catch (vizError) {
+        console.error('[BMADOrchestrator] Error generating visualizations:', vizError)
+        visualizations = []
+      }
+      
       const vizValidation = await this.supervisor.validateVisualizations(visualizations)
+      console.log('[BMADOrchestrator] Visualization validation:', { approved: vizValidation.approved })
       if (!vizValidation.approved) {
-        console.warn('Visualization validation failed, using basic format')
+        console.warn('[BMADOrchestrator] Visualization validation failed, using basic format')
       }
 
       // 8. Gerar feedback/resposta
-      const feedback = await this.feedback.generateFeedback(
-        text,
-        actionResult,
-        visualizations,
-        intentResult
-      )
+      console.log('[BMADOrchestrator] Generating feedback...')
+      let feedback = null
+      try {
+        feedback = await this.feedback.generateFeedback(
+          text,
+          actionResult,
+          visualizations,
+          intentResult
+        )
+        console.log('[BMADOrchestrator] Feedback generated:', { hasText: !!feedback?.text, text: feedback?.text?.substring(0, 100) })
+      } catch (feedbackError) {
+        console.error('[BMADOrchestrator] Error generating feedback:', feedbackError)
+        // Criar feedback básico em caso de erro
+        feedback = {
+          text: actionResult.summary || actionResult.error || 'Comando processado',
+          voiceConfig: { speed: 1.0, pitch: 1.0 },
+          visualizations: []
+        }
+      }
 
       // 9. Otimização de memória após processamento
-      await this.memory.optimizeAfterProcessing(feedback)
+      try {
+        await this.memory.optimizeAfterProcessing(feedback)
+      } catch (memoryError) {
+        console.warn('[BMADOrchestrator] Error optimizing memory:', memoryError)
+      }
 
       // 10. Validação final
+      console.log('[BMADOrchestrator] Running final validation...')
       const finalValidation = await this.supervisor.validateFinal({
         originalText: text,
         intent: intentResult,
@@ -185,17 +213,41 @@ export class BMADOrchestrator {
         feedback,
         visualizations
       })
+      console.log('[BMADOrchestrator] Final validation:', { 
+        approved: finalValidation.approved, 
+        qualityScore: finalValidation.qualityScore,
+        issues: finalValidation.issues 
+      })
 
       if (!finalValidation.approved) {
+        console.warn('[BMADOrchestrator] Final validation failed, attempting correction...')
         // Tentar corrigir
         const corrected = await this.supervisor.attemptCorrection(finalValidation)
         if (corrected.success) {
+          console.log('[BMADOrchestrator] Correction successful')
           return corrected.result
+        }
+        console.error('[BMADOrchestrator] Correction failed, returning error')
+        // Mesmo se a validação falhar, retornar resultado se tiver feedback
+        if (feedback && feedback.text) {
+          console.warn('[BMADOrchestrator] Returning result despite validation failure (has feedback)')
+          return {
+            success: true,
+            response: feedback.text,
+            visualizations: visualizations,
+            qualityScore: finalValidation.qualityScore,
+            metadata: {
+              intent: intent,
+              vectorSearchUsed: actionResult?.vectorSearchUsed || false,
+              validationWarning: true
+            }
+          }
         }
         return {
           success: false,
           error: 'Erro ao processar comando',
-          qualityScore: finalValidation.qualityScore
+          qualityScore: finalValidation.qualityScore,
+          details: finalValidation.issues
         }
       }
 
