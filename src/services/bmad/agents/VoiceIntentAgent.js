@@ -49,7 +49,37 @@ export default class VoiceIntentAgent {
     const lowerText = text.toLowerCase()
     console.log('[BMAD:VoiceIntentAgent] 🔄 Texto normalizado (primeiros 100 chars):', lowerText.substring(0, 100))
     
-    // Priorizar consultas sobre empresas sem colaboradores como query_database
+    // PRIORIDADE 1: Consultas de comparação temporal (ANTES de tudo)
+    const temporalComparisonKeywords = [
+      'compare', 'comparar', 'comparação', 'comparar o número', 'comparar número',
+      'primeiro semestre', 'segundo semestre', 'primeiro trimestre', 'segundo trimestre',
+      'primeiro mês', 'segundo mês', 'primeiro ano', 'segundo ano',
+      'período teve mais', 'qual período', 'qual semestre', 'qual trimestre',
+      'mais cadastros', 'mais registros', 'mais empresas', 'mais colaboradores',
+      'entre períodos', 'por período', 'por semestre', 'por trimestre',
+      'evolução', 'tendência', 'crescimento', 'diminuição'
+    ]
+    const hasTemporalComparison = temporalComparisonKeywords.some(keyword => lowerText.includes(keyword))
+    
+    if (hasTemporalComparison) {
+      const params = this.extractParams(text, 'query_database')
+      const result = {
+        intent: 'query_database',
+        params,
+        confidence: 0.95,
+        originalText: text
+      }
+      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (comparação temporal):', {
+        intent: result.intent,
+        confidence: result.confidence,
+        params: result.params,
+        matchedKeyword: temporalComparisonKeywords.find(kw => lowerText.includes(kw))
+      })
+      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+      return result
+    }
+    
+    // PRIORIDADE 2: Consultas sobre empresas sem colaboradores como query_database
     const companiesWithoutEmployeesKeywords = [
       'empresa que não tem', 'empresas que não têm', 'empresa sem colaborador',
       'empresas sem colaboradores', 'empresa sem funcionário', 'empresas sem funcionários',
@@ -76,8 +106,14 @@ export default class VoiceIntentAgent {
       return result
     }
     
-    // Priorizar consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
-    const queryKeywords = ['média', 'média de', 'average', 'gráfico', 'chart', 'por período', 'por mês', 'por ano', 'tendência', 'evolução']
+    // PRIORIDADE 3: Consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
+    const queryKeywords = [
+      'média', 'média de', 'average', 'gráfico', 'chart', 
+      'por período', 'por mês', 'por ano', 'tendência', 'evolução',
+      'agrupar', 'agrupamento', 'distribuição', 'quantas', 'quantos',
+      'total de', 'número de', 'contagem', 'count', 'soma', 'sum',
+      'máximo', 'mínimo', 'max', 'min', 'análise', 'estatística'
+    ]
     const hasQueryKeyword = queryKeywords.some(keyword => lowerText.includes(keyword))
     
     if (hasQueryKeyword) {
