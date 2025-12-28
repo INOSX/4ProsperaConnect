@@ -48,10 +48,16 @@ export class BMADOrchestrator {
    * @returns {Promise<Object>} Resultado do processamento
    */
   async processCommand(text, user, context = {}) {
+    const startTime = Date.now()
+    console.log('[BMAD:Orchestrator] 🚀 Starting command processing:', text?.substring(0, 100))
+    console.log('[BMAD:Orchestrator] 👤 User:', user?.id, 'Email:', user?.email)
+    
     try {
       // 1. Validação inicial pelo Supervisor
+      console.log('[BMAD:Orchestrator] 📋 Step 1/12: Initial validation')
       const initialValidation = await this.supervisor.validateInitial(text)
       if (!initialValidation.approved) {
+        console.log('[BMAD:Orchestrator] ❌ Command rejected at initial validation:', initialValidation.reason)
         return {
           success: false,
           error: initialValidation.reason || 'Comando inválido',
@@ -60,9 +66,11 @@ export class BMADOrchestrator {
       }
 
       // 2. Classificação de intenção
+      console.log('[BMAD:Orchestrator] 📋 Step 2/12: Intent classification')
       const intentResult = await this.voiceIntent.classifyIntent(text, user)
       const intentValidation = await this.supervisor.validateIntent(intentResult)
       if (!intentValidation.approved) {
+        console.log('[BMAD:Orchestrator] ❌ Command rejected at intent validation:', intentValidation.reason)
         return {
           success: false,
           error: 'Não foi possível entender sua intenção. Tente reformular.',
@@ -71,6 +79,7 @@ export class BMADOrchestrator {
       }
 
       // 3. Validação de permissões
+      console.log('[BMAD:Orchestrator] 📋 Step 3/12: Permission check')
       const permissionResult = await this.permission.checkPermission(
         intentResult.intent,
         user,
@@ -78,6 +87,7 @@ export class BMADOrchestrator {
       )
       const permissionValidation = await this.supervisor.validatePermission(permissionResult)
       if (!permissionValidation.approved || !permissionResult.allowed) {
+        console.log('[BMAD:Orchestrator] ❌ Command rejected: Permission denied')
         return {
           success: false,
           error: permissionResult.reason || 'Você não tem permissão para executar esta ação',
@@ -86,16 +96,19 @@ export class BMADOrchestrator {
       }
 
       // 4. Coleta de contexto
+      console.log('[BMAD:Orchestrator] 📋 Step 4/12: Context collection')
       const contextResult = await this.context.collectContext(user, context)
       const contextValidation = await this.supervisor.validateContext(contextResult)
       if (!contextValidation.approved) {
-        console.warn('Context validation failed, continuing with available context')
+        console.warn('[BMAD:Orchestrator] ⚠️ Context validation failed, continuing with available context')
       }
 
       // 5. Otimização de memória antes de processar
+      console.log('[BMAD:Orchestrator] 📋 Step 5/12: Memory optimization (before)')
       await this.memory.optimizeBeforeProcessing()
 
       // 6. Executar ação baseada na intenção
+      console.log('[BMAD:Orchestrator] 📋 Step 6/12: Executing action for intent:', intentResult.intent)
       let actionResult = null
       const { intent, params } = intentResult
 
@@ -157,27 +170,26 @@ export class BMADOrchestrator {
       }
 
       // 7. Gerar visualizações
-      console.log('[BMADOrchestrator] Generating visualizations...')
+      console.log('[BMAD:Orchestrator] 📋 Step 7/12: Generating visualizations')
       let visualizations = []
       try {
         visualizations = await this.visualization.generateVisualizations(
           actionResult,
           intent
         )
-        console.log('[BMADOrchestrator] Visualizations generated:', { count: visualizations?.length || 0 })
+        console.log('[BMAD:Orchestrator] ✅ Visualizations generated:', { count: visualizations?.length || 0 })
       } catch (vizError) {
-        console.error('[BMADOrchestrator] Error generating visualizations:', vizError)
+        console.error('[BMAD:Orchestrator] ❌ Error generating visualizations:', vizError)
         visualizations = []
       }
       
       const vizValidation = await this.supervisor.validateVisualizations(visualizations)
-      console.log('[BMADOrchestrator] Visualization validation:', { approved: vizValidation.approved })
       if (!vizValidation.approved) {
-        console.warn('[BMADOrchestrator] Visualization validation failed, using basic format')
+        console.warn('[BMAD:Orchestrator] ⚠️ Visualization validation failed, using basic format')
       }
 
       // 8. Gerar feedback/resposta
-      console.log('[BMADOrchestrator] Generating feedback...')
+      console.log('[BMAD:Orchestrator] 📋 Step 8/12: Generating feedback')
       let feedback = null
       try {
         feedback = await this.feedback.generateFeedback(
@@ -186,9 +198,9 @@ export class BMADOrchestrator {
           visualizations,
           intentResult
         )
-        console.log('[BMADOrchestrator] Feedback generated:', { hasText: !!feedback?.text, text: feedback?.text?.substring(0, 100) })
+        console.log('[BMAD:Orchestrator] ✅ Feedback generated:', { hasText: !!feedback?.text, text: feedback?.text?.substring(0, 100) })
       } catch (feedbackError) {
-        console.error('[BMADOrchestrator] Error generating feedback:', feedbackError)
+        console.error('[BMAD:Orchestrator] ❌ Error generating feedback:', feedbackError)
         // Criar feedback básico em caso de erro
         feedback = {
           text: actionResult.summary || actionResult.error || 'Comando processado',
@@ -198,14 +210,15 @@ export class BMADOrchestrator {
       }
 
       // 9. Otimização de memória após processamento
+      console.log('[BMAD:Orchestrator] 📋 Step 9/12: Memory optimization (after)')
       try {
         await this.memory.optimizeAfterProcessing(feedback)
       } catch (memoryError) {
-        console.warn('[BMADOrchestrator] Error optimizing memory:', memoryError)
+        console.warn('[BMAD:Orchestrator] ⚠️ Error optimizing memory:', memoryError)
       }
 
       // 10. Validação final
-      console.log('[BMADOrchestrator] Running final validation...')
+      console.log('[BMAD:Orchestrator] 📋 Step 10/12: Final validation')
       const finalValidation = await this.supervisor.validateFinal({
         originalText: text,
         intent: intentResult,
@@ -213,8 +226,7 @@ export class BMADOrchestrator {
         feedback,
         visualizations
       })
-      console.log('[BMADOrchestrator] Final validation:', { 
-        approved: finalValidation.approved, 
+      console.log('[BMAD:Orchestrator]', finalValidation.approved ? '✅ Final validation passed' : '⚠️ Final validation failed', { 
         qualityScore: finalValidation.qualityScore,
         issues: finalValidation.issues 
       })

@@ -38,6 +38,7 @@ export default class VoiceIntentAgent {
   }
 
   async classifyIntent(text, user) {
+    console.log('[BMAD:VoiceIntentAgent] 🔍 Classifying intent for text:', text?.substring(0, 100))
     const lowerText = text.toLowerCase()
     
     // Priorizar consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
@@ -45,12 +46,15 @@ export default class VoiceIntentAgent {
     const hasQueryKeyword = queryKeywords.some(keyword => lowerText.includes(keyword))
     
     if (hasQueryKeyword) {
-      return {
+      const params = this.extractParams(text, 'query_database')
+      const result = {
         intent: 'query_database',
-        params: this.extractParams(text, 'query_database'),
+        params,
         confidence: 0.9,
         originalText: text
       }
+      console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (query keyword):', result.intent, 'confidence:', result.confidence, 'params:', params)
+      return result
     }
     
     // Buscar padrões de intenção
@@ -58,27 +62,33 @@ export default class VoiceIntentAgent {
       for (const pattern of patterns) {
         if (lowerText.includes(pattern)) {
           const params = this.extractParams(text, intent)
-          return {
+          const result = {
             intent,
             params,
             confidence: 0.8,
             originalText: text
           }
+          console.log('[BMAD:VoiceIntentAgent] ✅ Intent classified (pattern match):', result.intent, 'pattern:', pattern, 'confidence:', result.confidence, 'params:', params)
+          return result
         }
       }
     }
 
     // Se não encontrou padrão específico, tentar usar LLM
     // Por enquanto, retorna query_database como padrão
-    return {
+    const params = this.extractParams(text, 'query_database')
+    const result = {
       intent: 'query_database',
-      params: this.extractParams(text, 'query_database'),
+      params,
       confidence: 0.6,
       originalText: text
     }
+    console.log('[BMAD:VoiceIntentAgent] ⚠️ Intent classified (default fallback):', result.intent, 'confidence:', result.confidence, 'params:', params)
+    return result
   }
 
   extractParams(text, intent) {
+    console.log('[BMAD:VoiceIntentAgent] 🔧 Extracting params for intent:', intent)
     const params = {}
     const lowerText = text.toLowerCase()
 
@@ -86,18 +96,21 @@ export default class VoiceIntentAgent {
     const cnpjMatch = text.match(/\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}/)
     if (cnpjMatch) {
       params.cnpj = cnpjMatch[0].replace(/\D/g, '')
+      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted CNPJ:', params.cnpj)
     }
 
     // Extrair CPF
     const cpfMatch = text.match(/\d{3}\.?\d{3}\.?\d{3}-?\d{2}/)
     if (cpfMatch) {
       params.cpf = cpfMatch[0].replace(/\D/g, '')
+      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted CPF:', params.cpf)
     }
 
     // Extrair ID
     const idMatch = text.match(/(?:id|identificador)\s*:?\s*(\w+)/i)
     if (idMatch) {
       params.id = idMatch[1]
+      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted ID:', params.id)
     }
 
     // Extrair nome (após palavras-chave)
@@ -106,6 +119,7 @@ export default class VoiceIntentAgent {
       const nameMatch = lowerText.match(new RegExp(`${keyword}\\s+(.+?)(?:\\s|$)`, 'i'))
       if (nameMatch) {
         params.name = nameMatch[1].trim()
+        console.log('[BMAD:VoiceIntentAgent] 📋 Extracted name:', params.name)
         break
       }
     }
@@ -114,8 +128,10 @@ export default class VoiceIntentAgent {
     const emailMatch = text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/)
     if (emailMatch) {
       params.email = emailMatch[0]
+      console.log('[BMAD:VoiceIntentAgent] 📋 Extracted email:', params.email)
     }
 
+    console.log('[BMAD:VoiceIntentAgent] ✅ Params extracted:', Object.keys(params).length > 0 ? params : 'none')
     return params
   }
 }

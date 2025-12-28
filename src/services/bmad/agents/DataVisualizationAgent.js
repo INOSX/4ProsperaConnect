@@ -3,9 +3,12 @@
  */
 export default class DataVisualizationAgent {
   async generateVisualizations(actionResult, intent) {
+    console.log('[BMAD:DataVisualizationAgent] 📊 Generating visualizations for intent:', intent)
+    
     const visualizations = []
 
     if (!actionResult) {
+      console.log('[BMAD:DataVisualizationAgent] ⚠️ No action result provided')
       return visualizations
     }
 
@@ -13,6 +16,7 @@ export default class DataVisualizationAgent {
     if (actionResult.isCount && actionResult.results && actionResult.results.length > 0) {
       const countResult = actionResult.results[0]
       if (countResult.count !== undefined) {
+        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card visualization:', countResult.count)
         visualizations.push({
           type: 'card',
           data: [{
@@ -23,6 +27,7 @@ export default class DataVisualizationAgent {
             title: actionResult.summary || 'Contagem'
           }
         })
+        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
     }
@@ -32,6 +37,7 @@ export default class DataVisualizationAgent {
       const aggregateResult = actionResult.results[0]
       if (aggregateResult.value !== undefined || aggregateResult.average !== undefined) {
         const value = aggregateResult.value || aggregateResult.average
+        console.log('[BMAD:DataVisualizationAgent] 📊 Creating aggregate card visualization:', value)
         visualizations.push({
           type: 'card',
           data: [{
@@ -42,6 +48,7 @@ export default class DataVisualizationAgent {
             title: actionResult.summary || 'Agregação'
           }
         })
+        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
     }
@@ -56,11 +63,13 @@ export default class DataVisualizationAgent {
         yColumn: 'count'
       }
       
+      console.log('[BMAD:DataVisualizationAgent] 📊 Creating time series chart:', config.chartType, 'with', chartData.length, 'data points')
       visualizations.push({
         type: 'chart',
         data: chartData,
         config: config
       })
+      console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
       return visualizations
     }
 
@@ -112,6 +121,7 @@ export default class DataVisualizationAgent {
       })
     }
 
+    console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'total visualization(s)')
     return visualizations
   }
 

@@ -12,7 +12,10 @@ export default class SupervisorAgent {
    * Validação inicial (pré-processamento)
    */
   async validateInitial(text) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating initial input...')
+    
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Empty or invalid text')
       return {
         approved: false,
         reason: 'Texto vazio ou inválido',
@@ -21,6 +24,7 @@ export default class SupervisorAgent {
     }
 
     if (text.length > 1000) {
+      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Text too long', text.length, 'chars')
       return {
         approved: false,
         reason: 'Texto muito longo (máximo 1000 caracteres)',
@@ -28,6 +32,7 @@ export default class SupervisorAgent {
       }
     }
 
+    console.log('[BMAD:SupervisorAgent] ✅ Initial validation passed:', text.length, 'chars')
     return {
       approved: true,
       qualityScore: 100
@@ -38,7 +43,10 @@ export default class SupervisorAgent {
    * Valida intenção classificada
    */
   async validateIntent(intentResult) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating intent:', intentResult?.intent, 'confidence:', intentResult?.confidence)
+    
     if (!intentResult || !intentResult.intent) {
+      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: No intent identified')
       return {
         approved: false,
         reason: 'Intenção não identificada',
@@ -47,6 +55,7 @@ export default class SupervisorAgent {
     }
 
     if (intentResult.confidence < 0.5) {
+      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: Low confidence', intentResult.confidence)
       return {
         approved: false,
         reason: 'Confiança na classificação muito baixa',
@@ -54,6 +63,7 @@ export default class SupervisorAgent {
       }
     }
 
+    console.log('[BMAD:SupervisorAgent] ✅ Intent validation passed:', intentResult.intent, 'qualityScore:', (intentResult.confidence * 100).toFixed(1))
     return {
       approved: true,
       qualityScore: intentResult.confidence * 100
@@ -64,7 +74,10 @@ export default class SupervisorAgent {
    * Valida verificação de permissões
    */
   async validatePermission(permissionResult) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating permission result:', permissionResult?.allowed)
+    
     if (!permissionResult || typeof permissionResult.allowed !== 'boolean') {
+      console.log('[BMAD:SupervisorAgent] ❌ Permission validation failed: Invalid result')
       return {
         approved: false,
         reason: 'Verificação de permissão inválida',
@@ -72,9 +85,11 @@ export default class SupervisorAgent {
       }
     }
 
+    const qualityScore = permissionResult.allowed ? 100 : 0
+    console.log('[BMAD:SupervisorAgent]', permissionResult.allowed ? '✅ Permission validation passed' : '❌ Permission denied', 'qualityScore:', qualityScore)
     return {
       approved: true,
-      qualityScore: permissionResult.allowed ? 100 : 0
+      qualityScore: qualityScore
     }
   }
 
@@ -82,7 +97,10 @@ export default class SupervisorAgent {
    * Valida contexto coletado
    */
   async validateContext(contextResult) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating context...')
+    
     if (!contextResult) {
+      console.log('[BMAD:SupervisorAgent] ❌ Context validation failed: No context provided')
       return {
         approved: false,
         reason: 'Contexto não coletado',
@@ -92,9 +110,11 @@ export default class SupervisorAgent {
 
     // Verificar se contexto tem dados mínimos
     const hasData = contextResult.userContext || contextResult.pageContext || contextResult.dataContext
+    const qualityScore = hasData ? 80 : 40
+    console.log('[BMAD:SupervisorAgent]', hasData ? '✅ Context validation passed' : '⚠️ Context validation passed with warnings', 'qualityScore:', qualityScore)
     return {
       approved: hasData,
-      qualityScore: hasData ? 80 : 40
+      qualityScore: qualityScore
     }
   }
 
@@ -102,7 +122,10 @@ export default class SupervisorAgent {
    * Valida resultado de query
    */
   async validateQueryResult(queryResult) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating query result...')
+    
     if (!queryResult) {
+      console.log('[BMAD:SupervisorAgent] ❌ Query validation failed: Empty result')
       return {
         approved: false,
         reason: 'Resultado de query vazio',
@@ -111,6 +134,7 @@ export default class SupervisorAgent {
     }
 
     if (queryResult.error) {
+      console.log('[BMAD:SupervisorAgent] ❌ Query validation failed:', queryResult.error)
       return {
         approved: false,
         reason: queryResult.error,
@@ -120,6 +144,7 @@ export default class SupervisorAgent {
 
     // Consultas de contagem são válidas mesmo sem array de resultados
     if (queryResult.isCount) {
+      console.log('[BMAD:SupervisorAgent] ✅ Query validation passed: Count query, qualityScore: 90')
       return {
         approved: true,
         qualityScore: 90,
@@ -134,11 +159,14 @@ export default class SupervisorAgent {
 
     // Aceitar se tiver resultados OU summary (para casos como contagem)
     const hasSummary = queryResult.summary && queryResult.summary.trim().length > 0
-
+    const qualityScore = hasResults ? 90 : (hasSummary ? 70 : 50)
+    const reason = hasResults ? 'Resultados encontrados' : (hasSummary ? 'Summary disponível' : 'Resultado válido')
+    
+    console.log('[BMAD:SupervisorAgent] ✅ Query validation passed:', reason, 'qualityScore:', qualityScore, 'hasResults:', hasResults, 'hasSummary:', hasSummary)
     return {
       approved: hasResults || hasSummary || queryResult.success,
-      qualityScore: hasResults ? 90 : (hasSummary ? 70 : 50),
-      reason: hasResults ? 'Resultados encontrados' : (hasSummary ? 'Summary disponível' : 'Resultado válido')
+      qualityScore: qualityScore,
+      reason: reason
     }
   }
 
@@ -146,7 +174,10 @@ export default class SupervisorAgent {
    * Valida resultado de ação
    */
   async validateActionResult(actionResult) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating action result...')
+    
     if (!actionResult) {
+      console.log('[BMAD:SupervisorAgent] ❌ Action validation failed: Empty result')
       return {
         approved: false,
         reason: 'Resultado de ação vazio',
@@ -155,6 +186,7 @@ export default class SupervisorAgent {
     }
 
     if (actionResult.error) {
+      console.log('[BMAD:SupervisorAgent] ❌ Action validation failed:', actionResult.error)
       return {
         approved: false,
         reason: actionResult.error,
@@ -162,9 +194,11 @@ export default class SupervisorAgent {
       }
     }
 
+    const qualityScore = actionResult.success ? 90 : 50
+    console.log('[BMAD:SupervisorAgent]', actionResult.success ? '✅ Action validation passed' : '⚠️ Action validation passed with warnings', 'qualityScore:', qualityScore)
     return {
       approved: actionResult.success !== false,
-      qualityScore: actionResult.success ? 90 : 50
+      qualityScore: qualityScore
     }
   }
 
@@ -172,7 +206,10 @@ export default class SupervisorAgent {
    * Valida visualizações geradas
    */
   async validateVisualizations(visualizations) {
+    console.log('[BMAD:SupervisorAgent] 🔍 Validating visualizations:', visualizations?.length || 0)
+    
     if (!visualizations || !Array.isArray(visualizations)) {
+      console.log('[BMAD:SupervisorAgent] ❌ Visualization validation failed: Invalid format')
       return {
         approved: false,
         reason: 'Visualizações inválidas',
@@ -185,9 +222,11 @@ export default class SupervisorAgent {
       viz.type && (viz.data || viz.config)
     )
 
+    const qualityScore = validViz ? 85 : 40
+    console.log('[BMAD:SupervisorAgent]', validViz ? '✅ Visualization validation passed' : '⚠️ Visualization validation passed with warnings', 'qualityScore:', qualityScore)
     return {
       approved: validViz,
-      qualityScore: validViz ? 85 : 40
+      qualityScore: qualityScore
     }
   }
 

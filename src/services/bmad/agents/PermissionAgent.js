@@ -6,7 +6,10 @@ import { canManageEmployees, canAccessProspecting, canAccessCampaigns } from '..
 
 export default class PermissionAgent {
   async checkPermission(intent, user, params) {
+    console.log('[BMAD:PermissionAgent] 🔐 Checking permission for intent:', intent, 'user:', user?.id)
+    
     if (!user) {
+      console.log('[BMAD:PermissionAgent] ❌ Permission denied: User not authenticated')
       return {
         allowed: false,
         reason: 'Usuário não autenticado'
@@ -15,8 +18,10 @@ export default class PermissionAgent {
 
     try {
       // Buscar role do usuário
+      console.log('[BMAD:PermissionAgent] 🔍 Fetching user role...')
       const clientResult = await ClientService.getClientByUserId(user.id)
       if (!clientResult.success || !clientResult.client) {
+        console.log('[BMAD:PermissionAgent] ❌ Permission denied: Client not found')
         return {
           allowed: false,
           reason: 'Cliente não encontrado'
@@ -25,6 +30,7 @@ export default class PermissionAgent {
 
       const userRole = clientResult.client.role || 'user'
       const isCompanyAdmin = clientResult.client.is_company_admin || false
+      console.log('[BMAD:PermissionAgent] 👤 User role:', userRole, 'isCompanyAdmin:', isCompanyAdmin)
 
       // Verificar permissões por intenção
       const intentPermissions = {
@@ -49,6 +55,7 @@ export default class PermissionAgent {
       }
 
       const allowed = intentPermissions[intent] !== false
+      console.log('[BMAD:PermissionAgent]', allowed ? '✅ Permission granted' : '❌ Permission denied', 'for intent:', intent)
 
       return {
         allowed,
@@ -57,7 +64,7 @@ export default class PermissionAgent {
         isCompanyAdmin
       }
     } catch (error) {
-      console.error('Error checking permission:', error)
+      console.error('[BMAD:PermissionAgent] ❌ Error checking permission:', error)
       return {
         allowed: false,
         reason: 'Erro ao verificar permissões'

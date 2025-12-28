@@ -3,10 +3,12 @@
  */
 export default class FeedbackAgent {
   async generateFeedback(originalText, actionResult, visualizations, intentResult) {
+    console.log('[BMAD:FeedbackAgent] 💬 Generating feedback for intent:', intentResult?.intent)
     let text = ''
 
     if (!actionResult || !actionResult.success) {
       text = actionResult?.error || 'Não foi possível processar sua solicitação.'
+      console.log('[BMAD:FeedbackAgent] ❌ Action failed, returning error feedback:', text)
       return {
         text,
         voiceConfig: {
@@ -59,6 +61,7 @@ export default class FeedbackAgent {
       text = 'Ação executada com sucesso!'
     }
 
+    console.log('[BMAD:FeedbackAgent] ✅ Feedback generated:', text?.substring(0, 100))
     return {
       text,
       voiceConfig: {

@@ -19,12 +19,16 @@ export default class SuggestionAgent {
   }
 
   async generateSuggestions(text, intentResult, actionResult, history) {
+    console.log('[BMAD:SuggestionAgent] 💡 Generating suggestions for intent:', intentResult.intent)
     const intent = intentResult.intent
     const suggestions = []
 
     // Buscar sugestões baseadas na intenção
     if (this.suggestionPatterns[intent]) {
       suggestions.push(...this.suggestionPatterns[intent])
+      console.log('[BMAD:SuggestionAgent] 📋 Found', this.suggestionPatterns[intent].length, 'pattern-based suggestions')
+    } else {
+      console.log('[BMAD:SuggestionAgent] ⚠️ No pattern suggestions found for intent:', intent)
     }
 
     // Sugestões genéricas baseadas no histórico
@@ -36,14 +40,18 @@ export default class SuggestionAgent {
           command: 'mostrar dashboard',
           relevance: 60
         })
+        console.log('[BMAD:SuggestionAgent] 📋 Added history-based suggestion')
       }
     }
 
     // Ordenar por relevância e retornar top 3-5
+    const finalSuggestions = suggestions
+      .sort((a, b) => b.relevance - a.relevance)
+      .slice(0, 5)
+    
+    console.log('[BMAD:SuggestionAgent] ✅ Generated', finalSuggestions.length, 'suggestions')
     return {
-      suggestions: suggestions
-        .sort((a, b) => b.relevance - a.relevance)
-        .slice(0, 5),
+      suggestions: finalSuggestions,
       reasoning: `Sugestões baseadas na ação: ${intent}`,
       confidence: 0.7
     }
