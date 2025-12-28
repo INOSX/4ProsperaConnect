@@ -2,7 +2,7 @@
  * Gerador de embeddings usando OpenAI Embeddings API
  */
 export class EmbeddingGenerator {
-  constructor(model = 'text-embedding-3-large') {
+  constructor(model = 'text-embedding-3-small') {
     this.cache = new Map()
     this.model = model
     this.cacheTTL = 24 * 60 * 60 * 1000 // 24 horas

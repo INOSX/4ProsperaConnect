@@ -74,7 +74,7 @@ console.log(`Vetorizados ${result.embeddingsCreated} registros`)
 1. Quando você chama `EmbeddingGenerator.generateEmbedding(text)`
 2. Ele faz uma requisição para `/api/openai/embeddings`
 3. A API route chama OpenAI Embeddings API
-4. Retorna o embedding real (1536 ou 3072 dimensões)
+4. Retorna o embedding real (1536 dimensões usando text-embedding-3-small)
 5. Embedding é cacheado por 24 horas
 
 ### Vetorização de Dados

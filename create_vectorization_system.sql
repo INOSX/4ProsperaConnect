@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.data_embeddings (
     table_name TEXT NOT NULL,
     record_id UUID NOT NULL,
     chunk_text TEXT NOT NULL,
-    embedding vector(3072), -- text-embedding-3-large usa 3072 dimensões
+    embedding vector(1536), -- text-embedding-3-small usa 1536 dimensões (limite HNSW: 2000)
     metadata JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -142,7 +142,7 @@ CREATE TRIGGER vectorize_prospect_on_update
 -- 6. FUNÇÃO HELPER PARA BUSCA VETORIAL
 -- ============================================
 CREATE OR REPLACE FUNCTION semantic_search(
-    query_embedding vector(3072),
+    query_embedding vector(1536),
     table_filter TEXT DEFAULT NULL,
     similarity_threshold FLOAT DEFAULT 0.7,
     result_limit INT DEFAULT 10

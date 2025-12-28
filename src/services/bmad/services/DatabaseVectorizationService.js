@@ -14,7 +14,7 @@ export default class DatabaseVectorizationService {
       'cpf_clients',
       'unbanked_companies'
     ]
-    this.embeddingGenerator = new EmbeddingGenerator('text-embedding-3-large')
+    this.embeddingGenerator = new EmbeddingGenerator('text-embedding-3-small')
   }
 
   /**

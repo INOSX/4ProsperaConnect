@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
     switch (action) {
       case 'generateEmbedding': {
-        const { text, model = 'text-embedding-3-large' } = params
+        const { text, model = 'text-embedding-3-small' } = params
 
         if (!text) {
           return res.status(400).json({ error: 'Text is required' })
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         const response = await openaiClient.embeddings.create({
           model: model,
           input: text,
-          dimensions: model === 'text-embedding-3-large' ? 3072 : 1536
+          dimensions: 1536 // text-embedding-3-small usa 1536 dimensões (compatível com HNSW)
         })
 
         const embedding = response.data[0].embedding
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
       }
 
       case 'generateBatch': {
-        const { texts, model = 'text-embedding-3-large' } = params
+        const { texts, model = 'text-embedding-3-small' } = params
 
         if (!texts || !Array.isArray(texts) || texts.length === 0) {
           return res.status(400).json({ error: 'Texts array is required' })
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
           const response = await openaiClient.embeddings.create({
             model: model,
             input: batch,
-            dimensions: model === 'text-embedding-3-large' ? 3072 : 1536
+            dimensions: 1536 // text-embedding-3-small usa 1536 dimensões (compatível com HNSW)
           })
 
           allEmbeddings.push(...response.data.map(item => item.embedding))

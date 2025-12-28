@@ -2,7 +2,15 @@
 
 ## Problema Identificado
 
-O erro `expected 1536 dimensions, not 3072` indica que a tabela `data_embeddings` no Supabase foi criada com dimensão 1536, mas o código está gerando embeddings com 3072 dimensões (usando `text-embedding-3-large`).
+O erro `column cannot have more than 2000 dimensions for hnsw index` indica que o pgvector limita índices HNSW a 2000 dimensões. O código estava tentando usar `text-embedding-3-large` com 3072 dimensões, o que excede esse limite.
+
+## Solução Adotada
+
+Mudamos para usar `text-embedding-3-small` com **1536 dimensões**, que:
+- ✅ Está dentro do limite HNSW (2000 dimensões)
+- ✅ Permite criar índices HNSW para buscas rápidas
+- ✅ Oferece boa qualidade de embeddings
+- ✅ É mais econômico que o modelo large
 
 ## Solução
 
@@ -22,23 +30,23 @@ Execute o script de migração `migrate_embedding_dimensions.sql` no SQL Editor 
 
 3. **Verifique se a Migração Foi Bem-Sucedida**
    - O script irá:
-     - Remover o índice HNSW antigo
-     - Alterar a coluna `embedding` de `vector(1536)` para `vector(3072)`
-     - Recriar o índice HNSW com a dimensão correta
-     - Atualizar a função `semantic_search`
+     - Remover o índice HNSW antigo (se existir)
+     - Garantir que a coluna `embedding` está configurada para `vector(1536)`
+     - Recriar o índice HNSW com a dimensão correta (1536)
+     - Atualizar a função `semantic_search` para usar 1536 dimensões
 
 4. **Regenere os Embeddings**
    - Após a migração, acesse a página de vetorização
    - Clique em "Vetorizar Todos os Dados"
-   - Os embeddings serão regenerados com a dimensão correta
+   - Os embeddings serão regenerados usando `text-embedding-3-small` com 1536 dimensões
 
 ## O que o Script Faz
 
-- **Remove o índice antigo**: Para permitir a alteração da coluna
-- **Altera a dimensão**: De `vector(1536)` para `vector(3072)`
+- **Remove o índice antigo**: Para permitir a alteração da coluna (se necessário)
+- **Garante dimensão correta**: Configura a coluna `embedding` para `vector(1536)` (compatível com HNSW)
 - **Limpa embeddings antigos**: Se houver dados com dimensão incorreta, eles serão limpos (definidos como NULL)
-- **Recria o índice**: Com a dimensão correta para otimizar buscas
-- **Atualiza funções**: Garante que `semantic_search` use a dimensão correta
+- **Recria o índice HNSW**: Com 1536 dimensões para otimizar buscas semânticas
+- **Atualiza funções**: Garante que `semantic_search` use 1536 dimensões
 
 ## Verificação
 
@@ -54,7 +62,7 @@ WHERE table_name = 'data_embeddings'
 AND column_name = 'embedding';
 ```
 
-A coluna `embedding` deve mostrar `vector` como tipo, e a dimensão deve ser 3072.
+A coluna `embedding` deve mostrar `vector` como tipo, e a dimensão deve ser 1536.
 
 ## Notas Importantes
 
