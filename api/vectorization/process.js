@@ -6,9 +6,16 @@ import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 
 // Inicializar Supabase
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-const supabase = createClient(supabaseUrl, supabaseKey)
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase credentials not configured. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.')
+  }
+  
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 // Inicializar OpenAI
 function initializeOpenAI() {
@@ -77,8 +84,19 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // Validar configurações
   if (!openai) {
     return res.status(500).json({ error: 'OpenAI API key not configured' })
+  }
+
+  let supabase
+  try {
+    supabase = getSupabaseClient()
+  } catch (supabaseError) {
+    return res.status(500).json({ 
+      error: 'Supabase not configured',
+      details: supabaseError.message 
+    })
   }
 
   try {
@@ -273,39 +291,66 @@ export default async function handler(req, res) {
 
       case 'getStatus': {
         // Retorna status da vetorização
-        const { data: allRecords, error } = await supabase
-          .from('data_embeddings')
-          .select('table_name, embedding')
+        try {
+          const { data: allRecords, error } = await supabase
+            .from('data_embeddings')
+            .select('table_name, embedding')
 
-        if (error) {
-          throw error
+          if (error) {
+            // Se a tabela não existir, retornar status vazio
+            if (error.message?.includes('relation') || error.message?.includes('does not exist') || error.code === 'PGRST116') {
+              return res.status(200).json({
+                success: true,
+                total: 0,
+                withEmbedding: 0,
+                pending: 0,
+                byTable: {},
+                message: 'Tabela data_embeddings ainda não foi criada. Execute o script SQL primeiro.'
+              })
+            }
+            throw error
+          }
+
+          const total = allRecords?.length || 0
+          const withEmbedding = allRecords?.filter(r => r.embedding !== null && r.embedding !== undefined).length || 0
+          const pending = total - withEmbedding
+
+          // Contar por tabela
+          const byTable = {}
+          allRecords?.forEach(record => {
+            if (!byTable[record.table_name]) {
+              byTable[record.table_name] = { total: 0, withEmbedding: 0, pending: 0 }
+            }
+            byTable[record.table_name].total++
+            if (record.embedding !== null && record.embedding !== undefined) {
+              byTable[record.table_name].withEmbedding++
+            } else {
+              byTable[record.table_name].pending++
+            }
+          })
+
+          return res.status(200).json({
+            success: true,
+            total,
+            withEmbedding,
+            pending,
+            byTable
+          })
+        } catch (statusError) {
+          console.error('Error in getStatus:', statusError)
+          // Se a tabela não existir, retornar status vazio
+          if (statusError.message?.includes('relation') || statusError.message?.includes('does not exist') || statusError.code === 'PGRST116') {
+            return res.status(200).json({
+              success: true,
+              total: 0,
+              withEmbedding: 0,
+              pending: 0,
+              byTable: {},
+              message: 'Tabela data_embeddings ainda não foi criada. Execute o script SQL primeiro.'
+            })
+          }
+          throw statusError
         }
-
-        const total = allRecords?.length || 0
-        const withEmbedding = allRecords?.filter(r => r.embedding !== null).length || 0
-        const pending = total - withEmbedding
-
-        // Contar por tabela
-        const byTable = {}
-        allRecords?.forEach(record => {
-          if (!byTable[record.table_name]) {
-            byTable[record.table_name] = { total: 0, withEmbedding: 0, pending: 0 }
-          }
-          byTable[record.table_name].total++
-          if (record.embedding !== null) {
-            byTable[record.table_name].withEmbedding++
-          } else {
-            byTable[record.table_name].pending++
-          }
-        })
-
-        return res.status(200).json({
-          success: true,
-          total,
-          withEmbedding,
-          pending,
-          byTable
-        })
       }
 
       default:
@@ -313,9 +358,17 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     console.error('Error in vectorization API:', error)
-    return res.status(500).json({
-      error: error.message || 'Internal server error',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    })
+    // Garantir que sempre retornamos JSON válido
+    const errorResponse = {
+      success: false,
+      error: error.message || 'Internal server error'
+    }
+    
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.details = error.stack
+      errorResponse.fullError = error.toString()
+    }
+    
+    return res.status(500).json(errorResponse)
   }
 }
