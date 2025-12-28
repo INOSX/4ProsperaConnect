@@ -1,21 +1,44 @@
 [
   {
-    "target": "[data-tour-id='specialist-widget']",
-    "title": "Especialista Virtual",
-    "content": "Este é o seu assistente virtual inteligente! Ele pode responder perguntas sobre seus dados, ajudar com análises e fornecer insights sobre suas empresas e colaboradores.",
-    "placement": "left"
+    "target": "[data-tour-id='specialist-panel']",
+    "title": "Especialista IA - Painel Principal",
+    "content": "Bem-vindo ao módulo Especialista IA! Este é seu assistente virtual inteligente que permite interagir com toda a plataforma usando comandos de voz. O especialista pode executar ações, fazer consultas ao banco de dados e fornecer insights sobre seus dados.",
+    "placement": "bottom"
   },
   {
-    "target": "[data-tour-id='specialist-connect']",
+    "target": "[data-tour-id='specialist-video']",
+    "title": "Avatar do Especialista",
+    "content": "Aqui você verá o avatar do especialista quando estiver conectado. O avatar fala e responde às suas perguntas usando inteligência artificial avançada.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-connect-button']",
     "title": "Conectar Especialista",
-    "content": "Clique em 'Conectar' para iniciar uma conversa com o especialista. Ele usará os dados do seu dataset selecionado para fornecer respostas precisas.",
+    "content": "Clique aqui para conectar o especialista. Após conectar, você poderá começar a fazer perguntas e dar comandos por voz. O especialista estará pronto para ajudá-lo!",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-microphone-button']",
+    "title": "Comandos de Voz",
+    "content": "Use este botão para falar com o especialista. Clique e fale seu comando ou pergunta. O sistema transcreve sua voz e processa o comando usando a arquitetura BMAD (Behavior, Model, Agent, Data).",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='specialist-history']",
+    "title": "Histórico de Comandos",
+    "content": "Aqui você verá todo o histórico de comandos e respostas. Os comandos aparecem à direita (azul) e as respostas do especialista à esquerda (branco). Use isso para acompanhar suas interações.",
     "placement": "left"
   },
   {
-    "target": "[data-tour-id='specialist-microphone']",
-    "title": "Gravação de Voz",
-    "content": "Use o microfone para fazer perguntas por voz. O especialista transcreve sua pergunta e responde usando inteligência artificial e seus dados.",
+    "target": "[data-tour-id='specialist-visualizations']",
+    "title": "Visualizações de Dados",
+    "content": "Quando você fizer consultas que retornam dados, eles aparecerão aqui na forma de gráficos, tabelas ou cards. O especialista gera visualizações automaticamente baseadas no tipo de dados solicitados.",
+    "placement": "right"
+  },
+  {
+    "target": "[data-tour-id='specialist-expand-button']",
+    "title": "Expandir/Minimizar Painel",
+    "content": "Use este botão para expandir ou minimizar o painel do especialista, dando mais espaço para visualizar os dados ou o histórico de comandos.",
     "placement": "left"
   }
 ]
-

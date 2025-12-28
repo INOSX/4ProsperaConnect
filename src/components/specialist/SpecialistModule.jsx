@@ -297,7 +297,7 @@ const SpecialistModule = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 p-6" data-tour-id="specialist-panel">
       <div className="max-w-7xl mx-auto">
         <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
@@ -309,6 +309,7 @@ const SpecialistModule = () => {
               onClick={() => setIsMinimized(!isMinimized)}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               title={isMinimized ? 'Expandir' : 'Minimizar'}
+              data-tour-id="specialist-expand-button"
             >
               {isMinimized ? (
                 <Maximize2 className="h-5 w-5 text-gray-600" />
@@ -324,7 +325,7 @@ const SpecialistModule = () => {
               <div className="lg:col-span-1">
                 <Card className="p-4">
                   <h2 className="text-lg font-semibold text-gray-900 mb-4">Especialista</h2>
-                  <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '280px' }}>
+                  <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '280px' }} data-tour-id="specialist-video">
                     <video
                       ref={videoRef}
                       autoPlay
@@ -345,6 +346,7 @@ const SpecialistModule = () => {
                   <button
                     onClick={!avatarConnected ? () => initializeAvatar() : toggleRecording}
                     disabled={!audioRecorder}
+                    data-tour-id={!avatarConnected ? "specialist-connect-button" : "specialist-microphone-button"}
                     className={`w-full mt-4 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                       !avatarConnected
                         ? 'bg-primary-50 text-primary-600 hover:bg-primary-100'
@@ -377,7 +379,7 @@ const SpecialistModule = () => {
               </div>
 
               {/* Área de Visualização de Dados */}
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2" data-tour-id="specialist-visualizations">
                 <DataVisualizationArea visualizations={visualizations} />
               </div>
             </div>
@@ -385,7 +387,7 @@ const SpecialistModule = () => {
 
           {/* Histórico de Comandos */}
           {!isMinimized && (
-            <div className="mt-6">
+            <div className="mt-6" data-tour-id="specialist-history">
               <VoiceCommandHistory history={commandHistory} />
             </div>
           )}
