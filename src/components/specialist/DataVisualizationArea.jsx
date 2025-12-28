@@ -81,11 +81,24 @@ const DataVisualizationArea = ({ visualizations = [] }) => {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {viz.data?.rows?.map((row, i) => (
                           <tr key={i}>
-                            {row.map((cell, j) => (
-                              <td key={j} className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                                {cell}
-                              </td>
-                            ))}
+                            {row.map((cell, j) => {
+                              // Converter objetos e arrays para string JSON
+                              let displayValue = cell
+                              if (cell !== null && cell !== undefined) {
+                                if (typeof cell === 'object') {
+                                  displayValue = JSON.stringify(cell)
+                                } else {
+                                  displayValue = String(cell)
+                                }
+                              } else {
+                                displayValue = ''
+                              }
+                              return (
+                                <td key={j} className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                                  {displayValue}
+                                </td>
+                              )
+                            })}
                           </tr>
                         ))}
                       </tbody>

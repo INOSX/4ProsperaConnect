@@ -38,6 +38,20 @@ const AuthCallback = () => {
         }
 
         if (session?.user) {
+          // Verificar se é recuperação de senha
+          if (tokenType === 'recovery' || type === 'recovery') {
+            setStatus('success')
+            setMessage('Link de recuperação verificado! Redirecionando para redefinir senha...')
+            
+            // Limpar hash da URL
+            window.history.replaceState({}, document.title, window.location.pathname)
+            
+            setTimeout(() => {
+              navigate('/reset-password', { replace: true })
+            }, 2000)
+            return
+          }
+          
           setStatus('success')
           setMessage('Email confirmado com sucesso! Redirecionando...')
           

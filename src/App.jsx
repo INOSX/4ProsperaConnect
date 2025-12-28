@@ -6,6 +6,8 @@ import { TourProvider } from './contexts/TourContext'
 import TourProviderComponent from './components/tour/TourProvider'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
+import ForgotPasswordForm from './components/auth/ForgotPasswordForm'
+import ResetPasswordForm from './components/auth/ResetPasswordForm'
 import AuthCallback from './components/auth/AuthCallback'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
@@ -59,6 +61,8 @@ function App() {
               <Routes>
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
+              <Route path="/forgot-password" element={<ForgotPasswordForm />} />
+              <Route path="/reset-password" element={<ResetPasswordForm />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/" element={
                 <ProtectedRoute>
