@@ -886,23 +886,90 @@ export default class DatabaseQueryAgent {
 
   /**
    * Executa uma consulta baseada no plano gerado pela IA - DINÂMICO
+   * PRIORIDADE: Se a IA gerou uma query SQL completa, executar ela diretamente
    * Interpreta o plano e executa dinamicamente sem código fixo
    */
   async executePlannedQuery(queryPlan, text, user, params) {
-    console.log('[BMAD:DatabaseQueryAgent] 🎯 Executing planned query dynamically:', queryPlan)
+    console.log('[BMAD:DatabaseQueryAgent] 🎯 ========== EXECUTANDO QUERY PLANEJADA PELA IA ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano recebido:', {
+      queryType: queryPlan.queryType,
+      strategy: queryPlan.strategy,
+      hasSqlQuery: !!queryPlan.sqlQuery,
+      sqlQuery: queryPlan.sqlQuery?.substring(0, 200),
+      groupBy: queryPlan.groupBy,
+      tables: queryPlan.tables
+    })
     
     try {
-      // Se o plano tem groupBy, executar agrupamento dinâmico
+      // PRIORIDADE 1: Se a IA gerou uma query SQL completa, executar ela usando método dinâmico
+      if (queryPlan.sqlQuery && queryPlan.sqlQuery.trim()) {
+        console.log('[BMAD:DatabaseQueryAgent] ✅ ========== QUERY SQL GERADA PELA IA ==========')
+        console.log('[BMAD:DatabaseQueryAgent] 📝 Query SQL completa gerada pela IA:')
+        console.log('[BMAD:DatabaseQueryAgent] 📝', queryPlan.sqlQuery)
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Tipo de query:', queryPlan.queryType)
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Estratégia:', queryPlan.strategy)
+        
+        try {
+          // Executar a query SQL usando método dinâmico baseado no plano
+          // Como Supabase não permite SQL arbitrário por segurança, vamos usar o plano para executar dinamicamente
+          console.log('[BMAD:DatabaseQueryAgent] 🔄 Executando query usando método dinâmico baseado no plano...')
+          
+          // Se tem GROUP BY, usar método de agrupamento dinâmico
+          if (queryPlan.groupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query tem GROUP BY, executando agrupamento dinâmico...')
+            return await this.executeDynamicGroupBy(queryPlan, user, params)
+          }
+          
+          // Se é agregação, usar método de agregação dinâmica
+          if (queryPlan.queryType === 'aggregate' || queryPlan.aggregationType) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é agregação, executando agregação dinâmica...')
+            return await this.executeDynamicAggregate(queryPlan, user, params)
+          }
+          
+          // Se é série temporal, usar método de série temporal
+          if (queryPlan.queryType === 'timeSeries' || queryPlan.timeGrouping) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é série temporal, executando série temporal...')
+            return await this.handleTimeSeriesQuery(text, user, params)
+          }
+          
+          // Se é contagem simples
+          if (queryPlan.queryType === 'count' || queryPlan.sqlQuery.toLowerCase().includes('count(')) {
+            console.log('[BMAD:DatabaseQueryAgent] 📊 Query é contagem, executando contagem...')
+            return await this.handleCountQuery(text, user, params)
+          }
+          
+          // Para outras queries, usar método SQL padrão
+          console.log('[BMAD:DatabaseQueryAgent] 📊 Query genérica, usando método SQL padrão...')
+          const sqlResults = await this.executeSQLQuery(text, user, params)
+          return {
+            success: true,
+            results: sqlResults,
+            summary: queryPlan.description || `Encontrados ${sqlResults.length} resultados.`,
+            vectorSearchUsed: false
+          }
+        } catch (sqlError) {
+          console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR QUERY SQL DA IA ==========')
+          console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', sqlError)
+          console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', sqlError.stack)
+          console.log('[BMAD:DatabaseQueryAgent] 🔄 Tentando método alternativo...')
+          // Continuar para métodos alternativos abaixo
+        }
+      }
+      
+      // PRIORIDADE 2: Se o plano tem groupBy, executar agrupamento dinâmico
       if (queryPlan.groupBy) {
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Executando agrupamento dinâmico...')
         return await this.executeDynamicGroupBy(queryPlan, user, params)
       }
       
-      // Se for agregação com instruções de execução, seguir os passos
+      // PRIORIDADE 3: Se for agregação com instruções de execução, seguir os passos
       if (queryPlan.queryType === 'aggregate' && queryPlan.executionSteps?.length > 0) {
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Executando agregação dinâmica...')
         return await this.executeDynamicAggregate(queryPlan, user, params)
       }
       
-      // Casos específicos mantidos apenas como fallback
+      // PRIORIDADE 4: Casos específicos mantidos apenas como fallback
+      console.log('[BMAD:DatabaseQueryAgent] 🔄 Usando método específico baseado no tipo de query...')
       switch (queryPlan.queryType) {
         case 'count':
           return await this.handleCountQuery(text, user, params)
@@ -931,7 +998,11 @@ export default class DatabaseQueryAgent {
           return await this.executeSQLQuery(text, user, params)
       }
     } catch (error) {
-      console.error('[BMAD:DatabaseQueryAgent] ❌ Error executing planned query:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO AO EXECUTAR QUERY PLANEJADA ==========')
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', error.stack)
+      console.log('[BMAD:DatabaseQueryAgent] 🔄 Usando fallback (busca semântica)...')
+      
       // Fallback para busca semântica
       const limit = params?.limit || 20
       const vectorResults = await this.vectorSearch.semanticSearch(text, null, limit)

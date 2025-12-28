@@ -107,6 +107,9 @@ INSTRUÇÕES:
 7. Se for consulta temporal, indique como agrupar por período
 8. Forneça instruções detalhadas de execução que permitam executar a query dinamicamente
 
+IMPORTANTE: Você deve gerar a QUERY SQL COMPLETA e EXECUTÁVEL que responda à pergunta do usuário.
+A query deve ser válida para PostgreSQL/Supabase e considerar RLS (Row Level Security).
+
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
   "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list|groupBy",
@@ -119,9 +122,17 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
   "filters": [{"field": "campo", "operator": "=", "value": "valor"}],
   "timeGrouping": "month|year|day|null",
   "description": "Descrição detalhada do que a consulta deve fazer",
+  "sqlQuery": "SELECT ... FROM ... WHERE ... GROUP BY ... ORDER BY ...",
   "executionSteps": ["passo1", "passo2", "passo3"],
   "expectedResultFormat": "array|object|count|chart"
-}`
+}
+
+O campo "sqlQuery" é OBRIGATÓRIO quando strategy for "sql" ou queryType for "sql", "aggregate", "groupBy", "timeSeries" ou "count".
+A query SQL deve ser completa, válida e pronta para execução no Supabase.
+Se for consulta de agrupamento (groupBy), a query deve incluir GROUP BY e ORDER BY apropriados.
+Se for consulta temporal (timeSeries), use DATE_TRUNC para agrupar por período.
+Se for consulta de contagem, use COUNT(*) ou COUNT(campo).
+Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
   }
 
   /**
@@ -198,10 +209,18 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
         filters: rawPlan.filters || [],
         timeGrouping: rawPlan.timeGrouping || null,
         description: rawPlan.description || '',
+        sqlQuery: rawPlan.sqlQuery || null, // Query SQL completa gerada pela IA
         executionSteps: rawPlan.executionSteps || [],
         expectedResultFormat: rawPlan.expectedResultFormat || 'array',
         approach: rawPlan.approach || rawPlan.description || '',
         confidence: 0.8
+      }
+      
+      // Log da query SQL gerada pela IA
+      if (finalPlan.sqlQuery) {
+        console.log('[BMAD:QueryPlanningAgent] 📝 Query SQL gerada pela IA:', finalPlan.sqlQuery)
+      } else if (finalPlan.strategy === 'sql' || ['sql', 'aggregate', 'groupBy', 'timeSeries', 'count'].includes(finalPlan.queryType)) {
+        console.warn('[BMAD:QueryPlanningAgent] ⚠️ Query SQL não foi gerada pela IA, mas deveria ter sido gerada')
       }
       
       const totalTime = Date.now() - startTime
