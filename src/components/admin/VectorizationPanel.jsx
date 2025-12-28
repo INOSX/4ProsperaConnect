@@ -98,7 +98,7 @@ const VectorizationPanel = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
+      <Card className="p-6" data-tour-id="vectorization-panel">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
             <Database className="h-6 w-6 text-primary-600" />
@@ -115,7 +115,7 @@ const VectorizationPanel = () => {
 
         {status && (
           <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4" data-tour-id="vectorization-stats">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-600 font-medium">Total</p>
                 <p className="text-2xl font-bold text-blue-900">{status.total || 0}</p>
@@ -131,7 +131,7 @@ const VectorizationPanel = () => {
             </div>
 
             {status.byTable && (
-              <div className="space-y-2">
+              <div className="space-y-2" data-tour-id="vectorization-status-table">
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Por Tabela:</h3>
                 {Object.entries(status.byTable).map(([table, stats]) => (
                   <div key={table} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -174,6 +174,7 @@ const VectorizationPanel = () => {
           <button
             onClick={handleProcessPending}
             disabled={processing || loading}
+            data-tour-id="vectorization-process-pending"
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Play className="h-5 w-5" />
@@ -183,13 +184,14 @@ const VectorizationPanel = () => {
           <button
             onClick={handleVectorizeAll}
             disabled={processing || loading}
+            data-tour-id="vectorization-vectorize-all"
             className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Database className="h-5 w-5" />
             <span>Vetorizar Todos os Dados</span>
           </button>
 
-          <div className="border-t pt-3">
+          <div className="border-t pt-3" data-tour-id="vectorization-table-list">
             <p className="text-sm font-medium text-gray-700 mb-2">Vetorizar Tabela Específica:</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {tables.map((table) => (

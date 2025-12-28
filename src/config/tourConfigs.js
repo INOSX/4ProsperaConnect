@@ -22,7 +22,8 @@ export const TOUR_ROUTES = {
   '/profile': 'profile',
   '/datasets': 'datasets',
   '/upload': 'upload',
-  '/specialist': 'specialist'
+  '/specialist': 'specialist',
+  '/vectorization': 'vectorization'
 }
 
 // Função para obter a configuração do tour baseada na rota

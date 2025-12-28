@@ -1,0 +1,39 @@
+[
+  {
+    "target": "[data-tour-id='vectorization-panel']",
+    "title": "Painel de Vetorização",
+    "content": "Bem-vindo ao painel de vetorização! Aqui você pode gerenciar a vetorização dos dados do banco para habilitar buscas semânticas inteligentes. A vetorização converte seus dados em representações numéricas que permitem buscas por significado, não apenas por palavras-chave.",
+    "placement": "center"
+  },
+  {
+    "target": "[data-tour-id='vectorization-stats']",
+    "title": "Estatísticas de Vetorização",
+    "content": "Acompanhe o progresso da vetorização: Total de registros, quantos já foram vetorizados e quantos estão pendentes. Esses números são atualizados automaticamente.",
+    "placement": "bottom"
+  },
+  {
+    "target": "[data-tour-id='vectorization-status-table']",
+    "title": "Status por Tabela",
+    "content": "Veja o status detalhado de cada tabela. Cada tabela mostra quantos registros foram vetorizados e quantos ainda precisam ser processados.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='vectorization-process-pending']",
+    "title": "Processar Registros Pendentes",
+    "content": "Use este botão para processar apenas os registros novos ou atualizados que ainda não foram vetorizados. Ideal para manter os dados atualizados após a vetorização inicial.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='vectorization-vectorize-all']",
+    "title": "Vetorizar Todos os Dados",
+    "content": "Este botão vetoriza todos os dados existentes do zero. Use na primeira vez ou quando quiser re-vetorizar tudo. Pode demorar alguns minutos dependendo da quantidade de dados.",
+    "placement": "top"
+  },
+  {
+    "target": "[data-tour-id='vectorization-table-list']",
+    "title": "Vetorizar Tabela Específica",
+    "content": "Você também pode vetorizar uma tabela específica clicando no botão ao lado do nome da tabela. Útil quando você quer processar apenas uma tabela por vez.",
+    "placement": "top"
+  }
+]
+
