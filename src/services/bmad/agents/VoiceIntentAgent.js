@@ -31,7 +31,9 @@ export default class VoiceIntentAgent {
       
       // Consultas
       'query_database': ['quantas', 'quais', 'mostrar', 'listar', 'buscar', 'encontrar'],
-      'search_data': ['pesquisar', 'procurar', 'buscar dados']
+      'search_data': ['pesquisar', 'procurar', 'buscar dados'],
+      'get_all_data': ['conhecer todos', 'ler todos', 'ver todos os dados', 'mostrar tudo', 'resumo completo'],
+      'know_all_data': ['conhecer dados', 'ler dados', 'ver dados', 'resumo dos dados']
     }
   }
 
