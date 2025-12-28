@@ -118,14 +118,27 @@ export default class SupervisorAgent {
       }
     }
 
+    // Consultas de contagem são válidas mesmo sem array de resultados
+    if (queryResult.isCount) {
+      return {
+        approved: true,
+        qualityScore: 90,
+        reason: 'Consulta de contagem válida'
+      }
+    }
+
     // Verificar se resultados têm dados
     const hasResults = queryResult.results && (
       Array.isArray(queryResult.results) ? queryResult.results.length > 0 : true
     )
 
+    // Aceitar se tiver resultados OU summary (para casos como contagem)
+    const hasSummary = queryResult.summary && queryResult.summary.trim().length > 0
+
     return {
-      approved: hasResults || queryResult.summary,
-      qualityScore: hasResults ? 90 : 60
+      approved: hasResults || hasSummary || queryResult.success,
+      qualityScore: hasResults ? 90 : (hasSummary ? 70 : 50),
+      reason: hasResults ? 'Resultados encontrados' : (hasSummary ? 'Summary disponível' : 'Resultado válido')
     }
   }
 
