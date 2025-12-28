@@ -12,144 +12,240 @@ export default class SupervisorAgent {
    * Validação inicial (pré-processamento)
    */
   async validateInitial(text) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating initial input...')
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO INICIAL ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      text: text?.substring(0, 100),
+      textLength: text?.length || 0,
+      textType: typeof text,
+      isEmpty: !text || text.trim().length === 0
+    })
     
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
-      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Empty or invalid text')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Texto vazio ou inválido')
+      const result = {
         approved: false,
         reason: 'Texto vazio ou inválido',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (text.length > 1000) {
-      console.log('[BMAD:SupervisorAgent] ❌ Initial validation failed: Text too long', text.length, 'chars')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Texto muito longo', text.length, 'caracteres (máximo: 1000)')
+      const result = {
         approved: false,
         reason: 'Texto muito longo (máximo 1000 caracteres)',
         qualityScore: 50
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
-    console.log('[BMAD:SupervisorAgent] ✅ Initial validation passed:', text.length, 'chars')
-    return {
+    console.log('[BMAD:SupervisorAgent] ✅ Validação inicial aprovada:', text.length, 'caracteres')
+    const result = {
       approved: true,
       qualityScore: 100
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida intenção classificada
    */
   async validateIntent(intentResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating intent:', intentResult?.intent, 'confidence:', intentResult?.confidence)
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE INTENÇÃO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      intent: intentResult?.intent,
+      confidence: intentResult?.confidence,
+      hasIntent: !!intentResult?.intent,
+      hasConfidence: intentResult?.confidence !== undefined,
+      fullIntentResult: JSON.stringify(intentResult, null, 2)
+    })
     
     if (!intentResult || !intentResult.intent) {
-      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: No intent identified')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Intenção não identificada')
+      const result = {
         approved: false,
         reason: 'Intenção não identificada',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (intentResult.confidence < 0.5) {
-      console.log('[BMAD:SupervisorAgent] ❌ Intent validation failed: Low confidence', intentResult.confidence)
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Confiança muito baixa', intentResult.confidence, '(mínimo: 0.5)')
+      const result = {
         approved: false,
         reason: 'Confiança na classificação muito baixa',
         qualityScore: intentResult.confidence * 100
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
-    console.log('[BMAD:SupervisorAgent] ✅ Intent validation passed:', intentResult.intent, 'qualityScore:', (intentResult.confidence * 100).toFixed(1))
-    return {
+    const qualityScore = intentResult.confidence * 100
+    console.log('[BMAD:SupervisorAgent] ✅ Validação de intenção aprovada:', {
+      intent: intentResult.intent,
+      confidence: intentResult.confidence,
+      qualityScore: qualityScore.toFixed(1)
+    })
+    const result = {
       approved: true,
-      qualityScore: intentResult.confidence * 100
+      qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida verificação de permissões
    */
   async validatePermission(permissionResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating permission result:', permissionResult?.allowed)
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE PERMISSÃO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasPermissionResult: !!permissionResult,
+      allowed: permissionResult?.allowed,
+      reason: permissionResult?.reason,
+      userRole: permissionResult?.userRole,
+      isCompanyAdmin: permissionResult?.isCompanyAdmin,
+      fullResult: JSON.stringify(permissionResult, null, 2)
+    })
     
     if (!permissionResult || typeof permissionResult.allowed !== 'boolean') {
-      console.log('[BMAD:SupervisorAgent] ❌ Permission validation failed: Invalid result')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Resultado de permissão inválido')
+      const result = {
         approved: false,
         reason: 'Verificação de permissão inválida',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     const qualityScore = permissionResult.allowed ? 100 : 0
-    console.log('[BMAD:SupervisorAgent]', permissionResult.allowed ? '✅ Permission validation passed' : '❌ Permission denied', 'qualityScore:', qualityScore)
-    return {
+    console.log('[BMAD:SupervisorAgent] 📊 Análise:', {
+      allowed: permissionResult.allowed,
+      qualityScore: qualityScore,
+      reason: permissionResult.reason || 'N/A'
+    })
+    console.log('[BMAD:SupervisorAgent]', permissionResult.allowed ? '✅ Validação de permissão aprovada' : '❌ Permissão negada', 'qualityScore:', qualityScore)
+    
+    const result = {
       approved: true,
       qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida contexto coletado
    */
   async validateContext(contextResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating context...')
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE CONTEXTO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasContextResult: !!contextResult,
+      hasUserContext: !!contextResult?.userContext,
+      hasPageContext: !!contextResult?.pageContext,
+      hasDataContext: !!contextResult?.dataContext,
+      userContextKeys: contextResult?.userContext ? Object.keys(contextResult.userContext) : [],
+      pageContextKeys: contextResult?.pageContext ? Object.keys(contextResult.pageContext) : [],
+      fullContext: JSON.stringify(contextResult, null, 2)
+    })
     
     if (!contextResult) {
-      console.log('[BMAD:SupervisorAgent] ❌ Context validation failed: No context provided')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Nenhum contexto fornecido')
+      const result = {
         approved: false,
         reason: 'Contexto não coletado',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     // Verificar se contexto tem dados mínimos
-    const hasData = contextResult.userContext || contextResult.pageContext || contextResult.dataContext
+    const hasUserContext = !!contextResult.userContext && Object.keys(contextResult.userContext).length > 0
+    const hasPageContext = !!contextResult.pageContext && Object.keys(contextResult.pageContext).length > 0
+    const hasDataContext = !!contextResult.dataContext && Object.keys(contextResult.dataContext).length > 0
+    const hasData = hasUserContext || hasPageContext || hasDataContext
+    
+    console.log('[BMAD:SupervisorAgent] 📊 Análise do contexto:', {
+      hasUserContext,
+      hasPageContext,
+      hasDataContext,
+      hasData,
+      userContextSize: hasUserContext ? Object.keys(contextResult.userContext).length : 0,
+      pageContextSize: hasPageContext ? Object.keys(contextResult.pageContext).length : 0
+    })
+    
     const qualityScore = hasData ? 80 : 40
-    console.log('[BMAD:SupervisorAgent]', hasData ? '✅ Context validation passed' : '⚠️ Context validation passed with warnings', 'qualityScore:', qualityScore)
-    return {
+    console.log('[BMAD:SupervisorAgent]', hasData ? '✅ Validação de contexto aprovada' : '⚠️ Validação de contexto aprovada com avisos', 'qualityScore:', qualityScore)
+    
+    const result = {
       approved: hasData,
       qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida resultado de query
    */
   async validateQueryResult(queryResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating query result...')
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE RESULTADO DE QUERY ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasQueryResult: !!queryResult,
+      success: queryResult?.success,
+      hasError: !!queryResult?.error,
+      error: queryResult?.error,
+      isCount: queryResult?.isCount,
+      isAggregate: queryResult?.isAggregate,
+      isGrouped: queryResult?.isGrouped,
+      isTimeSeries: queryResult?.isTimeSeries,
+      hasResults: !!queryResult?.results,
+      resultsCount: Array.isArray(queryResult?.results) ? queryResult.results.length : 'N/A',
+      hasSummary: !!queryResult?.summary,
+      summary: queryResult?.summary?.substring(0, 200),
+      fullResult: JSON.stringify(queryResult, null, 2)
+    })
     
     if (!queryResult) {
-      console.log('[BMAD:SupervisorAgent] ❌ Query validation failed: Empty result')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Resultado de query vazio')
+      const result = {
         approved: false,
         reason: 'Resultado de query vazio',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (queryResult.error) {
-      console.log('[BMAD:SupervisorAgent] ❌ Query validation failed:', queryResult.error)
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Erro no resultado:', queryResult.error)
+      const result = {
         approved: false,
         reason: queryResult.error,
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     // Consultas de contagem são válidas mesmo sem array de resultados
     if (queryResult.isCount) {
-      console.log('[BMAD:SupervisorAgent] ✅ Query validation passed: Count query, qualityScore: 90')
-      return {
+      console.log('[BMAD:SupervisorAgent] ✅ Validação aprovada: Consulta de contagem detectada')
+      const result = {
         approved: true,
         qualityScore: 90,
         reason: 'Consulta de contagem válida'
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     // Verificar se resultados têm dados
@@ -162,126 +258,252 @@ export default class SupervisorAgent {
     const qualityScore = hasResults ? 90 : (hasSummary ? 70 : 50)
     const reason = hasResults ? 'Resultados encontrados' : (hasSummary ? 'Summary disponível' : 'Resultado válido')
     
-    console.log('[BMAD:SupervisorAgent] ✅ Query validation passed:', reason, 'qualityScore:', qualityScore, 'hasResults:', hasResults, 'hasSummary:', hasSummary)
-    return {
+    console.log('[BMAD:SupervisorAgent] 📊 Análise:', {
+      hasResults,
+      resultsCount: Array.isArray(queryResult.results) ? queryResult.results.length : 'N/A',
+      hasSummary,
+      summaryLength: queryResult.summary?.length || 0,
+      qualityScore,
+      reason
+    })
+    
+    console.log('[BMAD:SupervisorAgent] ✅ Validação de query aprovada:', reason, 'qualityScore:', qualityScore)
+    
+    const result = {
       approved: hasResults || hasSummary || queryResult.success,
       qualityScore: qualityScore,
       reason: reason
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida resultado de ação
    */
   async validateActionResult(actionResult) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating action result...')
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE RESULTADO DE AÇÃO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasActionResult: !!actionResult,
+      success: actionResult?.success,
+      hasError: !!actionResult?.error,
+      error: actionResult?.error,
+      hasData: !!actionResult?.data,
+      dataType: actionResult?.data ? (Array.isArray(actionResult.data) ? 'array' : typeof actionResult.data) : 'N/A',
+      dataLength: Array.isArray(actionResult?.data) ? actionResult.data.length : 'N/A',
+      hasResults: !!actionResult?.results,
+      resultsCount: Array.isArray(actionResult?.results) ? actionResult.results.length : 'N/A',
+      fullResult: JSON.stringify(actionResult, null, 2)
+    })
     
     if (!actionResult) {
-      console.log('[BMAD:SupervisorAgent] ❌ Action validation failed: Empty result')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Resultado de ação vazio')
+      const result = {
         approved: false,
         reason: 'Resultado de ação vazio',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     if (actionResult.error) {
-      console.log('[BMAD:SupervisorAgent] ❌ Action validation failed:', actionResult.error)
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Erro no resultado:', actionResult.error)
+      const result = {
         approved: false,
         reason: actionResult.error,
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     const qualityScore = actionResult.success ? 90 : 50
-    console.log('[BMAD:SupervisorAgent]', actionResult.success ? '✅ Action validation passed' : '⚠️ Action validation passed with warnings', 'qualityScore:', qualityScore)
-    return {
+    console.log('[BMAD:SupervisorAgent] 📊 Análise:', {
+      success: actionResult.success,
+      qualityScore,
+      hasData: !!actionResult.data,
+      hasResults: !!actionResult.results
+    })
+    console.log('[BMAD:SupervisorAgent]', actionResult.success ? '✅ Validação de ação aprovada' : '⚠️ Validação de ação aprovada com avisos', 'qualityScore:', qualityScore)
+    
+    const result = {
       approved: actionResult.success !== false,
       qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Valida visualizações geradas
    */
   async validateVisualizations(visualizations) {
-    console.log('[BMAD:SupervisorAgent] 🔍 Validating visualizations:', visualizations?.length || 0)
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO DE VISUALIZAÇÕES ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasVisualizations: !!visualizations,
+      isArray: Array.isArray(visualizations),
+      count: visualizations?.length || 0,
+      types: visualizations?.map(v => v.type) || [],
+      fullVisualizations: JSON.stringify(visualizations, null, 2)
+    })
     
     if (!visualizations || !Array.isArray(visualizations)) {
-      console.log('[BMAD:SupervisorAgent] ❌ Visualization validation failed: Invalid format')
-      return {
+      console.log('[BMAD:SupervisorAgent] ❌ Validação falhou: Formato inválido (não é array)')
+      const result = {
         approved: false,
         reason: 'Visualizações inválidas',
         qualityScore: 0
       }
+      console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+      return result
     }
 
     // Verificar se cada visualização tem estrutura válida
+    console.log('[BMAD:SupervisorAgent] 🔍 Validando cada visualização...')
+    const validationDetails = visualizations.map((viz, index) => {
+      const hasType = !!viz.type
+      const hasData = !!viz.data
+      const hasConfig = !!viz.config
+      const isValid = hasType && (hasData || hasConfig)
+      
+      console.log(`[BMAD:SupervisorAgent]   Visualização ${index + 1}:`, {
+        type: viz.type,
+        hasType,
+        hasData,
+        hasConfig,
+        isValid
+      })
+      
+      return { index, isValid, hasType, hasData, hasConfig }
+    })
+    
     const validViz = visualizations.every(viz => 
       viz.type && (viz.data || viz.config)
     )
+    
+    const invalidCount = validationDetails.filter(v => !v.isValid).length
+    console.log('[BMAD:SupervisorAgent] 📊 Análise:', {
+      total: visualizations.length,
+      valid: visualizations.length - invalidCount,
+      invalid: invalidCount,
+      validViz,
+      qualityScore: validViz ? 85 : 40
+    })
 
     const qualityScore = validViz ? 85 : 40
-    console.log('[BMAD:SupervisorAgent]', validViz ? '✅ Visualization validation passed' : '⚠️ Visualization validation passed with warnings', 'qualityScore:', qualityScore)
-    return {
+    console.log('[BMAD:SupervisorAgent]', validViz ? '✅ Validação de visualizações aprovada' : '⚠️ Validação de visualizações aprovada com avisos', 'qualityScore:', qualityScore)
+    
+    const result = {
       approved: validViz,
       qualityScore: qualityScore
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Validação final (pós-processamento)
    */
   async validateFinal(finalData) {
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== VALIDAÇÃO FINAL ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasFeedback: !!finalData.feedback,
+      feedbackText: finalData.feedback?.text?.substring(0, 200),
+      hasOriginalText: !!finalData.originalText,
+      originalText: finalData.originalText?.substring(0, 200),
+      hasActionResult: !!finalData.actionResult,
+      actionResultSuccess: finalData.actionResult?.success,
+      hasVisualizations: !!finalData.visualizations,
+      visualizationsCount: finalData.visualizations?.length || 0,
+      hasIntent: !!finalData.intent,
+      fullData: JSON.stringify(finalData, null, 2)
+    })
+    
     const scores = []
     
     // Verificar se resposta existe
+    console.log('[BMAD:SupervisorAgent] 📊 Calculando score de feedback...')
     if (finalData.feedback && finalData.feedback.text) {
       scores.push(80)
+      console.log('[BMAD:SupervisorAgent]   ✅ Feedback presente: +80 pontos')
     } else {
       scores.push(0)
+      console.log('[BMAD:SupervisorAgent]   ❌ Feedback ausente: +0 pontos')
     }
 
     // Verificar se resposta responde à pergunta original
+    console.log('[BMAD:SupervisorAgent] 📊 Calculando score de relevância...')
     if (finalData.feedback && finalData.originalText) {
       const relevance = this.calculateRelevance(
         finalData.originalText,
-        finalData.feedback.text
+        finalData.feedback.text,
+        finalData.actionResult
       )
       scores.push(relevance)
+      console.log('[BMAD:SupervisorAgent]   📊 Relevância calculada:', relevance.toFixed(1), 'pontos')
     } else {
       // Se não tiver feedback mas tiver actionResult com summary, considerar relevante
       if (finalData.actionResult && finalData.actionResult.summary) {
         scores.push(70)
+        console.log('[BMAD:SupervisorAgent]   ✅ ActionResult com summary: +70 pontos')
       } else {
         scores.push(50)
+        console.log('[BMAD:SupervisorAgent]   ⚠️ Sem feedback nem summary: +50 pontos')
       }
     }
 
     // Verificar completude
+    console.log('[BMAD:SupervisorAgent] 📊 Calculando score de completude...')
     const completeness = this.calculateCompleteness(finalData)
     scores.push(completeness)
+    console.log('[BMAD:SupervisorAgent]   📊 Completude calculada:', completeness.toFixed(1), 'pontos')
 
     const qualityScore = scores.reduce((a, b) => a + b, 0) / scores.length
+    console.log('[BMAD:SupervisorAgent] 📊 Scores individuais:', scores)
+    console.log('[BMAD:SupervisorAgent] 📊 Quality Score final:', qualityScore.toFixed(1))
 
     // Para consultas de contagem, ser mais tolerante
-    const isCountQuery = finalData.actionResult?.isCount
+    const isCountQuery = finalData.actionResult?.isCount || finalData.actionResult?.isAggregate || finalData.actionResult?.isTimeSeries || finalData.actionResult?.isGrouped
     const threshold = isCountQuery ? 50 : 70
+    console.log('[BMAD:SupervisorAgent] 📊 Threshold:', threshold, '(isCountQuery:', isCountQuery, ')')
 
-    return {
-      approved: qualityScore >= threshold,
+    const approved = qualityScore >= threshold
+    const issues = qualityScore < threshold ? ['Qualidade abaixo do threshold'] : []
+    
+    console.log('[BMAD:SupervisorAgent]', approved ? '✅ Validação final aprovada' : '❌ Validação final reprovada', {
+      qualityScore: qualityScore.toFixed(1),
+      threshold,
+      approved,
+      issues
+    })
+    
+    const result = {
+      approved,
       qualityScore,
-      issues: qualityScore < threshold ? ['Qualidade abaixo do threshold'] : [],
+      issues,
       corrections: []
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 
   /**
    * Calcula relevância entre pergunta e resposta
    */
-  calculateRelevance(question, answer) {
-    if (!question || !answer) return 0
+  calculateRelevance(question, answer, actionResult = null) {
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== CALCULANDO RELEVÂNCIA ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      question: question?.substring(0, 200),
+      answer: answer?.substring(0, 200),
+      hasActionResult: !!actionResult,
+      actionResultError: actionResult?.error
+    })
+    
+    if (!question || !answer) {
+      console.log('[BMAD:SupervisorAgent] ⚠️ Pergunta ou resposta vazia, retornando 0')
+      return 0
+    }
     
     const lowerQuestion = question.toLowerCase()
     const lowerAnswer = answer.toLowerCase()
@@ -296,7 +518,7 @@ export default class SupervisorAgent {
     )
     
     if (isGenericResponse && (lowerQuestion.includes('existem') || lowerQuestion.includes('tem') || lowerQuestion.includes('têm'))) {
-      // Resposta genérica para pergunta específica - baixa relevância
+      console.log('[BMAD:SupervisorAgent] ⚠️ Resposta genérica detectada para pergunta específica: -20 pontos')
       return 20
     }
     
@@ -309,11 +531,20 @@ export default class SupervisorAgent {
     if (lowerQuestion.includes('média')) questionKeywords.push('média')
     if (lowerQuestion.includes('quantas') || lowerQuestion.includes('quantos')) questionKeywords.push('quantidade')
     
+    console.log('[BMAD:SupervisorAgent] 📊 Palavras-chave na pergunta:', questionKeywords)
+    
     // Verificar se a resposta contém palavras-chave relevantes
     const relevantKeywordsInAnswer = questionKeywords.filter(kw => lowerAnswer.includes(kw))
     const keywordRelevance = questionKeywords.length > 0 
       ? (relevantKeywordsInAnswer.length / questionKeywords.length) * 100 
       : 50
+    
+    console.log('[BMAD:SupervisorAgent] 📊 Relevância de palavras-chave:', {
+      totalKeywords: questionKeywords.length,
+      foundKeywords: relevantKeywordsInAnswer.length,
+      foundKeywordsList: relevantKeywordsInAnswer,
+      keywordRelevance: keywordRelevance.toFixed(1)
+    })
     
     // Verificar palavras comuns
     const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 3)
@@ -323,19 +554,73 @@ export default class SupervisorAgent {
       ? (commonWords.length / questionWords.length) * 100 
       : 50
     
+    console.log('[BMAD:SupervisorAgent] 📊 Relevância de palavras comuns:', {
+      questionWords: questionWords.length,
+      commonWords: commonWords.length,
+      commonWordsList: commonWords.slice(0, 5),
+      wordRelevance: wordRelevance.toFixed(1)
+    })
+    
     // Combinar relevância de palavras-chave e palavras comuns
-    return Math.min(100, (keywordRelevance * 0.6 + wordRelevance * 0.4))
+    const finalRelevance = Math.min(100, (keywordRelevance * 0.6 + wordRelevance * 0.4))
+    console.log('[BMAD:SupervisorAgent] ✅ Relevância final calculada:', finalRelevance.toFixed(1))
+    return finalRelevance
   }
 
   /**
    * Calcula completude da resposta
    */
   calculateCompleteness(data) {
+    console.log('[BMAD:SupervisorAgent] 🔍 ========== CALCULANDO COMPLETUDE ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      hasFeedback: !!data.feedback,
+      hasVisualizations: !!data.visualizations,
+      visualizationsCount: data.visualizations?.length || 0,
+      hasActionResult: !!data.actionResult,
+      hasIntent: !!data.intent
+    })
+    
     let score = 0
-    if (data.feedback) score += 30
-    if (data.visualizations && data.visualizations.length > 0) score += 30
-    if (data.actionResult) score += 20
-    if (data.intent) score += 20
+    const scoreBreakdown = {}
+    
+    if (data.feedback) {
+      score += 30
+      scoreBreakdown.feedback = 30
+      console.log('[BMAD:SupervisorAgent]   ✅ Feedback presente: +30 pontos')
+    } else {
+      scoreBreakdown.feedback = 0
+      console.log('[BMAD:SupervisorAgent]   ❌ Feedback ausente: +0 pontos')
+    }
+    
+    if (data.visualizations && data.visualizations.length > 0) {
+      score += 30
+      scoreBreakdown.visualizations = 30
+      console.log('[BMAD:SupervisorAgent]   ✅ Visualizações presentes:', data.visualizations.length, '+30 pontos')
+    } else {
+      scoreBreakdown.visualizations = 0
+      console.log('[BMAD:SupervisorAgent]   ❌ Visualizações ausentes: +0 pontos')
+    }
+    
+    if (data.actionResult) {
+      score += 20
+      scoreBreakdown.actionResult = 20
+      console.log('[BMAD:SupervisorAgent]   ✅ ActionResult presente: +20 pontos')
+    } else {
+      scoreBreakdown.actionResult = 0
+      console.log('[BMAD:SupervisorAgent]   ❌ ActionResult ausente: +0 pontos')
+    }
+    
+    if (data.intent) {
+      score += 20
+      scoreBreakdown.intent = 20
+      console.log('[BMAD:SupervisorAgent]   ✅ Intent presente: +20 pontos')
+    } else {
+      scoreBreakdown.intent = 0
+      console.log('[BMAD:SupervisorAgent]   ❌ Intent ausente: +0 pontos')
+    }
+    
+    console.log('[BMAD:SupervisorAgent] 📊 Score breakdown:', scoreBreakdown)
+    console.log('[BMAD:SupervisorAgent] ✅ Completude final:', score)
     return score
   }
 
@@ -343,12 +628,32 @@ export default class SupervisorAgent {
    * Tenta corrigir erros detectados
    */
   async attemptCorrection(validationResult) {
+    console.log('[BMAD:SupervisorAgent] 🔧 ========== TENTANDO CORREÇÃO ==========')
+    console.log('[BMAD:SupervisorAgent] 📝 Input:', {
+      approved: validationResult?.approved,
+      qualityScore: validationResult?.qualityScore,
+      issues: validationResult?.issues,
+      hasCorrections: !!validationResult?.corrections,
+      fullResult: JSON.stringify(validationResult, null, 2)
+    })
+    
+    // Adicionar ao histórico de correções
+    this.correctionHistory.push({
+      timestamp: new Date(),
+      validationResult: validationResult
+    })
+    console.log('[BMAD:SupervisorAgent] 📚 Histórico de correções atualizado:', this.correctionHistory.length, 'tentativas')
+    
     // Por enquanto, retorna erro
     // Pode ser expandido para tentar correções automáticas
-    return {
+    console.log('[BMAD:SupervisorAgent] ⚠️ Correção automática não implementada ainda')
+    const result = {
       success: false,
-      result: null
+      result: null,
+      reason: 'Correção automática não implementada'
     }
+    console.log('[BMAD:SupervisorAgent] 📤 Resultado:', JSON.stringify(result, null, 2))
+    return result
   }
 }
 

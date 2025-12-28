@@ -885,22 +885,27 @@ export default class DatabaseQueryAgent {
   }
 
   /**
-   * Executa uma consulta baseada no plano gerado pela IA
+   * Executa uma consulta baseada no plano gerado pela IA - DINÂMICO
+   * Interpreta o plano e executa dinamicamente sem código fixo
    */
   async executePlannedQuery(queryPlan, text, user, params) {
-    console.log('[BMAD:DatabaseQueryAgent] 🎯 Executing planned query:', queryPlan)
+    console.log('[BMAD:DatabaseQueryAgent] 🎯 Executing planned query dynamically:', queryPlan)
     
     try {
+      // Se o plano tem groupBy, executar agrupamento dinâmico
+      if (queryPlan.groupBy) {
+        return await this.executeDynamicGroupBy(queryPlan, user, params)
+      }
+      
+      // Se for agregação com instruções de execução, seguir os passos
+      if (queryPlan.queryType === 'aggregate' && queryPlan.executionSteps?.length > 0) {
+        return await this.executeDynamicAggregate(queryPlan, user, params)
+      }
+      
+      // Casos específicos mantidos apenas como fallback
       switch (queryPlan.queryType) {
         case 'count':
           return await this.handleCountQuery(text, user, params)
-        
-        case 'aggregate':
-          if (queryPlan.aggregationType === 'avg') {
-            return await this.handleAggregateQuery(text, user, params)
-          }
-          // Outros tipos de agregação podem ser adicionados aqui
-          return await this.handleAggregateQuery(text, user, params)
         
         case 'timeSeries':
           return await this.handleTimeSeriesQuery(text, user, params)
@@ -918,7 +923,6 @@ export default class DatabaseQueryAgent {
               totalResults: vectorResults.results?.length || 0
             }
           }
-          // Fallback para SQL se não precisar embedding
           return await this.executeSQLQuery(text, user, params)
         
         case 'sql':
@@ -938,6 +942,214 @@ export default class DatabaseQueryAgent {
         vectorSearchUsed: true
       }
     }
+  }
+
+  /**
+   * Executa agrupamento dinâmico baseado no plano da IA
+   */
+  async executeDynamicGroupBy(queryPlan, user, params) {
+    console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO AGRUPAMENTO DINÂMICO ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano recebido:', {
+      groupBy: queryPlan.groupBy,
+      tables: queryPlan.tables,
+      aggregationType: queryPlan.aggregationType,
+      selectFields: queryPlan.selectFields,
+      filters: queryPlan.filters,
+      executionSteps: queryPlan.executionSteps
+    })
+    
+    try {
+      const tableName = queryPlan.tables?.[0] || 'companies'
+      const groupByField = queryPlan.groupBy
+      
+      console.log('[BMAD:DatabaseQueryAgent] 🎯 Configuração:', {
+        tableName,
+        groupByField,
+        userId: user?.id,
+        userEmail: user?.email
+      })
+      
+      // Buscar dados usando serviços apropriados
+      if (tableName === 'companies') {
+        const { CompanyService } = await import('../../../services/companyService')
+        let userIsAdmin = false
+        try {
+          const { ClientService } = await import('../../../services/clientService')
+          const clientResult = await ClientService.getClientByUserId(user?.id)
+          if (clientResult.success && clientResult.client) {
+            userIsAdmin = clientResult.client.role === 'admin'
+          }
+        } catch (e) {
+          console.warn('[DatabaseQueryAgent] Error checking admin status:', e)
+        }
+        
+        console.log('[BMAD:DatabaseQueryAgent] 🔍 Buscando empresas...')
+        const companiesResult = await CompanyService.getUserCompanies(user?.id, userIsAdmin)
+        const companies = companiesResult.companies || []
+        
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Empresas encontradas:', {
+          total: companies.length,
+          success: companiesResult.success,
+          hasCompanies: companies.length > 0
+        })
+        
+        if (companies.length === 0) {
+          console.log('[BMAD:DatabaseQueryAgent] ⚠️ Nenhuma empresa encontrada')
+          return {
+            success: true,
+            results: [],
+            summary: `Nenhuma empresa encontrada para agrupar por ${groupByField}`,
+            isAggregate: true,
+            isGrouped: true
+          }
+        }
+        
+        // Agrupar dinamicamente pelo campo especificado
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Agrupando empresas por:', groupByField)
+        const grouped = {}
+        let groupedCount = 0
+        let unspecifiedCount = 0
+        
+        companies.forEach((company, index) => {
+          const value = company[groupByField] || company[groupByField.toLowerCase()] || 'Não especificado'
+          if (!grouped[value]) {
+            grouped[value] = 0
+            groupedCount++
+          }
+          grouped[value]++
+          if (value === 'Não especificado') {
+            unspecifiedCount++
+          }
+          
+          // Log a cada 10 empresas processadas
+          if ((index + 1) % 10 === 0) {
+            console.log('[BMAD:DatabaseQueryAgent] ⏳ Processadas', index + 1, 'de', companies.length, 'empresas')
+          }
+        })
+        
+        console.log('[BMAD:DatabaseQueryAgent] ✅ Agrupamento concluído:', {
+          totalGroups: groupedCount,
+          groups: Object.keys(grouped),
+          unspecifiedCount,
+          totalCompanies: companies.length
+        })
+        
+        // Converter para array formatado
+        console.log('[BMAD:DatabaseQueryAgent] 🔄 Formatando resultados...')
+        const resultData = Object.entries(grouped)
+          .map(([key, count]) => {
+            const result = {
+              [groupByField]: key,
+              quantidade: count,
+              percentual: ((count / companies.length) * 100).toFixed(1)
+            }
+            // Adicionar campos solicitados se especificados
+            if (queryPlan.selectFields?.length > 0) {
+              queryPlan.selectFields.forEach(field => {
+                if (field !== groupByField) {
+                  result[field] = null // Será preenchido se necessário
+                }
+              })
+            }
+            return result
+          })
+          .sort((a, b) => b.quantidade - a.quantidade)
+        
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Resultados formatados:', {
+          totalItems: resultData.length,
+          top3: resultData.slice(0, 3).map(r => ({ [groupByField]: r[groupByField], quantidade: r.quantidade }))
+        })
+        
+        // Criar resumo baseado na descrição do plano
+        const topItem = resultData[0]
+        const summary = queryPlan.description || 
+          `Agrupamento por ${groupByField}: Total de ${companies.length} registros em ${resultData.length} grupos. ` +
+          `Maior grupo: ${topItem[groupByField]} com ${topItem.quantidade} (${topItem.percentual}%).`
+        
+        // Determinar tipo de visualização
+        const chartType = queryPlan.expectedResultFormat === 'chart' ? 'bar' : 
+                          (resultData.length <= 5 ? 'pie' : 'bar')
+        
+        const finalResult = {
+          success: true,
+          results: resultData,
+          summary: summary,
+          isAggregate: true,
+          isGrouped: true,
+          chartConfig: {
+            chartType: chartType,
+            xColumn: groupByField,
+            yColumn: 'quantidade',
+            title: `Distribuição por ${groupByField}`
+          }
+        }
+        
+        console.log('[BMAD:DatabaseQueryAgent] ✅ ========== AGRUPAMENTO CONCLUÍDO ==========')
+        console.log('[BMAD:DatabaseQueryAgent] 📋 Resultado final:', {
+          success: finalResult.success,
+          resultsCount: finalResult.results.length,
+          summary: finalResult.summary?.substring(0, 150),
+          chartType: finalResult.chartConfig.chartType,
+          isGrouped: finalResult.isGrouped
+        })
+        console.log('[BMAD:DatabaseQueryAgent] 📊 Dados completos:', JSON.stringify(finalResult, null, 2))
+        
+        return finalResult
+      }
+      
+      // Para outras tabelas, usar busca direta
+      console.log('[BMAD:DatabaseQueryAgent] ⚠️ Tabela não suportada para agrupamento:', tableName)
+      return {
+        success: false,
+        error: `Agrupamento por ${groupByField} na tabela ${tableName} ainda não suportado`,
+        results: []
+      }
+    } catch (error) {
+      console.error('[BMAD:DatabaseQueryAgent] ❌ ========== ERRO NO AGRUPAMENTO DINÂMICO ==========')
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Erro:', error)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Stack:', error.stack)
+      console.error('[BMAD:DatabaseQueryAgent] ❌ Contexto:', {
+        groupBy: queryPlan.groupBy,
+        tableName: queryPlan.tables?.[0],
+        userId: user?.id
+      })
+      return {
+        success: false,
+        error: error.message || 'Erro ao executar agrupamento dinâmico',
+        results: []
+      }
+    }
+  }
+
+  /**
+   * Executa agregação dinâmica seguindo os passos do plano da IA
+   */
+  async executeDynamicAggregate(queryPlan, user, params) {
+    console.log('[BMAD:DatabaseQueryAgent] 📊 ========== EXECUTANDO AGREGAÇÃO DINÂMICA ==========')
+    console.log('[BMAD:DatabaseQueryAgent] 📋 Plano:', {
+      queryType: queryPlan.queryType,
+      aggregationType: queryPlan.aggregationType,
+      groupBy: queryPlan.groupBy,
+      executionSteps: queryPlan.executionSteps,
+      description: queryPlan.description
+    })
+    
+    // Se tiver groupBy, usar executeDynamicGroupBy
+    if (queryPlan.groupBy) {
+      console.log('[BMAD:DatabaseQueryAgent] 🔄 Redirecionando para executeDynamicGroupBy (tem groupBy)')
+      return await this.executeDynamicGroupBy(queryPlan, user, params)
+    }
+    
+    // Caso contrário, usar handleAggregateQuery existente como fallback
+    console.log('[BMAD:DatabaseQueryAgent] 🔄 Usando handleAggregateQuery como fallback')
+    const result = await this.handleAggregateQuery('', user, params)
+    console.log('[BMAD:DatabaseQueryAgent] 📊 Resultado da agregação:', {
+      success: result.success,
+      hasResults: !!result.results,
+      resultsCount: result.results?.length || 0,
+      summary: result.summary?.substring(0, 100)
+    })
+    return result
   }
 }
 

@@ -3,14 +3,33 @@
  */
 export default class DataVisualizationAgent {
   async generateVisualizations(actionResult, intent) {
-    console.log('[BMAD:DataVisualizationAgent] 📊 Generating visualizations for intent:', intent)
+    console.log('[BMAD:DataVisualizationAgent] 📊 ========== GERANDO VISUALIZAÇÕES ==========')
+    console.log('[BMAD:DataVisualizationAgent] 📝 Input:', {
+      intent: intent,
+      hasActionResult: !!actionResult,
+      actionResultType: actionResult ? typeof actionResult : 'null',
+      actionResultKeys: actionResult ? Object.keys(actionResult) : []
+    })
     
     const visualizations = []
 
     if (!actionResult) {
-      console.log('[BMAD:DataVisualizationAgent] ⚠️ No action result provided')
+      console.log('[BMAD:DataVisualizationAgent] ⚠️ Nenhum actionResult fornecido, retornando array vazio')
       return visualizations
     }
+    
+    console.log('[BMAD:DataVisualizationAgent] 📊 Propriedades do actionResult:', {
+      success: actionResult.success,
+      isCount: actionResult.isCount,
+      isAggregate: actionResult.isAggregate,
+      isGrouped: actionResult.isGrouped,
+      isTimeSeries: actionResult.isTimeSeries,
+      hasResults: !!actionResult.results,
+      resultsCount: Array.isArray(actionResult.results) ? actionResult.results.length : 'N/A',
+      hasChartConfig: !!actionResult.chartConfig,
+      hasSummary: !!actionResult.summary,
+      summary: actionResult.summary?.substring(0, 100)
+    })
 
     // Para consultas de contagem, criar visualização de card
     if (actionResult.isCount) {
@@ -71,13 +90,26 @@ export default class DataVisualizationAgent {
     if (actionResult.isAggregate && actionResult.results && actionResult.results.length > 0) {
       // Se for agrupamento (ex: por setor), criar gráfico
       if (actionResult.isGrouped && actionResult.chartConfig) {
-        console.log('[BMAD:DataVisualizationAgent] 📊 Creating grouped aggregate chart visualization')
-        visualizations.push({
+        console.log('[BMAD:DataVisualizationAgent] 📊 Criando gráfico de agrupamento...')
+        console.log('[BMAD:DataVisualizationAgent] 📊 Config do gráfico:', JSON.stringify(actionResult.chartConfig, null, 2))
+        console.log('[BMAD:DataVisualizationAgent] 📊 Dados do gráfico (primeiros 3):', actionResult.results?.slice(0, 3))
+        
+        const chartViz = {
           type: 'chart',
           data: actionResult.results,
           config: actionResult.chartConfig
+        }
+        
+        visualizations.push(chartViz)
+        console.log('[BMAD:DataVisualizationAgent] ✅ Gráfico de agrupamento criado:', {
+          type: chartViz.type,
+          chartType: chartViz.config.chartType,
+          dataPoints: chartViz.data?.length || 0,
+          xColumn: chartViz.config.xColumn,
+          yColumn: chartViz.config.yColumn,
+          title: chartViz.config.title
         })
-        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        console.log('[BMAD:DataVisualizationAgent] ✅ Total de visualizações:', visualizations.length)
         return visualizations
       }
       
@@ -177,7 +209,16 @@ export default class DataVisualizationAgent {
       })
     }
 
-    console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'total visualization(s)')
+    console.log('[BMAD:DataVisualizationAgent] ✅ ========== VISUALIZAÇÕES GERADAS ==========')
+    console.log('[BMAD:DataVisualizationAgent] 📊 Resumo:', {
+      totalVisualizations: visualizations.length,
+      types: visualizations.map(v => v.type),
+      hasCharts: visualizations.some(v => v.type === 'chart'),
+      hasTables: visualizations.some(v => v.type === 'table'),
+      hasCards: visualizations.some(v => v.type === 'card')
+    })
+    console.log('[BMAD:DataVisualizationAgent] 📋 Visualizações completas:', JSON.stringify(visualizations, null, 2))
+    
     return visualizations
   }
 
