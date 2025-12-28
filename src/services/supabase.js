@@ -10,16 +10,10 @@ if (!config.supabase.anonKey) {
   throw new Error('SUPABASE_ANON_KEY is required. Please check your environment variables.')
 }
 
-// Função para obter a URL de redirecionamento baseada no ambiente
+// Função para obter a URL de redirecionamento - sempre usar URL de produção
 const getRedirectUrl = () => {
-  // No browser, usar a URL atual (funciona para production e preview)
-  if (typeof window !== 'undefined') {
-    return `${window.location.origin}/auth/callback`
-  }
-  // Fallback: usar variável de ambiente ou URL de produção padrão
-  return process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}/auth/callback`
-    : 'https://4prosperaconnect.vercel.app/auth/callback'
+  // Sempre usar URL de produção
+  return 'https://4prosperaconnect.vercel.app/auth/callback'
 }
 
 export const supabase = createClient(config.supabase.url, config.supabase.anonKey, {

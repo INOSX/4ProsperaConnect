@@ -24,14 +24,9 @@ const ForgotPasswordForm = () => {
         return
       }
 
-      // Obter URL de redirecionamento baseada no ambiente atual
+      // Obter URL de redirecionamento - sempre usar URL de produção
       // O Supabase usará esta URL para redirecionar após o usuário clicar no link do email
-      // Isso garante que funciona tanto em production quanto em preview
-      const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback?type=recovery`
-        : process.env.NEXT_PUBLIC_SITE_URL 
-          ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?type=recovery`
-          : 'https://4prosperaconnect.vercel.app/auth/callback?type=recovery'
+      const redirectUrl = 'https://4prosperaconnect.vercel.app/auth/callback?type=recovery'
 
       // Enviar email de recuperação de senha
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {

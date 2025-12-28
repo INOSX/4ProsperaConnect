@@ -19,14 +19,14 @@ Configurar o Supabase para que o fluxo de recuperação de senha funcione corret
   ```
   https://4prosperaconnect.vercel.app
   ```
-- [ ] Na seção **Redirect URLs**, adicione (uma por linha):
+- [ ] Na seção **Redirect URLs**, adicione apenas as URLs de **Production** (uma por linha):
   ```
   https://4prosperaconnect.vercel.app/**
   https://4prosperaconnect.vercel.app/auth/callback
-  https://4prosperaconnect-e7osun5be-inosx.vercel.app/**
-  https://4prosperaconnect-e7osun5be-inosx.vercel.app/auth/callback
-  https://4prosperaconnect-*.vercel.app/**
-  https://4prosperaconnect-*.vercel.app/auth/callback
+  ```
+  
+  **Opcional - apenas para desenvolvimento local:**
+  ```
   http://localhost:3000/**
   http://localhost:3000/auth/callback
   ```
