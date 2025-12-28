@@ -490,6 +490,7 @@ export default class SupervisorAgent {
 
   /**
    * Calcula relevância entre pergunta e resposta
+   * Detecta respostas técnicas, genéricas ou inadequadas
    */
   calculateRelevance(question, answer, actionResult = null) {
     console.log('[BMAD:SupervisorAgent] 🔍 ========== CALCULANDO RELEVÂNCIA ==========')
@@ -508,19 +509,89 @@ export default class SupervisorAgent {
     const lowerQuestion = question.toLowerCase()
     const lowerAnswer = answer.toLowerCase()
     
+    // ========== DETECÇÃO DE RESPOSTAS TÉCNICAS/INADEQUADAS ==========
+    console.log('[BMAD:SupervisorAgent] 🔍 Verificando se a resposta é técnica ou inadequada...')
+    
+    // Termos técnicos que indicam resposta inadequada
+    const technicalTerms = [
+      'consulta', 'query', 'agrupamento', 'agregação', 'agregado',
+      'embeddings', 'rpc', 'sql', 'função rpc', 'busca semântica',
+      'utilizando embeddings', 'através de', 'usando', 'via',
+      'deve contar', 'deve identificar', 'deve buscar', 'deve selecionar',
+      'permitindo visualizar', 'irá utilizar', 'correspondem à descrição',
+      'executar', 'retornar', 'filtrar', 'ordenar'
+    ]
+    
+    const foundTechnicalTerms = technicalTerms.filter(term => lowerAnswer.includes(term))
+    if (foundTechnicalTerms.length > 0) {
+      console.error('[BMAD:SupervisorAgent] ❌ ========== RESPOSTA TÉCNICA DETECTADA ==========')
+      console.error('[BMAD:SupervisorAgent] ❌ A resposta contém termos técnicos:', foundTechnicalTerms)
+      console.error('[BMAD:SupervisorAgent] ❌ Resposta atual:', answer.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ Pergunta original:', question.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ PROBLEMA: A IA está retornando descrições técnicas ao invés de interpretar os dados')
+      console.error('[BMAD:SupervisorAgent] ❌ AÇÃO NECESSÁRIA: O FeedbackAgent deve usar IA para gerar respostas interpretadas')
+      // Penalizar severamente respostas técnicas
+      const technicalPenalty = Math.max(0, 30 - (foundTechnicalTerms.length * 10))
+      console.log('[BMAD:SupervisorAgent] 📊 Penalidade por termos técnicos:', technicalPenalty, 'pontos')
+      return technicalPenalty
+    }
+    
+    // Detectar respostas que são apenas descrições de processo
+    const processDescriptions = [
+      'a consulta busca', 'a consulta deve', 'a consulta irá',
+      'esta consulta', 'selecionar empresas', 'buscar empresas',
+      'contar o número', 'agrupar os resultados'
+    ]
+    
+    const isProcessDescription = processDescriptions.some(pd => lowerAnswer.startsWith(pd))
+    if (isProcessDescription) {
+      console.error('[BMAD:SupervisorAgent] ❌ ========== RESPOSTA É DESCRIÇÃO DE PROCESSO ==========')
+      console.error('[BMAD:SupervisorAgent] ❌ A resposta está descrevendo o processo ao invés de responder à pergunta')
+      console.error('[BMAD:SupervisorAgent] ❌ Resposta atual:', answer.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ Pergunta original:', question.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ PROBLEMA: A resposta não interpreta os dados obtidos')
+      return 20
+    }
+    
     // Detectar respostas genéricas que não respondem à pergunta
     const genericResponses = [
       'encontrei', 'encontrados', 'resultados', 'resultado',
-      'dados encontrados', 'busca realizada'
+      'dados encontrados', 'busca realizada', 'consulta realizada'
     ]
     const isGenericResponse = genericResponses.some(gr => 
-      lowerAnswer.includes(gr) && !lowerAnswer.includes('sim') && !lowerAnswer.includes('não') && !lowerAnswer.includes('empresa')
+      lowerAnswer.includes(gr) && 
+      !lowerAnswer.includes('sim') && 
+      !lowerAnswer.includes('não') && 
+      !lowerAnswer.includes('empresa') &&
+      !lowerAnswer.includes('setor') &&
+      !lowerAnswer.includes('colaborador')
     )
     
-    if (isGenericResponse && (lowerQuestion.includes('existem') || lowerQuestion.includes('tem') || lowerQuestion.includes('têm'))) {
-      console.log('[BMAD:SupervisorAgent] ⚠️ Resposta genérica detectada para pergunta específica: -20 pontos')
+    if (isGenericResponse && (lowerQuestion.includes('existem') || lowerQuestion.includes('tem') || lowerQuestion.includes('têm') || lowerQuestion.includes('quais'))) {
+      console.error('[BMAD:SupervisorAgent] ❌ ========== RESPOSTA GENÉRICA DETECTADA ==========')
+      console.error('[BMAD:SupervisorAgent] ❌ A resposta é muito genérica e não responde à pergunta específica')
+      console.error('[BMAD:SupervisorAgent] ❌ Resposta atual:', answer.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ Pergunta original:', question.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ PROBLEMA: A resposta não fornece informações específicas solicitadas')
       return 20
     }
+    
+    // Verificar se a resposta responde diretamente à pergunta
+    const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 2)
+    const answerWords = lowerAnswer.split(/\s+/).filter(w => w.length > 2)
+    const commonWords = questionWords.filter(w => answerWords.includes(w))
+    const wordOverlap = questionWords.length > 0 ? (commonWords.length / questionWords.length) : 0
+    
+    if (wordOverlap < 0.1) {
+      console.error('[BMAD:SupervisorAgent] ❌ ========== RESPOSTA NÃO RELACIONADA À PERGUNTA ==========')
+      console.error('[BMAD:SupervisorAgent] ❌ Pouca sobreposição de palavras entre pergunta e resposta')
+      console.error('[BMAD:SupervisorAgent] ❌ Sobreposição:', (wordOverlap * 100).toFixed(1) + '%')
+      console.error('[BMAD:SupervisorAgent] ❌ Resposta atual:', answer.substring(0, 300))
+      console.error('[BMAD:SupervisorAgent] ❌ Pergunta original:', question.substring(0, 300))
+      return 15
+    }
+    
+    // ========== CÁLCULO DE RELEVÂNCIA NORMAL ==========
     
     // Detectar palavras-chave importantes na pergunta
     const questionKeywords = []
@@ -530,6 +601,11 @@ export default class SupervisorAgent {
     if (lowerQuestion.includes('sem')) questionKeywords.push('sem')
     if (lowerQuestion.includes('média')) questionKeywords.push('média')
     if (lowerQuestion.includes('quantas') || lowerQuestion.includes('quantos')) questionKeywords.push('quantidade')
+    if (lowerQuestion.includes('setor') || lowerQuestion.includes('setores')) questionKeywords.push('setor')
+    if (lowerQuestion.includes('crescimento') || lowerQuestion.includes('crescendo')) questionKeywords.push('crescimento')
+    if (lowerQuestion.includes('estagnando') || lowerQuestion.includes('estagnação')) questionKeywords.push('estagnação')
+    if (lowerQuestion.includes('compare') || lowerQuestion.includes('comparar')) questionKeywords.push('comparação')
+    if (lowerQuestion.includes('semestre') || lowerQuestion.includes('período')) questionKeywords.push('período')
     
     console.log('[BMAD:SupervisorAgent] 📊 Palavras-chave na pergunta:', questionKeywords)
     
@@ -547,23 +623,33 @@ export default class SupervisorAgent {
     })
     
     // Verificar palavras comuns
-    const questionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 3)
-    const answerWords = lowerAnswer.split(/\s+/).filter(w => w.length > 3)
-    const commonWords = questionWords.filter(w => answerWords.includes(w))
-    const wordRelevance = questionWords.length > 0 
-      ? (commonWords.length / questionWords.length) * 100 
+    const filteredQuestionWords = lowerQuestion.split(/\s+/).filter(w => w.length > 3)
+    const filteredAnswerWords = lowerAnswer.split(/\s+/).filter(w => w.length > 3)
+    const commonFilteredWords = filteredQuestionWords.filter(w => filteredAnswerWords.includes(w))
+    const wordRelevance = filteredQuestionWords.length > 0 
+      ? (commonFilteredWords.length / filteredQuestionWords.length) * 100 
       : 50
     
     console.log('[BMAD:SupervisorAgent] 📊 Relevância de palavras comuns:', {
-      questionWords: questionWords.length,
-      commonWords: commonWords.length,
-      commonWordsList: commonWords.slice(0, 5),
+      questionWords: filteredQuestionWords.length,
+      commonWords: commonFilteredWords.length,
+      commonWordsList: commonFilteredWords.slice(0, 5),
       wordRelevance: wordRelevance.toFixed(1)
     })
     
     // Combinar relevância de palavras-chave e palavras comuns
     const finalRelevance = Math.min(100, (keywordRelevance * 0.6 + wordRelevance * 0.4))
     console.log('[BMAD:SupervisorAgent] ✅ Relevância final calculada:', finalRelevance.toFixed(1))
+    
+    // Log de alerta se relevância for baixa
+    if (finalRelevance < 50) {
+      console.warn('[BMAD:SupervisorAgent] ⚠️ ========== ALERTA: RELEVÂNCIA BAIXA ==========')
+      console.warn('[BMAD:SupervisorAgent] ⚠️ A resposta pode não estar respondendo adequadamente à pergunta')
+      console.warn('[BMAD:SupervisorAgent] ⚠️ Relevância:', finalRelevance.toFixed(1) + '%')
+      console.warn('[BMAD:SupervisorAgent] ⚠️ Pergunta:', question.substring(0, 200))
+      console.warn('[BMAD:SupervisorAgent] ⚠️ Resposta:', answer.substring(0, 200))
+    }
+    
     return finalRelevance
   }
 
