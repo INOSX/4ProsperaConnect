@@ -387,9 +387,9 @@ Para identificar a categoria de um novo agente, pergunte:
 
 ## 📚 Referências
 
-- **Documentação Completa dos Agentes**: `DOCUMENTACAO_AGENTES_BMAD.md`
-- **Diagramas Mermaid**: `DIAGRAMAS_AGENTES_BMAD.md`
-- **Fluxo Completo**: `FLUXO_ESPECIALISTA_BMAD.md`
+- **Documentação Completa dos Agentes**: `DOCUMENTACAO_AGENTES_NEX.md`
+- **Diagramas Mermaid**: `DIAGRAMAS_AGENTES_NEX.md`
+- **Fluxo Completo**: `FLUXO_ESPECIALISTA_NEX.md`
 - **Módulo Especialista IA**: `docs/MODULO_ESPECIALISTA_IA.md`
 
 ---

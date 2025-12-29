@@ -361,7 +361,7 @@ Usuário fala → ASR transcreve → Texto enviado
 
 ### Documentação Técnica
 
-- [Arquitetura NEX/FLX/AGX/OPX/ORDX](./IMPLEMENTACAO_BMAD_RESUMO.md)
+- [Arquitetura NEX/FLX/AGX/OPX/ORDX](./IMPLEMENTACAO_NEX_RESUMO.md)
 - [Sistema de Vetorização](./GUIA_VETORIZACAO.md)
 - [Integração OpenAI](./GUIA_INTEGRACAO_EMBEDDINGS.md)
 
