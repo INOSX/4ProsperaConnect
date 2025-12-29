@@ -1,12 +1,24 @@
-# 📊 Diagramas Mermaid - Todos os Agentes BMAD
+# 📊 Diagramas Mermaid - Todos os Agentes NEX/FLX/AGX/OPX/ORDX
 
-Este documento contém diagramas Mermaid detalhados para cada um dos 18 agentes do sistema BMAD.
+Este documento contém diagramas Mermaid detalhados para cada um dos 18 agentes do sistema NEX/FLX/AGX/OPX/ORDX.
+
+> 📖 **Para entender o padrão NEX/FLX/AGX/OPX/ORDX em detalhes, consulte**: [`PADRAO_NEX_FLX_AGX_OPX_ORDX.md`](./PADRAO_NEX_FLX_AGX_OPX_ORDX.md)
+
+## 🏛️ Categorias do Padrão
+
+Os agentes são organizados em 5 categorias:
+
+- **🔷 NEX (Nexus)**: Orquestração e conexão central
+- **📐 ORDX (Ordo)**: Ordem, validação e estruturação  
+- **🌊 FLX (Fluxus)**: Fluxo contínuo e planejamento
+- **⚡ AGX (Agens)**: Execução de ações de domínio
+- **🔧 OPX (Opus)**: Execução técnica especializada
 
 ---
 
 ## 1. 🛡️ SupervisorAgent
 
-**Responsabilidade:** Monitora e valida todas as ações em cada etapa do fluxo BMAD
+**Responsabilidade:** Monitora e valida todas as ações em cada etapa do fluxo ORDX
 
 ```mermaid
 flowchart TD
@@ -107,6 +119,7 @@ flowchart TD
 
 ## 2. 🎤 VoiceIntentAgent
 
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Classifica a intenção do usuário e extrai parâmetros do comando
 
 ```mermaid
@@ -157,6 +170,7 @@ flowchart TD
 
 ## 3. 🔐 PermissionAgent
 
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Verifica se o usuário tem permissão para executar a ação
 
 ```mermaid
@@ -202,6 +216,7 @@ flowchart TD
 
 ## 4. 📦 ContextAgent
 
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Coleta contexto do usuário, página e dados relevantes
 
 ```mermaid
@@ -223,6 +238,7 @@ flowchart TD
 
 ## 5. 🧠 DatabaseKnowledgeAgent
 
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Conhece o schema do banco, tecnologias e como operar
 
 ```mermaid
@@ -261,6 +277,7 @@ flowchart TD
 
 ## 6. 🧠 QueryPlanningAgent
 
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Usa IA (OpenAI) para planejar consultas dinâmicas no banco
 
 ```mermaid
@@ -294,6 +311,7 @@ flowchart TD
 
 ## 7. 🔍 DatabaseQueryAgent
 
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Executa consultas ao banco de dados (SQL, busca semântica, agregações)
 
 ```mermaid
@@ -349,6 +367,7 @@ flowchart TD
 
 ## 8. 🏢 CompanyActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a empresas
 
 ```mermaid
@@ -385,6 +404,7 @@ flowchart TD
 
 ## 9. 👥 EmployeeActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a colaboradores
 
 ```mermaid
@@ -416,6 +436,7 @@ flowchart TD
 
 ## 10. 📢 CampaignActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a campanhas de marketing
 
 ```mermaid
@@ -457,6 +478,7 @@ flowchart TD
 
 ## 11. 🎯 ProspectingActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a prospecção de clientes
 
 ```mermaid
@@ -475,8 +497,8 @@ flowchart TD
     CalculateScore --> SupabaseUpdateScore[UPDATE prospects<br/>SET score]
     SupabaseUpdateScore --> ReturnQualified[📤 Retorna:<br/>prospect qualificado]
     
-    Start --> CalculateScore[calculateScore<br/>Calcular Score]
-    CalculateScore --> ReturnScore[📤 Retorna:<br/>score calculado]
+    Start --> CalculateScoreMethod[calculateScore<br/>Calcular Score]
+    CalculateScoreMethod --> ReturnScore[📤 Retorna:<br/>score calculado]
     
     Start --> RecommendProducts[recommendProducts<br/>Recomendar Produtos]
     RecommendProducts --> AnalyzeProspect[Analisar prospect<br/>e histórico]
@@ -495,6 +517,7 @@ flowchart TD
 
 ## 12. 💰 BenefitActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a benefícios
 
 ```mermaid
@@ -526,6 +549,7 @@ flowchart TD
 
 ## 13. 📦 ProductActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a produtos financeiros
 
 ```mermaid
@@ -548,6 +572,7 @@ flowchart TD
 
 ## 14. 🔌 IntegrationActionAgent
 
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a integrações externas
 
 ```mermaid
@@ -574,6 +599,7 @@ flowchart TD
 
 ## 15. 📊 DataVisualizationAgent
 
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Gera visualizações de dados (gráficos, tabelas, cards)
 
 ```mermaid
@@ -618,6 +644,7 @@ flowchart TD
 
 ## 16. 💬 FeedbackAgent
 
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Gera resposta textual para o usuário usando IA
 
 ```mermaid
@@ -675,6 +702,7 @@ flowchart TD
 
 ## 17. 💡 SuggestionAgent
 
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Gera sugestões de próximas ações baseadas no contexto
 
 ```mermaid
@@ -709,6 +737,7 @@ flowchart TD
 
 ## 18. 🧠 MemoryResourceAgent
 
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Monitora e otimiza memória e histórico de conversação
 
 ```mermaid
@@ -745,29 +774,41 @@ flowchart TD
 
 ## 📊 Resumo dos Agentes
 
-| # | Agente | Responsabilidade Principal | Interações com IA |
-|---|--------|---------------------------|-------------------|
-| 1 | SupervisorAgent | Validação e monitoramento | ❌ |
-| 2 | VoiceIntentAgent | Classificação de intenções | ❌ |
-| 3 | PermissionAgent | Verificação de permissões | ❌ |
-| 4 | ContextAgent | Coleta de contexto | ❌ |
-| 5 | DatabaseKnowledgeAgent | Conhecimento do banco | ❌ |
-| 6 | QueryPlanningAgent | Planejamento de queries | ✅ OpenAI Chat |
-| 7 | DatabaseQueryAgent | Execução de queries | ❌ |
-| 8 | CompanyActionAgent | Gestão de empresas | ❌ |
-| 9 | EmployeeActionAgent | Gestão de colaboradores | ❌ |
-| 10 | CampaignActionAgent | Gestão de campanhas | ❌ |
-| 11 | ProspectingActionAgent | Prospecção de clientes | ❌ |
-| 12 | BenefitActionAgent | Gestão de benefícios | ❌ |
-| 13 | ProductActionAgent | Produtos financeiros | ❌ |
-| 14 | IntegrationActionAgent | Integrações externas | ❌ |
-| 15 | DataVisualizationAgent | Geração de visualizações | ❌ |
-| 16 | FeedbackAgent | Geração de feedback | ✅ OpenAI Chat |
-| 17 | SuggestionAgent | Geração de sugestões | ❌ |
-| 18 | MemoryResourceAgent | Gerenciamento de memória | ❌ |
+| # | Agente | Categoria | Responsabilidade Principal | Interações com IA |
+|---|--------|-----------|---------------------------|-------------------|
+| 0 | NEXOrchestrator | 🔷 NEX | Orquestração central | ❌ |
+| 1 | SupervisorAgent | 📐 ORDX | Validação e monitoramento | ❌ |
+| 2 | VoiceIntentAgent | 🌊 FLX | Classificação de intenções | ❌ |
+| 3 | PermissionAgent | 📐 ORDX | Verificação de permissões | ❌ |
+| 4 | ContextAgent | 📐 ORDX | Coleta de contexto | ❌ |
+| 5 | DatabaseKnowledgeAgent | 🔧 OPX | Conhecimento do banco | ❌ |
+| 6 | QueryPlanningAgent | 🌊 FLX | Planejamento de queries | ✅ OpenAI Chat |
+| 7 | DatabaseQueryAgent | 🔧 OPX | Execução de queries | ❌ |
+| 8 | CompanyActionAgent | ⚡ AGX | Gestão de empresas | ❌ |
+| 9 | EmployeeActionAgent | ⚡ AGX | Gestão de colaboradores | ❌ |
+| 10 | CampaignActionAgent | ⚡ AGX | Gestão de campanhas | ❌ |
+| 11 | ProspectingActionAgent | ⚡ AGX | Prospecção de clientes | ❌ |
+| 12 | BenefitActionAgent | ⚡ AGX | Gestão de benefícios | ❌ |
+| 13 | ProductActionAgent | ⚡ AGX | Produtos financeiros | ❌ |
+| 14 | IntegrationActionAgent | ⚡ AGX | Integrações externas | ❌ |
+| 15 | DataVisualizationAgent | 🔧 OPX | Geração de visualizações | ❌ |
+| 16 | FeedbackAgent | 🔧 OPX | Geração de feedback | ✅ OpenAI Chat |
+| 17 | SuggestionAgent | 🌊 FLX | Geração de sugestões | ❌ |
+| 18 | MemoryResourceAgent | 📐 ORDX | Gerenciamento de memória | ❌ |
+
+### Resumo por Categoria
+
+| Categoria | Quantidade | Agentes |
+|-----------|-----------|---------|
+| 🔷 **NEX** | 1 | NEXOrchestrator |
+| 📐 **ORDX** | 4 | SupervisorAgent, PermissionAgent, ContextAgent, MemoryResourceAgent |
+| 🌊 **FLX** | 3 | VoiceIntentAgent, QueryPlanningAgent, SuggestionAgent |
+| ⚡ **AGX** | 7 | CompanyActionAgent, EmployeeActionAgent, CampaignActionAgent, ProspectingActionAgent, BenefitActionAgent, ProductActionAgent, IntegrationActionAgent |
+| 🔧 **OPX** | 6 | DatabaseQueryAgent, DatabaseKnowledgeAgent, DataVisualizationAgent, FeedbackAgent, VectorSearchService, EmbeddingGenerator |
+| **TOTAL** | **21** | - |
 
 ---
 
-**Última atualização:** 2024  
-**Versão do Sistema:** BMAD v1.0
+**Última atualização:** Janeiro 2025  
+**Versão do Sistema:** NEX/FLX/AGX/OPX/ORDX v1.0
 

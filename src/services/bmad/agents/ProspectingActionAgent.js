@@ -5,8 +5,8 @@ import { ProspectingService } from '../../../services/prospectingService'
 
 export default class ProspectingActionAgent {
   async list(params, user, context) {
-    console.log('[BMAD:ProspectingActionAgent] 🎯 ========== LISTANDO PROSPECTS ==========')
-    console.log('[BMAD:ProspectingActionAgent] 📝 Input:', {
+    console.log('[AGX:ProspectingActionAgent] 🎯 ========== LISTANDO PROSPECTS ==========')
+    console.log('[AGX:ProspectingActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -22,12 +22,12 @@ export default class ProspectingActionAgent {
         status: params.status,
         minScore: params.minScore
       }
-      console.log('[BMAD:ProspectingActionAgent] 🔍 Buscando prospects com filtros:', JSON.stringify(filters, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 🔍 Buscando prospects com filtros:', JSON.stringify(filters, null, 2))
       
       const result = await ProspectingService.getProspects(filters)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:ProspectingActionAgent] 📥 Resposta do ProspectingService:', {
+      console.log('[AGX:ProspectingActionAgent] 📥 Resposta do ProspectingService:', {
         success: result.success,
         prospectsCount: result.prospects?.length || 0,
         error: result.error,
@@ -35,7 +35,7 @@ export default class ProspectingActionAgent {
       })
       
       if (result.prospects && result.prospects.length > 0) {
-        console.log('[BMAD:ProspectingActionAgent] 📊 Primeiros 3 prospects:', result.prospects.slice(0, 3).map(p => ({
+        console.log('[AGX:ProspectingActionAgent] 📊 Primeiros 3 prospects:', result.prospects.slice(0, 3).map(p => ({
           id: p.id,
           name: p.name,
           score: p.score,
@@ -49,8 +49,8 @@ export default class ProspectingActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:ProspectingActionAgent] ✅ ========== PROSPECTS LISTADOS ==========')
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado:', {
+      console.log('[AGX:ProspectingActionAgent] ✅ ========== PROSPECTS LISTADOS ==========')
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado:', {
         success: finalResult.success,
         count: finalResult.data.length,
         hasError: !!finalResult.error
@@ -59,22 +59,22 @@ export default class ProspectingActionAgent {
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProspectingActionAgent] ❌ ========== ERRO AO LISTAR PROSPECTS ==========')
-      console.error('[BMAD:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProspectingActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProspectingActionAgent] ❌ ========== ERRO AO LISTAR PROSPECTS ==========')
+      console.error('[AGX:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProspectingActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async enrich(params, user, context) {
-    console.log('[BMAD:ProspectingActionAgent] 🎯 ========== ENRIQUECENDO PROSPECT ==========')
-    console.log('[BMAD:ProspectingActionAgent] 📝 Input:', {
+    console.log('[AGX:ProspectingActionAgent] 🎯 ========== ENRIQUECENDO PROSPECT ==========')
+    console.log('[AGX:ProspectingActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -83,7 +83,7 @@ export default class ProspectingActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:ProspectingActionAgent] 🔄 Iniciando enriquecimento de prospect...')
+      console.log('[AGX:ProspectingActionAgent] 🔄 Iniciando enriquecimento de prospect...')
       // Implementar enriquecimento de prospect
       
       const elapsed = Date.now() - startTime
@@ -92,28 +92,28 @@ export default class ProspectingActionAgent {
         data: { message: 'Enriquecimento em progresso' }
       }
       
-      console.log('[BMAD:ProspectingActionAgent] ✅ ========== ENRIQUECIMENTO INICIADO ==========')
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] ✅ ========== ENRIQUECIMENTO INICIADO ==========')
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProspectingActionAgent] ❌ ========== ERRO AO ENRIQUECER PROSPECT ==========')
-      console.error('[BMAD:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProspectingActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProspectingActionAgent] ❌ ========== ERRO AO ENRIQUECER PROSPECT ==========')
+      console.error('[AGX:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProspectingActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async qualify(params, user, context) {
-    console.log('[BMAD:ProspectingActionAgent] 🎯 ========== QUALIFICANDO PROSPECT ==========')
-    console.log('[BMAD:ProspectingActionAgent] 📝 Input:', {
+    console.log('[AGX:ProspectingActionAgent] 🎯 ========== QUALIFICANDO PROSPECT ==========')
+    console.log('[AGX:ProspectingActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -122,7 +122,7 @@ export default class ProspectingActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:ProspectingActionAgent] 🔄 Iniciando qualificação de prospect...')
+      console.log('[AGX:ProspectingActionAgent] 🔄 Iniciando qualificação de prospect...')
       // Implementar qualificação de prospect
       
       const elapsed = Date.now() - startTime
@@ -131,28 +131,28 @@ export default class ProspectingActionAgent {
         data: { message: 'Prospect qualificado' }
       }
       
-      console.log('[BMAD:ProspectingActionAgent] ✅ ========== PROSPECT QUALIFICADO ==========')
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] ✅ ========== PROSPECT QUALIFICADO ==========')
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProspectingActionAgent] ❌ ========== ERRO AO QUALIFICAR PROSPECT ==========')
-      console.error('[BMAD:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProspectingActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProspectingActionAgent] ❌ ========== ERRO AO QUALIFICAR PROSPECT ==========')
+      console.error('[AGX:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProspectingActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async calculateScore(params, user, context) {
-    console.log('[BMAD:ProspectingActionAgent] 🎯 ========== CALCULANDO SCORE DO PROSPECT ==========')
-    console.log('[BMAD:ProspectingActionAgent] 📝 Input:', {
+    console.log('[AGX:ProspectingActionAgent] 🎯 ========== CALCULANDO SCORE DO PROSPECT ==========')
+    console.log('[AGX:ProspectingActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -161,7 +161,7 @@ export default class ProspectingActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:ProspectingActionAgent] 🔄 Calculando score...')
+      console.log('[AGX:ProspectingActionAgent] 🔄 Calculando score...')
       // Implementar cálculo de score
       
       const elapsed = Date.now() - startTime
@@ -170,29 +170,29 @@ export default class ProspectingActionAgent {
         data: { score: 75 }
       }
       
-      console.log('[BMAD:ProspectingActionAgent] ✅ ========== SCORE CALCULADO ==========')
-      console.log('[BMAD:ProspectingActionAgent] 📊 Score:', finalResult.data.score)
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] ✅ ========== SCORE CALCULADO ==========')
+      console.log('[AGX:ProspectingActionAgent] 📊 Score:', finalResult.data.score)
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProspectingActionAgent] ❌ ========== ERRO AO CALCULAR SCORE ==========')
-      console.error('[BMAD:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProspectingActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProspectingActionAgent] ❌ ========== ERRO AO CALCULAR SCORE ==========')
+      console.error('[AGX:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProspectingActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async recommendProducts(params, user, context) {
-    console.log('[BMAD:ProspectingActionAgent] 🎯 ========== RECOMENDANDO PRODUTOS PARA PROSPECT ==========')
-    console.log('[BMAD:ProspectingActionAgent] 📝 Input:', {
+    console.log('[AGX:ProspectingActionAgent] 🎯 ========== RECOMENDANDO PRODUTOS PARA PROSPECT ==========')
+    console.log('[AGX:ProspectingActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -201,7 +201,7 @@ export default class ProspectingActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:ProspectingActionAgent] 🔄 Gerando recomendações de produtos...')
+      console.log('[AGX:ProspectingActionAgent] 🔄 Gerando recomendações de produtos...')
       // Implementar recomendação de produtos
       
       const elapsed = Date.now() - startTime
@@ -210,22 +210,22 @@ export default class ProspectingActionAgent {
         data: { products: [] }
       }
       
-      console.log('[BMAD:ProspectingActionAgent] ✅ ========== PRODUTOS RECOMENDADOS ==========')
-      console.log('[BMAD:ProspectingActionAgent] 📊 Produtos recomendados:', finalResult.data.products.length)
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] ✅ ========== PRODUTOS RECOMENDADOS ==========')
+      console.log('[AGX:ProspectingActionAgent] 📊 Produtos recomendados:', finalResult.data.products.length)
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProspectingActionAgent] ❌ ========== ERRO AO RECOMENDAR PRODUTOS ==========')
-      console.error('[BMAD:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProspectingActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProspectingActionAgent] ❌ ========== ERRO AO RECOMENDAR PRODUTOS ==========')
+      console.error('[AGX:ProspectingActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProspectingActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProspectingActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }

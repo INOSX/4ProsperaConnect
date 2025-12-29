@@ -3,8 +3,8 @@
  */
 export default class ProductActionAgent {
   async list(params, user, context) {
-    console.log('[BMAD:ProductActionAgent] 📦 ========== LISTANDO PRODUTOS ==========')
-    console.log('[BMAD:ProductActionAgent] 📝 Input:', {
+    console.log('[AGX:ProductActionAgent] 📦 ========== LISTANDO PRODUTOS ==========')
+    console.log('[AGX:ProductActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -15,12 +15,12 @@ export default class ProductActionAgent {
     try {
       const { ProductService } = await import('../../../services/productService')
       const filters = params.filters || {}
-      console.log('[BMAD:ProductActionAgent] 🔍 Buscando produtos com filtros:', JSON.stringify(filters, null, 2))
+      console.log('[AGX:ProductActionAgent] 🔍 Buscando produtos com filtros:', JSON.stringify(filters, null, 2))
       
       const result = await ProductService.getProducts(filters)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:ProductActionAgent] 📥 Resposta do ProductService:', {
+      console.log('[AGX:ProductActionAgent] 📥 Resposta do ProductService:', {
         success: result.success,
         productsCount: result.products?.length || 0,
         error: result.error,
@@ -28,7 +28,7 @@ export default class ProductActionAgent {
       })
       
       if (result.products && result.products.length > 0) {
-        console.log('[BMAD:ProductActionAgent] 📊 Primeiros 3 produtos:', result.products.slice(0, 3).map(p => ({
+        console.log('[AGX:ProductActionAgent] 📊 Primeiros 3 produtos:', result.products.slice(0, 3).map(p => ({
           id: p.id,
           name: p.name,
           type: p.type
@@ -41,8 +41,8 @@ export default class ProductActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:ProductActionAgent] ✅ ========== PRODUTOS LISTADOS ==========')
-      console.log('[BMAD:ProductActionAgent] 📤 Resultado:', {
+      console.log('[AGX:ProductActionAgent] ✅ ========== PRODUTOS LISTADOS ==========')
+      console.log('[AGX:ProductActionAgent] 📤 Resultado:', {
         success: finalResult.success,
         count: finalResult.data.length,
         hasError: !!finalResult.error
@@ -51,22 +51,22 @@ export default class ProductActionAgent {
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProductActionAgent] ❌ ========== ERRO AO LISTAR PRODUTOS ==========')
-      console.error('[BMAD:ProductActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProductActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProductActionAgent] ❌ ========== ERRO AO LISTAR PRODUTOS ==========')
+      console.error('[AGX:ProductActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProductActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProductActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProductActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async recommend(params, user, context) {
-    console.log('[BMAD:ProductActionAgent] 📦 ========== RECOMENDANDO PRODUTOS ==========')
-    console.log('[BMAD:ProductActionAgent] 📝 Input:', {
+    console.log('[AGX:ProductActionAgent] 📦 ========== RECOMENDANDO PRODUTOS ==========')
+    console.log('[AGX:ProductActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -75,7 +75,7 @@ export default class ProductActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:ProductActionAgent] 🔄 Gerando recomendações de produtos...')
+      console.log('[AGX:ProductActionAgent] 🔄 Gerando recomendações de produtos...')
       // Implementar recomendação de produtos
       
       const elapsed = Date.now() - startTime
@@ -84,22 +84,22 @@ export default class ProductActionAgent {
         data: { products: [] }
       }
       
-      console.log('[BMAD:ProductActionAgent] ✅ ========== PRODUTOS RECOMENDADOS ==========')
-      console.log('[BMAD:ProductActionAgent] 📊 Produtos recomendados:', finalResult.data.products.length)
-      console.log('[BMAD:ProductActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:ProductActionAgent] ✅ ========== PRODUTOS RECOMENDADOS ==========')
+      console.log('[AGX:ProductActionAgent] 📊 Produtos recomendados:', finalResult.data.products.length)
+      console.log('[AGX:ProductActionAgent] 📤 Resultado (elapsed:', elapsed + 'ms):', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:ProductActionAgent] ❌ ========== ERRO AO RECOMENDAR PRODUTOS ==========')
-      console.error('[BMAD:ProductActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:ProductActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:ProductActionAgent] ❌ ========== ERRO AO RECOMENDAR PRODUTOS ==========')
+      console.error('[AGX:ProductActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:ProductActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:ProductActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:ProductActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }

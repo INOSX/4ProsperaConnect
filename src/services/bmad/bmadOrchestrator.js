@@ -1,5 +1,5 @@
 /**
- * BMAD Orchestrator - Orquestrador principal do sistema BMAD
+ * NEX Orchestrator - Orquestrador principal do sistema NEX
  * Coordena todos os agentes e gerencia o fluxo de processamento de comandos
  */
 import SupervisorAgent from './agents/SupervisorAgent.js'
@@ -19,7 +19,7 @@ import SuggestionAgent from './agents/SuggestionAgent.js'
 import MemoryResourceAgent from './agents/MemoryResourceAgent.js'
 import FeedbackAgent from './agents/FeedbackAgent.js'
 
-export class BMADOrchestrator {
+export class NEXOrchestrator {
   constructor() {
     // Inicializar todos os agentes
     this.supervisor = new SupervisorAgent()
@@ -49,15 +49,15 @@ export class BMADOrchestrator {
    */
   async processCommand(text, user, context = {}) {
     const startTime = Date.now()
-    console.log('[BMAD:Orchestrator] 🚀 Starting command processing:', text?.substring(0, 100))
-    console.log('[BMAD:Orchestrator] 👤 User:', user?.id, 'Email:', user?.email)
+    console.log('[NEX:Orchestrator] 🚀 Starting command processing:', text?.substring(0, 100))
+    console.log('[NEX:Orchestrator] 👤 User:', user?.id, 'Email:', user?.email)
     
     try {
       // 1. Validação inicial pelo Supervisor
-      console.log('[BMAD:Orchestrator] 📋 Step 1/12: Initial validation')
+      console.log('[NEX:Orchestrator] 📋 Step 1/12: Initial validation')
       const initialValidation = await this.supervisor.validateInitial(text)
       if (!initialValidation.approved) {
-        console.log('[BMAD:Orchestrator] ❌ Command rejected at initial validation:', initialValidation.reason)
+        console.log('[NEX:Orchestrator] ❌ Command rejected at initial validation:', initialValidation.reason)
         return {
           success: false,
           error: initialValidation.reason || 'Comando inválido',
@@ -66,11 +66,11 @@ export class BMADOrchestrator {
       }
 
       // 2. Classificação de intenção
-      console.log('[BMAD:Orchestrator] 📋 Step 2/12: Intent classification')
+      console.log('[NEX:Orchestrator] 📋 Step 2/12: Intent classification')
       const intentResult = await this.voiceIntent.classifyIntent(text, user)
       const intentValidation = await this.supervisor.validateIntent(intentResult)
       if (!intentValidation.approved) {
-        console.log('[BMAD:Orchestrator] ❌ Command rejected at intent validation:', intentValidation.reason)
+        console.log('[NEX:Orchestrator] ❌ Command rejected at intent validation:', intentValidation.reason)
         return {
           success: false,
           error: 'Não foi possível entender sua intenção. Tente reformular.',
@@ -79,7 +79,7 @@ export class BMADOrchestrator {
       }
 
       // 3. Validação de permissões
-      console.log('[BMAD:Orchestrator] 📋 Step 3/12: Permission check')
+      console.log('[NEX:Orchestrator] 📋 Step 3/12: Permission check')
       const permissionResult = await this.permission.checkPermission(
         intentResult.intent,
         user,
@@ -87,7 +87,7 @@ export class BMADOrchestrator {
       )
       const permissionValidation = await this.supervisor.validatePermission(permissionResult)
       if (!permissionValidation.approved || !permissionResult.allowed) {
-        console.log('[BMAD:Orchestrator] ❌ Command rejected: Permission denied')
+        console.log('[NEX:Orchestrator] ❌ Command rejected: Permission denied')
         return {
           success: false,
           error: permissionResult.reason || 'Você não tem permissão para executar esta ação',
@@ -96,31 +96,31 @@ export class BMADOrchestrator {
       }
 
       // 4. Coleta de contexto
-      console.log('[BMAD:Orchestrator] 📋 Step 4/12: Context collection')
+      console.log('[NEX:Orchestrator] 📋 Step 4/12: Context collection')
       const contextResult = await this.context.collectContext(user, context)
       const contextValidation = await this.supervisor.validateContext(contextResult)
       if (!contextValidation.approved) {
-        console.warn('[BMAD:Orchestrator] ⚠️ Context validation failed, continuing with available context')
+        console.warn('[NEX:Orchestrator] ⚠️ Context validation failed, continuing with available context')
       }
 
       // 5. Otimização de memória antes de processar
-      console.log('[BMAD:Orchestrator] 📋 Step 5/12: Memory optimization (before)')
+      console.log('[NEX:Orchestrator] 📋 Step 5/12: Memory optimization (before)')
       await this.memory.optimizeBeforeProcessing()
 
       // 6. Executar ação baseada na intenção
-      console.log('[BMAD:Orchestrator] 📋 Step 6/12: Executing action for intent:', intentResult.intent)
+      console.log('[NEX:Orchestrator] 📋 Step 6/12: Executing action for intent:', intentResult.intent)
       let actionResult = null
       const { intent, params } = intentResult
 
       if (intent === 'query_database' || intent === 'search_data' || intent === 'get_all_data' || intent === 'know_all_data') {
         // Busca no banco de dados usando busca semântica
         // Permite que o especialista "conheça" todos os registros
-        console.log('[BMADOrchestrator] Processing database query:', { intent, text, params })
+        console.log('[NEXOrchestrator] Processing database query:', { intent, text, params })
         try {
           actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
-          console.log('[BMADOrchestrator] Database query result:', { success: actionResult?.success, hasResults: !!actionResult?.results, error: actionResult?.error })
+          console.log('[NEXOrchestrator] Database query result:', { success: actionResult?.success, hasResults: !!actionResult?.results, error: actionResult?.error })
         } catch (queryError) {
-          console.error('[BMADOrchestrator] Error in database query:', queryError)
+          console.error('[NEXOrchestrator] Error in database query:', queryError)
           actionResult = {
             success: false,
             error: queryError.message || 'Erro ao executar consulta',
@@ -129,7 +129,7 @@ export class BMADOrchestrator {
         }
         
         const queryValidation = await this.supervisor.validateQueryResult(actionResult)
-        console.log('[BMADOrchestrator] Query validation:', { approved: queryValidation.approved, reason: queryValidation.reason })
+        console.log('[NEXOrchestrator] Query validation:', { approved: queryValidation.approved, reason: queryValidation.reason })
         if (!queryValidation.approved) {
           return {
             success: false,
@@ -140,12 +140,12 @@ export class BMADOrchestrator {
         }
       } else if (intent.startsWith('query_') || intent.startsWith('search_')) {
         // Consultas genéricas também usam busca semântica
-        console.log('[BMADOrchestrator] Processing generic query:', { intent, text })
+        console.log('[NEXOrchestrator] Processing generic query:', { intent, text })
         try {
           actionResult = await this.databaseQuery.executeQuery(intent, { ...params, query: text }, user, contextResult)
-          console.log('[BMADOrchestrator] Generic query result:', { success: actionResult?.success, hasResults: !!actionResult?.results })
+          console.log('[NEXOrchestrator] Generic query result:', { success: actionResult?.success, hasResults: !!actionResult?.results })
         } catch (queryError) {
-          console.error('[BMADOrchestrator] Error in generic query:', queryError)
+          console.error('[NEXOrchestrator] Error in generic query:', queryError)
           actionResult = {
             success: false,
             error: queryError.message || 'Erro ao executar consulta',
@@ -154,7 +154,7 @@ export class BMADOrchestrator {
         }
         const queryValidation = await this.supervisor.validateQueryResult(actionResult)
         if (!queryValidation.approved) {
-          console.warn('[BMADOrchestrator] Query validation failed, continuing with results:', queryValidation.reason)
+          console.warn('[NEXOrchestrator] Query validation failed, continuing with results:', queryValidation.reason)
         }
       } else {
         // Ações específicas por domínio
@@ -170,26 +170,26 @@ export class BMADOrchestrator {
       }
 
       // 7. Gerar visualizações
-      console.log('[BMAD:Orchestrator] 📋 Step 7/12: Generating visualizations')
+      console.log('[NEX:Orchestrator] 📋 Step 7/12: Generating visualizations')
       let visualizations = []
       try {
         visualizations = await this.visualization.generateVisualizations(
           actionResult,
           intent
         )
-        console.log('[BMAD:Orchestrator] ✅ Visualizations generated:', { count: visualizations?.length || 0 })
+        console.log('[NEX:Orchestrator] ✅ Visualizations generated:', { count: visualizations?.length || 0 })
       } catch (vizError) {
-        console.error('[BMAD:Orchestrator] ❌ Error generating visualizations:', vizError)
+        console.error('[NEX:Orchestrator] ❌ Error generating visualizations:', vizError)
         visualizations = []
       }
       
       const vizValidation = await this.supervisor.validateVisualizations(visualizations)
       if (!vizValidation.approved) {
-        console.warn('[BMAD:Orchestrator] ⚠️ Visualization validation failed, using basic format')
+        console.warn('[NEX:Orchestrator] ⚠️ Visualization validation failed, using basic format')
       }
 
       // 8. Gerar feedback/resposta
-      console.log('[BMAD:Orchestrator] 📋 Step 8/12: Generating feedback')
+      console.log('[NEX:Orchestrator] 📋 Step 8/12: Generating feedback')
       let feedback = null
       try {
         feedback = await this.feedback.generateFeedback(
@@ -198,9 +198,9 @@ export class BMADOrchestrator {
           visualizations,
           intentResult
         )
-        console.log('[BMAD:Orchestrator] ✅ Feedback generated:', { hasText: !!feedback?.text, text: feedback?.text?.substring(0, 100) })
+        console.log('[NEX:Orchestrator] ✅ Feedback generated:', { hasText: !!feedback?.text, text: feedback?.text?.substring(0, 100) })
       } catch (feedbackError) {
-        console.error('[BMAD:Orchestrator] ❌ Error generating feedback:', feedbackError)
+        console.error('[NEX:Orchestrator] ❌ Error generating feedback:', feedbackError)
         // Criar feedback básico em caso de erro
         feedback = {
           text: actionResult.summary || actionResult.error || 'Comando processado',
@@ -210,15 +210,15 @@ export class BMADOrchestrator {
       }
 
       // 9. Otimização de memória após processamento
-      console.log('[BMAD:Orchestrator] 📋 Step 9/12: Memory optimization (after)')
+      console.log('[NEX:Orchestrator] 📋 Step 9/12: Memory optimization (after)')
       try {
         await this.memory.optimizeAfterProcessing(feedback)
       } catch (memoryError) {
-        console.warn('[BMAD:Orchestrator] ⚠️ Error optimizing memory:', memoryError)
+        console.warn('[NEX:Orchestrator] ⚠️ Error optimizing memory:', memoryError)
       }
 
       // 10. Validação final
-      console.log('[BMAD:Orchestrator] 📋 Step 10/12: Final validation')
+      console.log('[NEX:Orchestrator] 📋 Step 10/12: Final validation')
       const finalValidation = await this.supervisor.validateFinal({
         originalText: text,
         intent: intentResult,
@@ -226,27 +226,27 @@ export class BMADOrchestrator {
         feedback,
         visualizations
       })
-      console.log('[BMAD:Orchestrator]', finalValidation.approved ? '✅ Final validation passed' : '⚠️ Final validation failed', { 
+      console.log('[NEX:Orchestrator]', finalValidation.approved ? '✅ Final validation passed' : '⚠️ Final validation failed', { 
         qualityScore: finalValidation.qualityScore,
         issues: finalValidation.issues 
       })
 
       if (!finalValidation.approved) {
-        console.warn('[BMAD:Orchestrator] ⚠️ Final validation failed, attempting correction...')
+        console.warn('[NEX:Orchestrator] ⚠️ Final validation failed, attempting correction...')
         // Tentar corrigir
         const corrected = await this.supervisor.attemptCorrection(finalValidation)
         if (corrected.success) {
-          console.log('[BMAD:Orchestrator] ✅ Correction successful')
+          console.log('[NEX:Orchestrator] ✅ Correction successful')
           const elapsed = Date.now() - startTime
-          console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
+          console.log('[NEX:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
           return corrected.result
         }
-        console.error('[BMAD:Orchestrator] ❌ Correction failed, returning error')
+        console.error('[NEX:Orchestrator] ❌ Correction failed, returning error')
         // Mesmo se a validação falhar, retornar resultado se tiver feedback
         if (feedback && feedback.text) {
-          console.warn('[BMAD:Orchestrator] ⚠️ Returning result despite validation failure (has feedback)')
+          console.warn('[NEX:Orchestrator] ⚠️ Returning result despite validation failure (has feedback)')
           const elapsed = Date.now() - startTime
-          console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
+          console.log('[NEX:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
           return {
             success: true,
             response: feedback.text,
@@ -260,7 +260,7 @@ export class BMADOrchestrator {
           }
         }
         const elapsed = Date.now() - startTime
-        console.log('[BMAD:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
+        console.log('[NEX:Orchestrator] ⏱️ Total processing time:', elapsed + 'ms')
         return {
           success: false,
           error: 'Erro ao processar comando',
@@ -270,17 +270,17 @@ export class BMADOrchestrator {
       }
 
       // 11. Gerar sugestões
-      console.log('[BMAD:Orchestrator] 📋 Step 11/12: Generating suggestions')
+      console.log('[NEX:Orchestrator] 📋 Step 11/12: Generating suggestions')
       const suggestions = await this.suggestion.generateSuggestions(
         text,
         intentResult,
         actionResult,
         await this.memory.getConversationHistory()
       )
-      console.log('[BMAD:Orchestrator] ✅ Suggestions generated:', suggestions.suggestions.length)
+      console.log('[NEX:Orchestrator] ✅ Suggestions generated:', suggestions.suggestions.length)
 
       // 12. Atualizar histórico
-      console.log('[BMAD:Orchestrator] 📋 Step 12/12: Updating conversation history')
+      console.log('[NEX:Orchestrator] 📋 Step 12/12: Updating conversation history')
       await this.memory.updateHistory({
         command: text,
         intent: intentResult,
@@ -290,8 +290,8 @@ export class BMADOrchestrator {
       })
 
       const elapsed = Date.now() - startTime
-      console.log('[BMAD:Orchestrator] ✅ Command processing finished successfully in', elapsed + 'ms')
-      console.log('[BMAD:Orchestrator] 📊 Summary:', {
+      console.log('[NEX:Orchestrator] ✅ Command processing finished successfully in', elapsed + 'ms')
+      console.log('[NEX:Orchestrator] 📊 Summary:', {
         intent: intent,
         qualityScore: finalValidation.qualityScore,
         visualizations: visualizations.length,
@@ -313,7 +313,7 @@ export class BMADOrchestrator {
       }
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:Orchestrator] ❌ Error in command processing after', elapsed + 'ms:', error)
+      console.error('[NEX:Orchestrator] ❌ Error in command processing after', elapsed + 'ms:', error)
       return {
         success: false,
         error: error.message || 'Erro ao processar comando',
@@ -372,5 +372,5 @@ export class BMADOrchestrator {
   }
 }
 
-export default BMADOrchestrator
+export default NEXOrchestrator
 

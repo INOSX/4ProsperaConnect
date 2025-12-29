@@ -3,8 +3,8 @@
  */
 export default class DataVisualizationAgent {
   async generateVisualizations(actionResult, intent) {
-    console.log('[BMAD:DataVisualizationAgent] 📊 ========== GERANDO VISUALIZAÇÕES ==========')
-    console.log('[BMAD:DataVisualizationAgent] 📝 Input:', {
+    console.log('[OPX:DataVisualizationAgent] 📊 ========== GERANDO VISUALIZAÇÕES ==========')
+    console.log('[OPX:DataVisualizationAgent] 📝 Input:', {
       intent: intent,
       hasActionResult: !!actionResult,
       actionResultType: actionResult ? typeof actionResult : 'null',
@@ -14,11 +14,11 @@ export default class DataVisualizationAgent {
     const visualizations = []
 
     if (!actionResult) {
-      console.log('[BMAD:DataVisualizationAgent] ⚠️ Nenhum actionResult fornecido, retornando array vazio')
+      console.log('[OPX:DataVisualizationAgent] ⚠️ Nenhum actionResult fornecido, retornando array vazio')
       return visualizations
     }
     
-    console.log('[BMAD:DataVisualizationAgent] 📊 Propriedades do actionResult:', {
+    console.log('[OPX:DataVisualizationAgent] 📊 Propriedades do actionResult:', {
       success: actionResult.success,
       isCount: actionResult.isCount,
       isAggregate: actionResult.isAggregate,
@@ -35,7 +35,7 @@ export default class DataVisualizationAgent {
     if (actionResult.isCount) {
       // Se houver visualizationData específica, usar ela
       if (actionResult.visualizationData && actionResult.visualizationData.length > 0) {
-        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card from visualizationData')
+        console.log('[OPX:DataVisualizationAgent] 📊 Creating count card from visualizationData')
         visualizations.push({
           type: 'card',
           data: actionResult.visualizationData,
@@ -43,7 +43,7 @@ export default class DataVisualizationAgent {
             title: actionResult.summary || 'Contagem'
           }
         })
-        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
       
@@ -52,7 +52,7 @@ export default class DataVisualizationAgent {
         const countResult = actionResult.results[0]
         if (countResult.count !== undefined || actionResult.companiesWithoutEmployees !== undefined) {
           const count = countResult.count !== undefined ? countResult.count : actionResult.companiesWithoutEmployees
-          console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card visualization:', count)
+          console.log('[OPX:DataVisualizationAgent] 📊 Creating count card visualization:', count)
           visualizations.push({
             type: 'card',
             data: [{
@@ -63,14 +63,14 @@ export default class DataVisualizationAgent {
               title: actionResult.summary || 'Contagem'
             }
           })
-          console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+          console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
           return visualizations
         }
       }
       
       // Se for apenas um count numérico
       if (actionResult.companiesWithoutEmployees !== undefined) {
-        console.log('[BMAD:DataVisualizationAgent] 📊 Creating count card from companiesWithoutEmployees')
+        console.log('[OPX:DataVisualizationAgent] 📊 Creating count card from companiesWithoutEmployees')
         visualizations.push({
           type: 'card',
           data: [{
@@ -81,7 +81,7 @@ export default class DataVisualizationAgent {
             title: actionResult.summary || 'Contagem'
           }
         })
-        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
     }
@@ -90,9 +90,9 @@ export default class DataVisualizationAgent {
     if (actionResult.isAggregate && actionResult.results && actionResult.results.length > 0) {
       // Se for agrupamento (ex: por setor), criar gráfico
       if (actionResult.isGrouped && actionResult.chartConfig) {
-        console.log('[BMAD:DataVisualizationAgent] 📊 Criando gráfico de agrupamento...')
-        console.log('[BMAD:DataVisualizationAgent] 📊 Config do gráfico:', JSON.stringify(actionResult.chartConfig, null, 2))
-        console.log('[BMAD:DataVisualizationAgent] 📊 Dados do gráfico (primeiros 3):', actionResult.results?.slice(0, 3))
+        console.log('[OPX:DataVisualizationAgent] 📊 Criando gráfico de agrupamento...')
+        console.log('[OPX:DataVisualizationAgent] 📊 Config do gráfico:', JSON.stringify(actionResult.chartConfig, null, 2))
+        console.log('[OPX:DataVisualizationAgent] 📊 Dados do gráfico (primeiros 3):', actionResult.results?.slice(0, 3))
         
         const chartViz = {
           type: 'chart',
@@ -101,7 +101,7 @@ export default class DataVisualizationAgent {
         }
         
         visualizations.push(chartViz)
-        console.log('[BMAD:DataVisualizationAgent] ✅ Gráfico de agrupamento criado:', {
+        console.log('[OPX:DataVisualizationAgent] ✅ Gráfico de agrupamento criado:', {
           type: chartViz.type,
           chartType: chartViz.config.chartType,
           dataPoints: chartViz.data?.length || 0,
@@ -109,7 +109,7 @@ export default class DataVisualizationAgent {
           yColumn: chartViz.config.yColumn,
           title: chartViz.config.title
         })
-        console.log('[BMAD:DataVisualizationAgent] ✅ Total de visualizações:', visualizations.length)
+        console.log('[OPX:DataVisualizationAgent] ✅ Total de visualizações:', visualizations.length)
         return visualizations
       }
       
@@ -117,7 +117,7 @@ export default class DataVisualizationAgent {
       const aggregateResult = actionResult.results[0]
       if (aggregateResult.value !== undefined || aggregateResult.average !== undefined) {
         const value = aggregateResult.value || aggregateResult.average
-        console.log('[BMAD:DataVisualizationAgent] 📊 Creating aggregate card visualization:', value)
+        console.log('[OPX:DataVisualizationAgent] 📊 Creating aggregate card visualization:', value)
         visualizations.push({
           type: 'card',
           data: [{
@@ -128,7 +128,7 @@ export default class DataVisualizationAgent {
             title: actionResult.summary || 'Agregação'
           }
         })
-        console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+        console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
     }
@@ -148,16 +148,16 @@ export default class DataVisualizationAgent {
         config.chartType = 'line'
       }
       
-      console.log('[BMAD:DataVisualizationAgent] 📊 Creating time series chart:', config.chartType, 'with', chartData.length, 'data points')
-      console.log('[BMAD:DataVisualizationAgent] 📊 Chart config:', config)
-      console.log('[BMAD:DataVisualizationAgent] 📊 Chart data:', chartData)
+      console.log('[OPX:DataVisualizationAgent] 📊 Creating time series chart:', config.chartType, 'with', chartData.length, 'data points')
+      console.log('[OPX:DataVisualizationAgent] 📊 Chart config:', config)
+      console.log('[OPX:DataVisualizationAgent] 📊 Chart data:', chartData)
       
       visualizations.push({
         type: 'chart',
         data: chartData,
         config: config
       })
-      console.log('[BMAD:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
+      console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
       return visualizations
     }
 
@@ -209,15 +209,15 @@ export default class DataVisualizationAgent {
       })
     }
 
-    console.log('[BMAD:DataVisualizationAgent] ✅ ========== VISUALIZAÇÕES GERADAS ==========')
-    console.log('[BMAD:DataVisualizationAgent] 📊 Resumo:', {
+    console.log('[OPX:DataVisualizationAgent] ✅ ========== VISUALIZAÇÕES GERADAS ==========')
+    console.log('[OPX:DataVisualizationAgent] 📊 Resumo:', {
       totalVisualizations: visualizations.length,
       types: visualizations.map(v => v.type),
       hasCharts: visualizations.some(v => v.type === 'chart'),
       hasTables: visualizations.some(v => v.type === 'table'),
       hasCards: visualizations.some(v => v.type === 'card')
     })
-    console.log('[BMAD:DataVisualizationAgent] 📋 Visualizações completas:', JSON.stringify(visualizations, null, 2))
+    console.log('[OPX:DataVisualizationAgent] 📋 Visualizações completas:', JSON.stringify(visualizations, null, 2))
     
     return visualizations
   }

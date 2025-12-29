@@ -1,4 +1,4 @@
-# ⚡ Testes Rápidos - BMAD e Especialista
+# ⚡ Testes Rápidos - NEX/FLX/AGX/OPX/ORDX e Especialista
 
 Lista rápida de comandos para testar o sistema.
 
@@ -46,16 +46,16 @@ Após cada comando, verifique:
 
 ### Logs Esperados (Sucesso)
 ```
-[BMAD:Orchestrator] 🚀 Starting command processing
-[BMAD:VoiceIntentAgent] ✅ Intent classified
-[BMAD:DatabaseQueryAgent] 📋 Detected: [tipo]
-[BMAD:Orchestrator] ✅ Command processing finished successfully
+[NEX:Orchestrator] 🚀 Starting command processing
+[FLX:VoiceIntentAgent] ✅ Intent classified
+[OPX:DatabaseQueryAgent] 📋 Detected: [tipo]
+[NEX:Orchestrator] ✅ Command processing finished successfully
 ```
 
 ### Logs de Erro (Problema)
 ```
-[BMAD:Orchestrator] ❌ Error in command processing
-[BMAD:DatabaseQueryAgent] ❌ Error in...
+[NEX:Orchestrator] ❌ Error in command processing
+[OPX:DatabaseQueryAgent] ❌ Error in...
 ```
 
 ---
@@ -68,8 +68,8 @@ Após cada comando, verifique:
 ```
 
 **Verificar:**
-1. Logs mostram: `[BMAD:VoiceIntentAgent] ✅ Intent classified (companies without employees)`
-2. Logs mostram: `[BMAD:DatabaseQueryAgent] 🏢 Handling companies without employees query`
+1. Logs mostram: `[FLX:VoiceIntentAgent] ✅ Intent classified (companies without employees)`
+2. Logs mostram: `[OPX:DatabaseQueryAgent] 🏢 Handling companies without employees query`
 3. Resposta é específica (não genérica)
 4. Lista de empresas é mostrada (se houver)
 

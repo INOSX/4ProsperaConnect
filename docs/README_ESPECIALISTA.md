@@ -4,10 +4,10 @@
 
 ### 1. [Documentação Completa](./MODULO_ESPECIALISTA_IA.md)
 Documentação técnica completa do módulo, incluindo:
-- Arquitetura BMAD
+- Arquitetura NEX/FLX/AGX/OPX/ORDX
 - Todos os comandos disponíveis
 - Sistema de vetorização
-- Agentes BMAD
+- Agentes NEX/FLX/AGX/OPX/ORDX
 - Troubleshooting
 
 ### 2. [Guia Rápido](./GUIA_RAPIDO_ESPECIALISTA.md)

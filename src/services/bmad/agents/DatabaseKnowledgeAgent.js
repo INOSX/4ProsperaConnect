@@ -139,9 +139,9 @@ export default class DatabaseKnowledgeAgent {
    * Obtém informações sobre uma tabela específica
    */
   getTableInfo(tableName) {
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo informações da tabela:', tableName)
+    console.log('[OPX:DatabaseKnowledgeAgent] 📚 Obtendo informações da tabela:', tableName)
     const info = this.databaseSchema[tableName] || null
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Informações:', info ? 'Encontrada' : 'Não encontrada')
+    console.log('[OPX:DatabaseKnowledgeAgent] 📤 Informações:', info ? 'Encontrada' : 'Não encontrada')
     return info
   }
 
@@ -149,9 +149,9 @@ export default class DatabaseKnowledgeAgent {
    * Obtém todas as tabelas disponíveis
    */
   getAvailableTables() {
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo tabelas disponíveis...')
+    console.log('[OPX:DatabaseKnowledgeAgent] 📚 Obtendo tabelas disponíveis...')
     const tables = Object.keys(this.databaseSchema)
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Tabelas disponíveis:', tables.length, 'tabelas:', tables)
+    console.log('[OPX:DatabaseKnowledgeAgent] 📤 Tabelas disponíveis:', tables.length, 'tabelas:', tables)
     return tables
   }
 
@@ -159,8 +159,8 @@ export default class DatabaseKnowledgeAgent {
    * Obtém informações sobre tecnologias usadas
    */
   getTechnologies() {
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📚 Obtendo informações de tecnologias...')
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Tecnologias:', JSON.stringify(this.technologies, null, 2))
+    console.log('[OPX:DatabaseKnowledgeAgent] 📚 Obtendo informações de tecnologias...')
+    console.log('[OPX:DatabaseKnowledgeAgent] 📤 Tecnologias:', JSON.stringify(this.technologies, null, 2))
     return this.technologies
   }
 
@@ -211,8 +211,8 @@ export default class DatabaseKnowledgeAgent {
    * Gera sugestões de como executar uma consulta
    */
   suggestQueryApproach(userQuery, intent) {
-    console.log('[BMAD:DatabaseKnowledgeAgent] 💡 ========== SUGERINDO ABORDAGEM DE QUERY ==========')
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📝 Input:', {
+    console.log('[OPX:DatabaseKnowledgeAgent] 💡 ========== SUGERINDO ABORDAGEM DE QUERY ==========')
+    console.log('[OPX:DatabaseKnowledgeAgent] 📝 Input:', {
       userQuery: userQuery?.substring(0, 200),
       intent: intent
     })
@@ -221,7 +221,7 @@ export default class DatabaseKnowledgeAgent {
 
     // Analisar a query para sugerir abordagem
     const lowerQuery = userQuery.toLowerCase()
-    console.log('[BMAD:DatabaseKnowledgeAgent] 🔍 Analisando query para padrões...')
+    console.log('[OPX:DatabaseKnowledgeAgent] 🔍 Analisando query para padrões...')
 
     if (lowerQuery.includes('média') || lowerQuery.includes('average')) {
       const suggestion = {
@@ -230,7 +230,7 @@ export default class DatabaseKnowledgeAgent {
         tables: ['employees', 'companies']
       }
       suggestions.push(suggestion)
-      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão agregada adicionada:', suggestion.type)
+      console.log('[OPX:DatabaseKnowledgeAgent]   ✅ Sugestão agregada adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('gráfico') || lowerQuery.includes('por período') || lowerQuery.includes('por mês')) {
@@ -240,7 +240,7 @@ export default class DatabaseKnowledgeAgent {
         tables: ['companies', 'employees']
       }
       suggestions.push(suggestion)
-      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão temporal adicionada:', suggestion.type)
+      console.log('[OPX:DatabaseKnowledgeAgent]   ✅ Sugestão temporal adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('sem colaborador') || lowerQuery.includes('sem funcionário')) {
@@ -251,7 +251,7 @@ export default class DatabaseKnowledgeAgent {
         join: 'LEFT JOIN employees ON companies.id = employees.company_id WHERE employees.id IS NULL'
       }
       suggestions.push(suggestion)
-      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão cross-table adicionada:', suggestion.type)
+      console.log('[OPX:DatabaseKnowledgeAgent]   ✅ Sugestão cross-table adicionada:', suggestion.type)
     }
 
     if (lowerQuery.includes('buscar') || lowerQuery.includes('encontrar') || lowerQuery.includes('procurar')) {
@@ -261,12 +261,12 @@ export default class DatabaseKnowledgeAgent {
         requiresEmbedding: true
       }
       suggestions.push(suggestion)
-      console.log('[BMAD:DatabaseKnowledgeAgent]   ✅ Sugestão semântica adicionada:', suggestion.type)
+      console.log('[OPX:DatabaseKnowledgeAgent]   ✅ Sugestão semântica adicionada:', suggestion.type)
     }
 
-    console.log('[BMAD:DatabaseKnowledgeAgent] ✅ ========== SUGESTÕES GERADAS ==========')
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📤 Total de sugestões:', suggestions.length)
-    console.log('[BMAD:DatabaseKnowledgeAgent] 📋 Sugestões:', JSON.stringify(suggestions, null, 2))
+    console.log('[OPX:DatabaseKnowledgeAgent] ✅ ========== SUGESTÕES GERADAS ==========')
+    console.log('[OPX:DatabaseKnowledgeAgent] 📤 Total de sugestões:', suggestions.length)
+    console.log('[OPX:DatabaseKnowledgeAgent] 📋 Sugestões:', JSON.stringify(suggestions, null, 2))
     
     return suggestions
   }

@@ -17,8 +17,8 @@ export default class QueryPlanningAgent {
    * Planeja uma consulta usando IA
    */
   async planQuery(userQuery, intent, context = {}) {
-    console.log('[BMAD:QueryPlanningAgent] 🧠 ========== INICIANDO PLANEJAMENTO DE QUERY ==========')
-    console.log('[BMAD:QueryPlanningAgent] 📝 Input:', {
+    console.log('[FLX:QueryPlanningAgent] 🧠 ========== INICIANDO PLANEJAMENTO DE QUERY ==========')
+    console.log('[FLX:QueryPlanningAgent] 📝 Input:', {
       userQuery: userQuery?.substring(0, 200),
       intent: intent,
       contextKeys: Object.keys(context || {})
@@ -26,12 +26,12 @@ export default class QueryPlanningAgent {
     
     try {
       // Obter conhecimento do banco
-      console.log('[BMAD:QueryPlanningAgent] 📚 Obtendo conhecimento do banco...')
+      console.log('[FLX:QueryPlanningAgent] 📚 Obtendo conhecimento do banco...')
       const schema = this.knowledgeAgent.databaseSchema
       const technologies = this.knowledgeAgent.getTechnologies()
       const availableTables = this.knowledgeAgent.getAvailableTables()
       
-      console.log('[BMAD:QueryPlanningAgent] 📚 Conhecimento obtido:', {
+      console.log('[FLX:QueryPlanningAgent] 📚 Conhecimento obtido:', {
         tablesCount: availableTables.length,
         tables: availableTables,
         hasSchema: !!schema,
@@ -39,17 +39,17 @@ export default class QueryPlanningAgent {
       })
 
       // Construir prompt para OpenAI
-      console.log('[BMAD:QueryPlanningAgent] 🔨 Construindo prompt para OpenAI...')
+      console.log('[FLX:QueryPlanningAgent] 🔨 Construindo prompt para OpenAI...')
       const prompt = this.buildPlanningPrompt(userQuery, schema, technologies, availableTables, context)
-      console.log('[BMAD:QueryPlanningAgent] 📄 Prompt construído (tamanho:', prompt.length, 'caracteres)')
+      console.log('[FLX:QueryPlanningAgent] 📄 Prompt construído (tamanho:', prompt.length, 'caracteres)')
 
       // Chamar OpenAI para planejar a query
-      console.log('[BMAD:QueryPlanningAgent] 🤖 Chamando OpenAI para planejar query...')
+      console.log('[FLX:QueryPlanningAgent] 🤖 Chamando OpenAI para planejar query...')
       const plan = await this.callOpenAIForPlanning(prompt)
 
-      console.log('[BMAD:QueryPlanningAgent] ✅ ========== PLANO GERADO COM SUCESSO ==========')
-      console.log('[BMAD:QueryPlanningAgent] 📋 Plano completo:', JSON.stringify(plan, null, 2))
-      console.log('[BMAD:QueryPlanningAgent] 📊 Resumo do plano:', {
+      console.log('[FLX:QueryPlanningAgent] ✅ ========== PLANO GERADO COM SUCESSO ==========')
+      console.log('[FLX:QueryPlanningAgent] 📋 Plano completo:', JSON.stringify(plan, null, 2))
+      console.log('[FLX:QueryPlanningAgent] 📊 Resumo do plano:', {
         queryType: plan.queryType,
         tables: plan.tables,
         strategy: plan.strategy,
@@ -61,14 +61,14 @@ export default class QueryPlanningAgent {
 
       return plan
     } catch (error) {
-      console.error('[BMAD:QueryPlanningAgent] ❌ ========== ERRO NO PLANEJAMENTO ==========')
-      console.error('[BMAD:QueryPlanningAgent] ❌ Erro:', error)
-      console.error('[BMAD:QueryPlanningAgent] ❌ Stack:', error.stack)
+      console.error('[FLX:QueryPlanningAgent] ❌ ========== ERRO NO PLANEJAMENTO ==========')
+      console.error('[FLX:QueryPlanningAgent] ❌ Erro:', error)
+      console.error('[FLX:QueryPlanningAgent] ❌ Stack:', error.stack)
       
       // Fallback: usar heurísticas simples
-      console.log('[BMAD:QueryPlanningAgent] 🔄 Usando fallback (heurísticas)...')
+      console.log('[FLX:QueryPlanningAgent] 🔄 Usando fallback (heurísticas)...')
       const fallbackPlan = this.fallbackPlanning(userQuery, intent)
-      console.log('[BMAD:QueryPlanningAgent] 🔄 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
+      console.log('[FLX:QueryPlanningAgent] 🔄 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
       return fallbackPlan
     }
   }
@@ -153,7 +153,7 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
    * Chama OpenAI para planejar a query
    */
   async callOpenAIForPlanning(prompt) {
-    console.log('[BMAD:QueryPlanningAgent] 🌐 Preparando requisição para OpenAI API...')
+    console.log('[FLX:QueryPlanningAgent] 🌐 Preparando requisição para OpenAI API...')
     const startTime = Date.now()
     
     try {
@@ -173,7 +173,7 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
         response_format: { type: 'json_object' }
       }
       
-      console.log('[BMAD:QueryPlanningAgent] 📤 Enviando requisição:', {
+      console.log('[FLX:QueryPlanningAgent] 📤 Enviando requisição:', {
         model: requestBody.model,
         temperature: requestBody.temperature,
         messagesCount: requestBody.messages.length,
@@ -189,11 +189,11 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
       })
 
       const requestTime = Date.now() - startTime
-      console.log('[BMAD:QueryPlanningAgent] 📥 Resposta recebida em', requestTime + 'ms, status:', response.status)
+      console.log('[FLX:QueryPlanningAgent] 📥 Resposta recebida em', requestTime + 'ms, status:', response.status)
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('[BMAD:QueryPlanningAgent] ❌ Erro na resposta:', {
+        console.error('[FLX:QueryPlanningAgent] ❌ Erro na resposta:', {
           status: response.status,
           statusText: response.statusText,
           body: errorText?.substring(0, 200)
@@ -202,7 +202,7 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
       }
 
       const data = await response.json()
-      console.log('[BMAD:QueryPlanningAgent] 📦 Dados recebidos:', {
+      console.log('[FLX:QueryPlanningAgent] 📦 Dados recebidos:', {
         hasChoices: !!data.choices,
         choicesCount: data.choices?.length || 0,
         hasMessage: !!data.choices?.[0]?.message,
@@ -210,7 +210,7 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
       })
       
       const rawPlan = JSON.parse(data.choices[0].message.content)
-      console.log('[BMAD:QueryPlanningAgent] 📋 Plano bruto da IA:', JSON.stringify(rawPlan, null, 2))
+      console.log('[FLX:QueryPlanningAgent] 📋 Plano bruto da IA:', JSON.stringify(rawPlan, null, 2))
 
       const finalPlan = {
         queryType: rawPlan.queryType || 'sql',
@@ -232,20 +232,20 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
       
       // Log da query SQL gerada pela IA
       if (finalPlan.sqlQuery) {
-        console.log('[BMAD:QueryPlanningAgent] 📝 Query SQL gerada pela IA:', finalPlan.sqlQuery)
+        console.log('[FLX:QueryPlanningAgent] 📝 Query SQL gerada pela IA:', finalPlan.sqlQuery)
       } else if (finalPlan.strategy === 'sql' || ['sql', 'aggregate', 'groupBy', 'timeSeries', 'count'].includes(finalPlan.queryType)) {
-        console.warn('[BMAD:QueryPlanningAgent] ⚠️ Query SQL não foi gerada pela IA, mas deveria ter sido gerada')
+        console.warn('[FLX:QueryPlanningAgent] ⚠️ Query SQL não foi gerada pela IA, mas deveria ter sido gerada')
       }
       
       const totalTime = Date.now() - startTime
-      console.log('[BMAD:QueryPlanningAgent] ✅ Plano processado em', totalTime + 'ms')
-      console.log('[BMAD:QueryPlanningAgent] 📊 Plano final formatado:', JSON.stringify(finalPlan, null, 2))
+      console.log('[FLX:QueryPlanningAgent] ✅ Plano processado em', totalTime + 'ms')
+      console.log('[FLX:QueryPlanningAgent] 📊 Plano final formatado:', JSON.stringify(finalPlan, null, 2))
 
       return finalPlan
     } catch (error) {
       const totalTime = Date.now() - startTime
-      console.error('[BMAD:QueryPlanningAgent] ❌ Erro após', totalTime + 'ms:', error)
-      console.error('[BMAD:QueryPlanningAgent] ❌ Detalhes do erro:', {
+      console.error('[FLX:QueryPlanningAgent] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[FLX:QueryPlanningAgent] ❌ Detalhes do erro:', {
         message: error.message,
         stack: error.stack?.substring(0, 500)
       })
@@ -257,17 +257,17 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
    * Fallback: planejamento usando heurísticas
    */
   fallbackPlanning(userQuery, intent) {
-    console.log('[BMAD:QueryPlanningAgent] ⚠️ ========== USANDO FALLBACK (HEURÍSTICAS) ==========')
-    console.log('[BMAD:QueryPlanningAgent] ⚠️ Input para fallback:', { userQuery: userQuery?.substring(0, 100), intent })
+    console.log('[FLX:QueryPlanningAgent] ⚠️ ========== USANDO FALLBACK (HEURÍSTICAS) ==========')
+    console.log('[FLX:QueryPlanningAgent] ⚠️ Input para fallback:', { userQuery: userQuery?.substring(0, 100), intent })
     
     const lowerQuery = userQuery.toLowerCase()
-    console.log('[BMAD:QueryPlanningAgent] 🔍 Buscando sugestões de abordagem...')
+    console.log('[FLX:QueryPlanningAgent] 🔍 Buscando sugestões de abordagem...')
     const suggestions = this.knowledgeAgent.suggestQueryApproach(userQuery, intent)
-    console.log('[BMAD:QueryPlanningAgent] 💡 Sugestões encontradas:', suggestions.length, 'sugestões')
+    console.log('[FLX:QueryPlanningAgent] 💡 Sugestões encontradas:', suggestions.length, 'sugestões')
 
     if (suggestions.length > 0) {
       const suggestion = suggestions[0]
-      console.log('[BMAD:QueryPlanningAgent] ✅ Usando primeira sugestão:', JSON.stringify(suggestion, null, 2))
+      console.log('[FLX:QueryPlanningAgent] ✅ Usando primeira sugestão:', JSON.stringify(suggestion, null, 2))
       
       const fallbackPlan = {
         queryType: suggestion.type,
@@ -281,12 +281,12 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
         confidence: 0.6
       }
       
-      console.log('[BMAD:QueryPlanningAgent] 📋 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
+      console.log('[FLX:QueryPlanningAgent] 📋 Plano fallback gerado:', JSON.stringify(fallbackPlan, null, 2))
       return fallbackPlan
     }
 
     // Default: busca semântica
-    console.log('[BMAD:QueryPlanningAgent] 🔄 Nenhuma sugestão encontrada, usando padrão (busca semântica)')
+    console.log('[FLX:QueryPlanningAgent] 🔄 Nenhuma sugestão encontrada, usando padrão (busca semântica)')
     const defaultPlan = {
       queryType: 'semantic',
       tables: [],
@@ -298,7 +298,7 @@ Se for consulta agregada, use AVG, SUM, MAX, MIN conforme necessário.
       approach: 'Usar busca vetorial com embeddings',
       confidence: 0.5
     }
-    console.log('[BMAD:QueryPlanningAgent] 📋 Plano padrão:', JSON.stringify(defaultPlan, null, 2))
+    console.log('[FLX:QueryPlanningAgent] 📋 Plano padrão:', JSON.stringify(defaultPlan, null, 2))
     return defaultPlan
   }
 }
