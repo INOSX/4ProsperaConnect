@@ -1,4 +1,4 @@
-# Fluxo Completo do Especialista BMAD
+# Fluxo Completo do Especialista NEX/FLX/AGX/OPX/ORDX
 
 ## Diagrama de Fluxo
 
@@ -13,7 +13,7 @@ flowchart TD
     Whisper --> Transcription{Transcrição<br/>válida?}
     
     Transcription -->|Não| Start
-    Transcription -->|Sim| Orchestrator[🚀 BMAD Orchestrator<br/>Inicia Processamento]
+    Transcription -->|Sim| Orchestrator[🚀 NEX Orchestrator<br/>Inicia Processamento]
     
     Orchestrator --> Step1[📋 Step 1/12: Validação Inicial<br/>SupervisorAgent.validateInitial]
     
@@ -128,7 +128,18 @@ flowchart TD
     style TTS fill:#e7d4f8
 ```
 
-## Agentes BMAD e Suas Responsabilidades
+## Agentes NEX/FLX/AGX/OPX/ORDX e Suas Responsabilidades
+
+> 📖 **Para documentação completa do padrão, consulte**: [`PADRAO_NEX_FLX_AGX_OPX_ORDX.md`](./PADRAO_NEX_FLX_AGX_OPX_ORDX.md)
+
+### 🔷 NEX (Nexus - Orquestração)
+
+### 0. NEXOrchestrator (Orquestrador)
+- **Orquestração Central**: Coordena todos os agentes
+- **Gerenciamento de Fluxo**: Controla as 12 etapas do processamento
+- **Conexão entre Agentes**: Facilita comunicação entre diferentes tipos
+
+### 📐 ORDX (Ordo - Ordem, Workflow Estruturado)
 
 ### 1. SupervisorAgent (Validador)
 - **Validação Inicial**: Verifica se o comando é válido
@@ -140,16 +151,6 @@ flowchart TD
 - **Validação Final**: Calcula relevância, completude e qualidade geral
 - **Correção**: Tenta corrigir problemas detectados
 
-### 2. VoiceIntentAgent (Classificador)
-- **Classificação de Intenção**: Detecta o tipo de ação desejada
-- **Extração de Parâmetros**: Extrai parâmetros relevantes do comando
-- **Intenções suportadas**: 
-  - `query_database`: Consultas ao banco
-  - `list_companies`: Listar empresas
-  - `list_employees`: Listar funcionários
-  - `create_company`: Criar empresa
-  - E outras...
-
 ### 3. PermissionAgent (Verificador de Permissões)
 - **Verificação de Role**: Verifica role do usuário (admin, user, etc.)
 - **Verificação de Permissão**: Verifica se usuário pode executar ação
@@ -160,12 +161,23 @@ flowchart TD
 - **Contexto da Página**: Coleta informações da página atual
 - **Contexto de Dados**: Coleta dados relevantes do histórico
 
-### 5. DatabaseQueryAgent (Executor de Queries)
-- **Planejamento**: Usa QueryPlanningAgent para planejar query
-- **Execução SQL**: Executa queries SQL via RPC
-- **Busca Semântica**: Executa buscas no vectorstore
-- **Estratégia Híbrida**: Combina SQL + busca semântica
-- **Formatação**: Formata resultados para visualização
+### 5. MemoryResourceAgent (Gerenciador de Memória)
+- **Otimização Antes**: Limpa memória antes do processamento
+- **Otimização Depois**: Limpa memória depois do processamento
+- **Atualização de Histórico**: Atualiza histórico de conversação
+- **Gerenciamento**: Gerencia tamanho do histórico
+
+### 🌊 FLX (Fluxus - Fluxo Contínuo)
+
+### 2. VoiceIntentAgent (Classificador)
+- **Classificação de Intenção**: Detecta o tipo de ação desejada
+- **Extração de Parâmetros**: Extrai parâmetros relevantes do comando
+- **Intenções suportadas**: 
+  - `query_database`: Consultas ao banco
+  - `list_companies`: Listar empresas
+  - `list_employees`: Listar funcionários
+  - `create_company`: Criar empresa
+  - E outras...
 
 ### 6. QueryPlanningAgent (Planejador de Queries)
 - **Análise da Query**: Analisa pergunta do usuário
@@ -173,43 +185,70 @@ flowchart TD
 - **Determinação de Estratégia**: Decide entre SQL, semantic ou hybrid
 - **Plano Detalhado**: Gera plano com tabelas, campos, agregações, etc.
 
-### 7. DatabaseKnowledgeAgent (Conhecimento do Banco)
+### 7. SuggestionAgent (Gerador de Sugestões)
+- **Análise de Histórico**: Analisa histórico de conversação
+- **Geração de Sugestões**: Gera sugestões de próximas ações
+- **Relevância**: Ordena sugestões por relevância
+
+### ⚡ AGX (Agens - Aquele que Age)
+
+### 8. CompanyActionAgent
+- **Ações de Empresas**: Criar, listar, atualizar, deletar empresas
+- **Estatísticas**: Obter estatísticas de empresas
+
+### 9. EmployeeActionAgent
+- **Ações de Colaboradores**: Criar, listar, atualizar, deletar colaboradores
+
+### 10. CampaignActionAgent
+- **Ações de Campanhas**: Criar, listar, atualizar, deletar, ativar, pausar campanhas
+
+### 11. ProspectingActionAgent
+- **Ações de Prospecção**: Listar, enriquecer, qualificar prospects, calcular scores
+
+### 12. BenefitActionAgent
+- **Ações de Benefícios**: Criar, listar, atualizar, deletar benefícios
+
+### 13. ProductActionAgent
+- **Ações de Produtos**: Listar produtos, recomendar produtos
+
+### 14. IntegrationActionAgent
+- **Ações de Integrações**: Sincronizar dados, testar conexões
+
+### 🔧 OPX (Opus - Obra, Execução, Trabalho)
+
+### 15. DatabaseQueryAgent (Executor de Queries)
+- **Planejamento**: Usa QueryPlanningAgent para planejar query
+- **Execução SQL**: Executa queries SQL via RPC
+- **Busca Semântica**: Executa buscas no vectorstore
+- **Estratégia Híbrida**: Combina SQL + busca semântica
+- **Formatação**: Formata resultados para visualização
+
+### 16. DatabaseKnowledgeAgent (Conhecimento do Banco)
 - **Schema do Banco**: Conhece estrutura das tabelas
 - **Tecnologias**: Conhece tecnologias usadas (Supabase, pgvector, etc.)
 - **Tabelas Disponíveis**: Lista tabelas disponíveis
 - **Sugestões**: Sugere abordagens para queries
 
-### 8. DataVisualizationAgent (Gerador de Visualizações)
+### 17. DataVisualizationAgent (Gerador de Visualizações)
 - **Análise de Dados**: Analisa resultados para determinar tipo de visualização
 - **Geração de Gráficos**: Gera gráficos (bar, line, pie)
 - **Geração de Tabelas**: Gera tabelas quando apropriado
 - **Geração de Cards**: Gera cards para contagens/agregados
 
-### 9. FeedbackAgent (Gerador de Feedback)
+### 18. FeedbackAgent (Gerador de Feedback)
 - **Geração com IA**: Usa OpenAI Chat API para gerar resposta natural
 - **Interpretação**: Interpreta dados e responde no contexto da pergunta
 - **Formatação**: Formata resposta para TTS
 - **Configuração de Voz**: Configura velocidade e pitch
 
-### 10. SuggestionAgent (Gerador de Sugestões)
-- **Análise de Histórico**: Analisa histórico de conversação
-- **Geração de Sugestões**: Gera sugestões de próximas ações
-- **Relevância**: Ordena sugestões por relevância
+### 19. VectorSearchService
+- **Busca Semântica**: Realiza buscas usando embeddings vetoriais
+- **Busca Híbrida**: Combina busca vetorial com SQL
+- **Busca Cruzada**: Busca entre múltiplas tabelas
 
-### 11. MemoryResourceAgent (Gerenciador de Memória)
-- **Otimização Antes**: Limpa memória antes do processamento
-- **Otimização Depois**: Limpa memória depois do processamento
-- **Atualização de Histórico**: Atualiza histórico de conversação
-- **Gerenciamento**: Gerencia tamanho do histórico
-
-### 12. ActionAgents (Executores de Ações Específicas)
-- **CompanyActionAgent**: Ações relacionadas a empresas
-- **EmployeeActionAgent**: Ações relacionadas a funcionários
-- **CampaignActionAgent**: Ações relacionadas a campanhas
-- **ProspectingActionAgent**: Ações relacionadas a prospecção
-- **BenefitActionAgent**: Ações relacionadas a benefícios
-- **ProductActionAgent**: Ações relacionadas a produtos
-- **IntegrationActionAgent**: Ações relacionadas a integrações
+### 20. EmbeddingGenerator
+- **Geração de Embeddings**: Gera embeddings usando OpenAI Embeddings API
+- **Cache**: Gerencia cache de embeddings para otimização
 
 ## Fluxo de Dados
 

@@ -1,14 +1,26 @@
-# 📚 Documentação Completa dos Agentes BMAD
+# 📚 Documentação Completa dos Agentes NEX/FLX/AGX/OPX/ORDX
 
 ## 🎯 Visão Geral
 
-O sistema BMAD (Behavior, Model, Agent, Data) é composto por **18 agentes especializados** que trabalham em conjunto para processar comandos de voz/texto e executar ações no sistema 4Prospera Connect.
+O sistema NEX/FLX/AGX/OPX/ORDX é composto por **18 agentes especializados** que trabalham em conjunto para processar comandos de voz/texto e executar ações no sistema 4Prospera Connect.
+
+> 📖 **Para entender o padrão NEX/FLX/AGX/OPX/ORDX em detalhes, consulte**: [`PADRAO_NEX_FLX_AGX_OPX_ORDX.md`](./PADRAO_NEX_FLX_AGX_OPX_ORDX.md)
+
+## 🏛️ Sobre o Padrão NEX/FLX/AGX/OPX/ORDX
+
+O padrão organiza os agentes em cinco categorias funcionais:
+
+- **🔷 NEX (Nexus)**: Orquestração e conexão central
+- **📐 ORDX (Ordo)**: Ordem, validação e estruturação
+- **🌊 FLX (Fluxus)**: Fluxo contínuo e planejamento
+- **⚡ AGX (Agens)**: Execução de ações de domínio
+- **🔧 OPX (Opus)**: Execução técnica especializada
 
 ---
 
 ## 🔄 Fluxo de Processamento (12 Etapas)
 
-Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
+Cada comando passa por **12 etapas sequenciais** no `NEXOrchestrator`:
 
 1. **Validação Inicial** (SupervisorAgent)
 2. **Classificação de Intenção** (VoiceIntentAgent)
@@ -28,7 +40,8 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ## 📋 Lista Completa de Agentes
 
 ### 1. 🛡️ SupervisorAgent
-**Responsabilidade:** Monitora e valida todas as ações em cada etapa do fluxo BMAD
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
+**Responsabilidade:** Monitora e valida todas as ações em cada etapa do fluxo ORDX
 
 **Ações:**
 - `validateInitial(text)` - Valida entrada inicial (tamanho, formato)
@@ -50,6 +63,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 2. 🎤 VoiceIntentAgent
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Classifica a intenção do usuário e extrai parâmetros do comando
 
 **Ações:**
@@ -70,6 +84,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 3. 🔐 PermissionAgent
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Verifica se o usuário tem permissão para executar a ação
 
 **Ações:**
@@ -86,6 +101,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 4. 📦 ContextAgent
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Coleta contexto do usuário, página e dados relevantes
 
 **Ações:**
@@ -102,6 +118,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 5. 🧠 DatabaseKnowledgeAgent
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Conhece o schema do banco, tecnologias e como operar
 
 **Ações:**
@@ -119,6 +136,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 6. 🧠 QueryPlanningAgent
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Usa IA (OpenAI) para planejar consultas dinâmicas no banco
 
 **Ações:**
@@ -139,6 +157,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 7. 🔍 DatabaseQueryAgent
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Executa consultas ao banco de dados (SQL, busca semântica, agregações)
 
 **Ações principais:**
@@ -163,6 +182,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 8. 🏢 CompanyActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a empresas
 
 **Ações:**
@@ -178,6 +198,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 9. 👥 EmployeeActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a colaboradores
 
 **Ações:**
@@ -192,6 +213,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 10. 📢 CampaignActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a campanhas de marketing
 
 **Ações:**
@@ -208,6 +230,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 11. 🎯 ProspectingActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a prospecção de clientes
 
 **Ações:**
@@ -223,6 +246,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 12. 💰 BenefitActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a benefícios
 
 **Ações:**
@@ -237,6 +261,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 13. 📦 ProductActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a produtos financeiros
 
 **Ações:**
@@ -249,6 +274,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 14. 🔌 IntegrationActionAgent
+**Categoria:** ⚡ **AGX** (Agens - Aquele que Age)  
 **Responsabilidade:** Gerencia ações relacionadas a integrações externas
 
 **Ações:**
@@ -261,6 +287,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 15. 📊 DataVisualizationAgent
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Gera visualizações de dados (gráficos, tabelas, cards)
 
 **Ações:**
@@ -277,6 +304,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 16. 💬 FeedbackAgent
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Gera resposta textual para o usuário
 
 **Ações:**
@@ -288,6 +316,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 17. 💡 SuggestionAgent
+**Categoria:** 🌊 **FLX** (Fluxus - Fluxo Contínuo)  
 **Responsabilidade:** Gera sugestões de próximas ações baseadas no contexto
 
 **Ações:**
@@ -299,6 +328,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### 18. 🧠 MemoryResourceAgent
+**Categoria:** 📐 **ORDX** (Ordo - Ordem, Workflow Estruturado)  
 **Responsabilidade:** Monitora e otimiza memória e histórico de conversação
 
 **Ações:**
@@ -320,6 +350,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ## 🔗 Serviços Auxiliares
 
 ### VectorSearchService
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Realiza buscas semânticas usando embeddings vetoriais
 
 **Ações:**
@@ -335,6 +366,7 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ---
 
 ### EmbeddingGenerator
+**Categoria:** 🔧 **OPX** (Opus - Obra, Execução, Trabalho)  
 **Responsabilidade:** Gera embeddings vetoriais usando OpenAI Embeddings API
 
 **Ações:**
@@ -357,42 +389,42 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ```
 1. Usuário fala/comanda
    ↓
-2. BMADOrchestrator.processCommand(text, user, context)
+2. [NEX] NEXOrchestrator.processCommand(text, user, context)
    ↓
-3. SupervisorAgent.validateInitial() ✅
+3. [ORDX] SupervisorAgent.validateInitial() ✅
    ↓
-4. VoiceIntentAgent.classifyIntent() → SupervisorAgent.validateIntent() ✅
+4. [FLX] VoiceIntentAgent.classifyIntent() → [ORDX] SupervisorAgent.validateIntent() ✅
    ↓
-5. PermissionAgent.checkPermission() → SupervisorAgent.validatePermission() ✅
+5. [ORDX] PermissionAgent.checkPermission() → [ORDX] SupervisorAgent.validatePermission() ✅
    ↓
-6. ContextAgent.collectContext() → SupervisorAgent.validateContext() ✅
+6. [ORDX] ContextAgent.collectContext() → [ORDX] SupervisorAgent.validateContext() ✅
    ↓
-7. MemoryResourceAgent.optimizeBeforeProcessing()
+7. [ORDX] MemoryResourceAgent.optimizeBeforeProcessing()
    ↓
 8. [EXECUÇÃO DE AÇÃO]
-   ├─ DatabaseQueryAgent.query() → QueryPlanningAgent.planQuery() → OpenAI Chat API
-   │  └─ VectorSearchService.semanticSearch() → EmbeddingGenerator.generateEmbedding() → OpenAI Embeddings API
-   ├─ OU CompanyActionAgent.create/list/update/delete/getStats()
-   ├─ OU EmployeeActionAgent.create/list/update/delete()
-   ├─ OU CampaignActionAgent.create/list/update/delete/activate/pause()
-   ├─ OU ProspectingActionAgent.list/enrich/qualify/calculateScore/recommendProducts()
-   ├─ OU BenefitActionAgent.create/list/update/delete()
-   ├─ OU ProductActionAgent.list/recommend()
-   └─ OU IntegrationActionAgent.sync/testConnection()
+   ├─ [OPX] DatabaseQueryAgent.query() → [FLX] QueryPlanningAgent.planQuery() → OpenAI Chat API
+   │  └─ [OPX] VectorSearchService.semanticSearch() → [OPX] EmbeddingGenerator.generateEmbedding() → OpenAI Embeddings API
+   ├─ OU [AGX] CompanyActionAgent.create/list/update/delete/getStats()
+   ├─ OU [AGX] EmployeeActionAgent.create/list/update/delete()
+   ├─ OU [AGX] CampaignActionAgent.create/list/update/delete/activate/pause()
+   ├─ OU [AGX] ProspectingActionAgent.list/enrich/qualify/calculateScore/recommendProducts()
+   ├─ OU [AGX] BenefitActionAgent.create/list/update/delete()
+   ├─ OU [AGX] ProductActionAgent.list/recommend()
+   └─ OU [AGX] IntegrationActionAgent.sync/testConnection()
    ↓
-9. SupervisorAgent.validateQueryResult() OU validateActionResult() ✅
+9. [ORDX] SupervisorAgent.validateQueryResult() OU validateActionResult() ✅
    ↓
-10. DataVisualizationAgent.generateVisualizations()
+10. [OPX] DataVisualizationAgent.generateVisualizations()
     ↓
-11. SupervisorAgent.validateVisualizations() ✅
+11. [ORDX] SupervisorAgent.validateVisualizations() ✅
     ↓
-12. FeedbackAgent.generateFeedback()
+12. [OPX] FeedbackAgent.generateFeedback()
     ↓
-13. MemoryResourceAgent.optimizeAfterProcessing()
+13. [ORDX] MemoryResourceAgent.optimizeAfterProcessing()
     ↓
-14. SupervisorAgent.validateFinal() → attemptCorrection() (se necessário)
+14. [ORDX] SupervisorAgent.validateFinal() → attemptCorrection() (se necessário)
     ↓
-15. SuggestionAgent.generateSuggestions() → MemoryResourceAgent.getConversationHistory()
+15. [FLX] SuggestionAgent.generateSuggestions() → [ORDX] MemoryResourceAgent.getConversationHistory()
     ↓
 16. MemoryResourceAgent.updateHistory()
     ↓
@@ -404,18 +436,27 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 ## 🤖 Interações com IAs
 
 ### OpenAI Chat API
-**Agente:** QueryPlanningAgent
-**Endpoint:** `/api/openai/chat`
-**Model:** `gpt-4o-mini`
-**Uso:** Planejar consultas dinâmicas ao banco de dados
+**Categoria:** 🌊 **FLX** (Fluxus)  
+**Agente:** QueryPlanningAgent  
+**Endpoint:** `/api/openai/chat`  
+**Model:** `gpt-4o-mini`  
+**Uso:** Planejar consultas dinâmicas ao banco de dados  
 **Quando:** Antes de executar consultas complexas
 
+**Categoria:** 🔧 **OPX** (Opus)  
+**Agente:** FeedbackAgent  
+**Endpoint:** `/api/openai/chat`  
+**Model:** `gpt-4o-mini`  
+**Uso:** Gerar respostas interpretadas para o usuário  
+**Quando:** Após execução de ações para gerar feedback natural
+
 ### OpenAI Embeddings API
-**Agente:** EmbeddingGenerator (usado por VectorSearchService)
-**Endpoint:** `/api/openai/embeddings`
-**Model:** `text-embedding-3-small`
-**Dimensões:** 1536
-**Uso:** Gerar embeddings vetoriais para busca semântica
+**Categoria:** 🔧 **OPX** (Opus)  
+**Agente:** EmbeddingGenerator (usado por VectorSearchService)  
+**Endpoint:** `/api/openai/embeddings`  
+**Model:** `text-embedding-3-small`  
+**Dimensões:** 1536  
+**Uso:** Gerar embeddings vetoriais para busca semântica  
 **Quando:** Durante buscas semânticas no banco de dados
 
 ---
@@ -435,11 +476,11 @@ Cada comando passa por **12 etapas sequenciais** no `BMADOrchestrator`:
 
 Todos os agentes possuem logs detalhados no console seguindo o padrão:
 ```
-[BMAD:AgentName] 🔍 ========== AÇÃO ==========
-[BMAD:AgentName] 📝 Input: { ... }
-[BMAD:AgentName] 🔄 Processamento...
-[BMAD:AgentName] ✅ ========== CONCLUSÃO ==========
-[BMAD:AgentName] 📤 Resultado: { ... }
+[NEX/FLX/AGX/OPX/ORDX:AgentName] 🔍 ========== AÇÃO ==========
+[NEX/FLX/AGX/OPX/ORDX:AgentName] 📝 Input: { ... }
+[NEX/FLX/AGX/OPX/ORDX:AgentName] 🔄 Processamento...
+[NEX/FLX/AGX/OPX/ORDX:AgentName] ✅ ========== CONCLUSÃO ==========
+[NEX/FLX/AGX/OPX/ORDX:AgentName] 📤 Resultado: { ... }
 ```
 
 Isso permite rastrear **TUDO**: todas as chamadas, interações com IAs e suas respostas.
@@ -447,5 +488,5 @@ Isso permite rastrear **TUDO**: todas as chamadas, interações com IAs e suas r
 ---
 
 **Última atualização:** 2024
-**Versão do Sistema:** BMAD v1.0
+**Versão do Sistema:** NEX/FLX/AGX/OPX/ORDX v1.0
 

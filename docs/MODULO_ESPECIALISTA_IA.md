@@ -3,19 +3,19 @@
 ## 📋 Índice
 
 1. [Visão Geral](#visão-geral)
-2. [Arquitetura BMAD](#arquitetura-bmad)
+2. [Arquitetura NEX/FLX/AGX/OPX/ORDX](#arquitetura-nexflxagxopxordx)
 3. [Funcionalidades](#funcionalidades)
 4. [Como Usar](#como-usar)
 5. [Comandos Disponíveis](#comandos-disponíveis)
 6. [Sistema de Vetorização](#sistema-de-vetorização)
-7. [Agentes BMAD](#agentes-bmad)
+7. [Agentes NEX/FLX/AGX/OPX/ORDX](#agentes-nexflxagxopxordx)
 8. [Troubleshooting](#troubleshooting)
 
 ---
 
 ## 🎯 Visão Geral
 
-O **Módulo Especialista IA** é um assistente virtual inteligente que permite interagir com toda a plataforma 4Prospera Connect usando **comandos de voz**. O especialista utiliza a arquitetura **BMAD (Behavior, Model, Agent, Data)** para processar comandos, executar ações e fornecer insights sobre seus dados.
+O **Módulo Especialista IA** é um assistente virtual inteligente que permite interagir com toda a plataforma 4Prospera Connect usando **comandos de voz**. O especialista utiliza a arquitetura **NEX/FLX/AGX/OPX/ORDX** para processar comandos, executar ações e fornecer insights sobre seus dados.
 
 ### Características Principais
 
@@ -28,29 +28,42 @@ O **Módulo Especialista IA** é um assistente virtual inteligente que permite i
 
 ---
 
-## 🏗️ Arquitetura BMAD
+## 🏗️ Arquitetura NEX/FLX/AGX/OPX/ORDX
 
-O sistema utiliza a metodologia **BMAD (Behavior, Model, Agent, Data)**:
+O sistema utiliza o padrão **NEX/FLX/AGX/OPX/ORDX**, que organiza os agentes em cinco categorias funcionais:
 
-### Behavior (Comportamento)
-- Comandos de voz do usuário
-- Intenções detectadas
-- Parâmetros extraídos
+> 📖 **Documentação completa do padrão**: [`PADRAO_NEX_FLX_AGX_OPX_ORDX.md`](../PADRAO_NEX_FLX_AGX_OPX_ORDX.md)
 
-### Model (Modelo)
-- LLMs para classificação e geração
-- Embeddings para busca semântica
-- Modelos de visualização
+### 🔷 NEX (Nexus - Orquestração)
+- **NEXOrchestrator**: Orquestrador central que coordena todos os agentes
 
-### Agent (Agentes)
-- 16 agentes especializados
-- SupervisorAgent para validação
-- Agentes de domínio (Company, Employee, etc.)
+### 📐 ORDX (Ordo - Ordem, Workflow Estruturado)
+- **SupervisorAgent**: Validação e monitoramento
+- **PermissionAgent**: Verificação de permissões
+- **ContextAgent**: Coleta de contexto
+- **MemoryResourceAgent**: Gerenciamento de memória
 
-### Data (Dados)
-- Banco de dados vetorizado
-- Busca semântica com pgvector
-- Visualizações dinâmicas
+### 🌊 FLX (Fluxus - Fluxo Contínuo)
+- **VoiceIntentAgent**: Classificação de intenções
+- **QueryPlanningAgent**: Planejamento de queries com IA
+- **SuggestionAgent**: Geração de sugestões
+
+### ⚡ AGX (Agens - Aquele que Age)
+- **CompanyActionAgent**: Gestão de empresas
+- **EmployeeActionAgent**: Gestão de colaboradores
+- **CampaignActionAgent**: Gestão de campanhas
+- **ProspectingActionAgent**: Prospecção de clientes
+- **BenefitActionAgent**: Gestão de benefícios
+- **ProductActionAgent**: Produtos financeiros
+- **IntegrationActionAgent**: Integrações externas
+
+### 🔧 OPX (Opus - Obra, Execução, Trabalho)
+- **DatabaseQueryAgent**: Consultas SQL e busca semântica
+- **DatabaseKnowledgeAgent**: Conhecimento do banco
+- **DataVisualizationAgent**: Geração de visualizações
+- **FeedbackAgent**: Geração de respostas com IA
+- **VectorSearchService**: Busca vetorial
+- **EmbeddingGenerator**: Geração de embeddings
 
 ---
 
@@ -224,34 +237,45 @@ Acesse `/vectorization` para:
 
 ---
 
-## 🤖 Agentes BMAD
+## 🤖 Agentes NEX/FLX/AGX/OPX/ORDX
 
-O sistema possui **16 agentes especializados**:
+O sistema possui **18 agentes especializados** organizados em 5 categorias:
 
-### Agentes de Orquestração
+### 🔷 NEX (Nexus - Orquestração)
 
-1. **SupervisorAgent**: Monitora e valida todas as etapas
-2. **VoiceIntentAgent**: Classifica intenções dos comandos
+1. **NEXOrchestrator**: Orquestrador central que coordena todos os agentes
+
+### 📐 ORDX (Ordo - Ordem, Workflow Estruturado)
+
+2. **SupervisorAgent**: Monitora e valida todas as etapas
 3. **PermissionAgent**: Valida permissões do usuário
 4. **ContextAgent**: Coleta contexto da página e dados
+5. **MemoryResourceAgent**: Monitoramento de memória e histórico
 
-### Agentes de Domínio
+### 🌊 FLX (Fluxus - Fluxo Contínuo)
 
-5. **CompanyActionAgent**: Gestão de empresas
-6. **EmployeeActionAgent**: Gestão de colaboradores
-7. **CampaignActionAgent**: Gestão de campanhas
-8. **ProspectingActionAgent**: Prospecção de clientes
-9. **BenefitActionAgent**: Gestão de benefícios
-10. **ProductActionAgent**: Produtos financeiros
-11. **IntegrationActionAgent**: Integrações de dados
+6. **VoiceIntentAgent**: Classifica intenções dos comandos
+7. **QueryPlanningAgent**: Planeja consultas dinâmicas usando IA
+8. **SuggestionAgent**: Sugestões de próximas ações
 
-### Agentes Especializados
+### ⚡ AGX (Agens - Aquele que Age)
 
-12. **DatabaseQueryAgent**: Consultas SQL e busca vetorial
-13. **DataVisualizationAgent**: Geração de visualizações
-14. **SuggestionAgent**: Sugestões de próximas ações
-15. **MemoryResourceAgent**: Monitoramento de memória
-16. **FeedbackAgent**: Geração de respostas
+9. **CompanyActionAgent**: Gestão de empresas
+10. **EmployeeActionAgent**: Gestão de colaboradores
+11. **CampaignActionAgent**: Gestão de campanhas
+12. **ProspectingActionAgent**: Prospecção de clientes
+13. **BenefitActionAgent**: Gestão de benefícios
+14. **ProductActionAgent**: Produtos financeiros
+15. **IntegrationActionAgent**: Integrações de dados
+
+### 🔧 OPX (Opus - Obra, Execução, Trabalho)
+
+16. **DatabaseQueryAgent**: Consultas SQL e busca vetorial
+17. **DatabaseKnowledgeAgent**: Conhecimento do schema do banco
+18. **DataVisualizationAgent**: Geração de visualizações
+19. **FeedbackAgent**: Geração de respostas com IA
+20. **VectorSearchService**: Busca semântica vetorial
+21. **EmbeddingGenerator**: Geração de embeddings
 
 ---
 
@@ -262,29 +286,39 @@ O sistema possui **16 agentes especializados**:
 Usuário fala → ASR transcreve → Texto enviado
 ```
 
-### 2. Classificação de Intenção
+### 2. [NEX] Orquestração
 ```
-Texto → VoiceIntentAgent → Intenção + Parâmetros
-```
-
-### 3. Validação
-```
-SupervisorAgent valida → PermissionAgent verifica → ContextAgent coleta contexto
+[NEX] NEXOrchestrator recebe comando → Inicia processamento
 ```
 
-### 4. Execução
+### 3. [ORDX] Validação e Estruturação
 ```
-ActionAgent específico executa → DatabaseQueryAgent (se necessário)
-```
-
-### 5. Visualização
-```
-DataVisualizationAgent gera → Gráficos/Tabelas exibidos
+[ORDX] SupervisorAgent valida → [ORDX] PermissionAgent verifica → [ORDX] ContextAgent coleta contexto
 ```
 
-### 6. Resposta
+### 4. [FLX] Classificação e Planejamento
 ```
-FeedbackAgent gera resposta → Avatar fala → Histórico atualizado
+[FLX] VoiceIntentAgent classifica → [FLX] QueryPlanningAgent planeja (se necessário)
+```
+
+### 5. [AGX/OPX] Execução
+```
+[AGX] ActionAgent específico executa OU [OPX] DatabaseQueryAgent executa query
+```
+
+### 6. [OPX] Processamento Técnico
+```
+[OPX] DataVisualizationAgent gera visualizações → [OPX] FeedbackAgent gera resposta
+```
+
+### 7. [FLX] Sugestões
+```
+[FLX] SuggestionAgent gera sugestões de próximas ações
+```
+
+### 8. [ORDX] Finalização
+```
+[ORDX] SupervisorAgent valida final → [ORDX] MemoryResourceAgent atualiza histórico
 ```
 
 ---
@@ -327,7 +361,7 @@ FeedbackAgent gera resposta → Avatar fala → Histórico atualizado
 
 ### Documentação Técnica
 
-- [Arquitetura BMAD](./IMPLEMENTACAO_BMAD_RESUMO.md)
+- [Arquitetura NEX/FLX/AGX/OPX/ORDX](./IMPLEMENTACAO_BMAD_RESUMO.md)
 - [Sistema de Vetorização](./GUIA_VETORIZACAO.md)
 - [Integração OpenAI](./GUIA_INTEGRACAO_EMBEDDINGS.md)
 
