@@ -463,12 +463,13 @@ Cada comando passa por **12 etapas sequenciais** no `NEXOrchestrator`:
 
 ## 📈 Estatísticas
 
-- **Total de Agentes:** 18
+- **Total de Agentes:** 21 (1 NEX + 4 ORDX + 3 FLX + 7 AGX + 6 OPX)
 - **Total de Ações:** ~60+ métodos
 - **Etapas no Fluxo:** 12
 - **Validações do Supervisor:** 8 tipos diferentes
 - **Interações com IA:** 2 (Chat + Embeddings)
-- **Agentes de Domínio:** 7 (Company, Employee, Campaign, Prospecting, Benefit, Product, Integration)
+- **Agentes de Domínio (AGX):** 7 (Company, Employee, Campaign, Prospecting, Benefit, Product, Integration)
+- **Agentes de Execução Técnica (OPX):** 6 (DatabaseQuery, DatabaseKnowledge, DataVisualization, Feedback, VectorSearch, EmbeddingGenerator)
 
 ---
 
