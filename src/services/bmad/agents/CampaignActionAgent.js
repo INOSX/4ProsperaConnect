@@ -5,8 +5,8 @@ import { CampaignService } from '../../../services/campaignService'
 
 export default class CampaignActionAgent {
   async create(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== CRIANDO CAMPANHA ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== CRIANDO CAMPANHA ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email,
@@ -20,12 +20,12 @@ export default class CampaignActionAgent {
         type: params.type || 'email',
         created_by: user.id
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Dados da campanha a criar:', JSON.stringify(campaignData, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Dados da campanha a criar:', JSON.stringify(campaignData, null, 2))
       
       const result = await CampaignService.createCampaign(campaignData)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         hasCampaign: !!result.campaign,
         campaignId: result.campaign?.id,
@@ -39,28 +39,28 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHA CRIADA ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHA CRIADA ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO CRIAR CAMPANHA ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO CRIAR CAMPANHA ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async list(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== LISTANDO CAMPANHAS ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== LISTANDO CAMPANHAS ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       params: params,
       userId: user?.id,
       userEmail: user?.email
@@ -69,12 +69,12 @@ export default class CampaignActionAgent {
     const startTime = Date.now()
     try {
       const filters = { createdBy: user.id }
-      console.log('[BMAD:CampaignActionAgent] 🔍 Buscando campanhas com filtros:', JSON.stringify(filters, null, 2))
+      console.log('[AGX:CampaignActionAgent] 🔍 Buscando campanhas com filtros:', JSON.stringify(filters, null, 2))
       
       const result = await CampaignService.getCampaigns(filters)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         campaignsCount: result.campaigns?.length || 0,
         error: result.error,
@@ -82,7 +82,7 @@ export default class CampaignActionAgent {
       })
       
       if (result.campaigns && result.campaigns.length > 0) {
-        console.log('[BMAD:CampaignActionAgent] 📊 Primeiras 3 campanhas:', result.campaigns.slice(0, 3).map(c => ({
+        console.log('[AGX:CampaignActionAgent] 📊 Primeiras 3 campanhas:', result.campaigns.slice(0, 3).map(c => ({
           id: c.id,
           name: c.name,
           type: c.type,
@@ -96,8 +96,8 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHAS LISTADAS ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', {
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHAS LISTADAS ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', {
         success: finalResult.success,
         count: finalResult.data.length,
         hasError: !!finalResult.error
@@ -106,22 +106,22 @@ export default class CampaignActionAgent {
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO LISTAR CAMPANHAS ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO LISTAR CAMPANHAS ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async update(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== ATUALIZANDO CAMPANHA ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== ATUALIZANDO CAMPANHA ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       campaignId: params.id,
       params: params,
       userId: user?.id,
@@ -134,12 +134,12 @@ export default class CampaignActionAgent {
         name: params.name,
         status: params.status
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Dados a atualizar:', JSON.stringify(updateData, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Dados a atualizar:', JSON.stringify(updateData, null, 2))
       
       const result = await CampaignService.updateCampaign(params.id, updateData)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         hasCampaign: !!result.campaign,
         campaignId: result.campaign?.id,
@@ -153,28 +153,28 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHA ATUALIZADA ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHA ATUALIZADA ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO ATUALIZAR CAMPANHA ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO ATUALIZAR CAMPANHA ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async delete(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== DELETANDO CAMPANHA ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== DELETANDO CAMPANHA ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       campaignId: params.id,
       userId: user?.id,
       userEmail: user?.email
@@ -182,12 +182,12 @@ export default class CampaignActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:CampaignActionAgent] 🗑️ Deletando campanha ID:', params.id)
+      console.log('[AGX:CampaignActionAgent] 🗑️ Deletando campanha ID:', params.id)
       
       const result = await CampaignService.deleteCampaign(params.id)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         error: result.error,
         elapsed: elapsed + 'ms'
@@ -198,28 +198,28 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHA DELETADA ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHA DELETADA ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO DELETAR CAMPANHA ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO DELETAR CAMPANHA ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async activate(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== ATIVANDO CAMPANHA ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== ATIVANDO CAMPANHA ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       campaignId: params.id,
       userId: user?.id,
       userEmail: user?.email
@@ -227,14 +227,14 @@ export default class CampaignActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:CampaignActionAgent] ▶️ Ativando campanha ID:', params.id)
+      console.log('[AGX:CampaignActionAgent] ▶️ Ativando campanha ID:', params.id)
       
       const result = await CampaignService.updateCampaign(params.id, {
         status: 'active'
       })
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         hasCampaign: !!result.campaign,
         campaignStatus: result.campaign?.status,
@@ -248,28 +248,28 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHA ATIVADA ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHA ATIVADA ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO ATIVAR CAMPANHA ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO ATIVAR CAMPANHA ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }
 
   async pause(params, user, context) {
-    console.log('[BMAD:CampaignActionAgent] 📢 ========== PAUSANDO CAMPANHA ==========')
-    console.log('[BMAD:CampaignActionAgent] 📝 Input:', {
+    console.log('[AGX:CampaignActionAgent] 📢 ========== PAUSANDO CAMPANHA ==========')
+    console.log('[AGX:CampaignActionAgent] 📝 Input:', {
       campaignId: params.id,
       userId: user?.id,
       userEmail: user?.email
@@ -277,14 +277,14 @@ export default class CampaignActionAgent {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:CampaignActionAgent] ⏸️ Pausando campanha ID:', params.id)
+      console.log('[AGX:CampaignActionAgent] ⏸️ Pausando campanha ID:', params.id)
       
       const result = await CampaignService.updateCampaign(params.id, {
         status: 'paused'
       })
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:CampaignActionAgent] 📥 Resposta do CampaignService:', {
+      console.log('[AGX:CampaignActionAgent] 📥 Resposta do CampaignService:', {
         success: result.success,
         hasCampaign: !!result.campaign,
         campaignStatus: result.campaign?.status,
@@ -298,21 +298,21 @@ export default class CampaignActionAgent {
         error: result.error
       }
       
-      console.log('[BMAD:CampaignActionAgent] ✅ ========== CAMPANHA PAUSADA ==========')
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] ✅ ========== CAMPANHA PAUSADA ==========')
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado:', JSON.stringify(finalResult, null, 2))
       
       return finalResult
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:CampaignActionAgent] ❌ ========== ERRO AO PAUSAR CAMPANHA ==========')
-      console.error('[BMAD:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:CampaignActionAgent] ❌ Stack:', error.stack)
+      console.error('[AGX:CampaignActionAgent] ❌ ========== ERRO AO PAUSAR CAMPANHA ==========')
+      console.error('[AGX:CampaignActionAgent] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[AGX:CampaignActionAgent] ❌ Stack:', error.stack)
       
       const errorResult = {
         success: false,
         error: error.message
       }
-      console.log('[BMAD:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
+      console.log('[AGX:CampaignActionAgent] 📤 Resultado (erro):', JSON.stringify(errorResult, null, 2))
       return errorResult
     }
   }

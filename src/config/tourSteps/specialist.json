@@ -7,14 +7,14 @@
   },
   {
     "target": "[data-tour-id='specialist-video']",
-    "title": "Avatar do Especialista",
-    "content": "Aqui você verá o avatar do especialista quando estiver conectado. O avatar fala e responde às suas perguntas usando inteligência artificial avançada.",
+    "title": "Especialista",
+    "content": "Aqui você verá o especialista quando estiver conectado. O especialista fala e responde às suas perguntas usando inteligência artificial avançada.",
     "placement": "top"
   },
   {
     "target": "[data-tour-id='specialist-connect-button']",
     "title": "Conectar e Usar o Especialista",
-    "content": "Clique aqui para conectar o especialista. Após conectar, o botão mudará para 'Enviar Áudio' e você poderá começar a fazer perguntas e dar comandos por voz. O sistema transcreve sua voz e processa o comando usando a arquitetura BMAD (Behavior, Model, Agent, Data).",
+    "content": "Clique aqui para conectar o especialista. Após conectar, o botão mudará para 'Enviar Áudio' e você poderá começar a fazer perguntas e dar comandos por voz. O sistema transcreve sua voz e processa o comando usando a arquitetura NEX/FLX/AGX/OPX/ORDX.",
     "placement": "top"
   },
   {

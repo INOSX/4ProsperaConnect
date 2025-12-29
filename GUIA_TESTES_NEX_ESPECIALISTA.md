@@ -1,6 +1,6 @@
-# 🧪 Guia de Testes - Agentes BMAD e Especialista IA
+# 🧪 Guia de Testes - Agentes NEX/FLX/AGX/OPX/ORDX e Especialista IA
 
-Este guia lista os próximos passos para testar e validar o sistema de agentes BMAD e o Especialista IA.
+Este guia lista os próximos passos para testar e validar o sistema de agentes NEX/FLX/AGX/OPX/ORDX e o Especialista IA.
 
 ---
 
@@ -24,18 +24,18 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 ```
 
 **O que verificar:**
-- [ ] Logs mostram: `[BMAD:VoiceIntentAgent] ✅ Intent classified`
-- [ ] Logs mostram: `[BMAD:DatabaseQueryAgent] 📋 Detected: Count query`
+- [ ] Logs mostram: `[FLX:VoiceIntentAgent] ✅ Intent classified`
+- [ ] Logs mostram: `[OPX:DatabaseQueryAgent] 📋 Detected: Count query`
 - [ ] Resposta correta é exibida
 - [ ] Visualização de card é mostrada
 - [ ] Avatar fala a resposta
 
 **Logs esperados:**
 ```
-[BMAD:Orchestrator] 🚀 Starting command processing
-[BMAD:VoiceIntentAgent] ✅ Intent classified: query_database
-[BMAD:DatabaseQueryAgent] 📋 Detected: Count query
-[BMAD:Orchestrator] ✅ Command processing finished successfully
+[NEX:Orchestrator] 🚀 Starting command processing
+[FLX:VoiceIntentAgent] ✅ Intent classified: query_database
+[OPX:DatabaseQueryAgent] 📋 Detected: Count query
+[NEX:Orchestrator] ✅ Command processing finished successfully
 ```
 
 ---
@@ -54,8 +54,8 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 
 **Logs esperados:**
 ```
-[BMAD:DatabaseQueryAgent] 📋 Detected: Aggregate query
-[BMAD:DatabaseQueryAgent] ✅ Aggregate query result
+[OPX:DatabaseQueryAgent] 📋 Detected: Aggregate query
+[OPX:DatabaseQueryAgent] ✅ Aggregate query result
 ```
 
 ---
@@ -67,16 +67,16 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 ```
 
 **O que verificar:**
-- [ ] Logs mostram: `[BMAD:VoiceIntentAgent] ✅ Intent classified (companies without employees)`
-- [ ] Logs mostram: `[BMAD:DatabaseQueryAgent] 🏢 Handling companies without employees query`
+- [ ] Logs mostram: `[FLX:VoiceIntentAgent] ✅ Intent classified (companies without employees)`
+- [ ] Logs mostram: `[OPX:DatabaseQueryAgent] 🏢 Handling companies without employees query`
 - [ ] Resposta específica (ex: "Sim, existem X empresas...")
 - [ ] Lista de empresas sem colaboradores (se houver)
 
 **Logs esperados:**
 ```
-[BMAD:VoiceIntentAgent] ✅ Intent classified (companies without employees)
-[BMAD:DatabaseQueryAgent] 🏢 Handling companies without employees query
-[BMAD:DatabaseQueryAgent] ✅ Companies without employees query result
+[FLX:VoiceIntentAgent] ✅ Intent classified (companies without employees)
+[OPX:DatabaseQueryAgent] 🏢 Handling companies without employees query
+[OPX:DatabaseQueryAgent] ✅ Companies without employees query result
 ```
 
 ---
@@ -95,8 +95,8 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 
 **Logs esperados:**
 ```
-[BMAD:DatabaseQueryAgent] 📋 Detected: Time series query
-[BMAD:DataVisualizationAgent] 📊 Creating time series chart
+[OPX:DatabaseQueryAgent] 📋 Detected: Time series query
+[OPX:DataVisualizationAgent] 📊 Creating time series chart
 ```
 
 ---
@@ -116,8 +116,8 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 
 **Logs esperados:**
 ```
-[BMAD:VectorSearchService] 🔍 Semantic search
-[BMAD:VectorSearchService] ✅ Found X similar results
+[OPX:VectorSearchService] 🔍 Semantic search
+[OPX:VectorSearchService] ✅ Found X similar results
 ```
 
 ---
@@ -142,19 +142,19 @@ Este guia lista os próximos passos para testar e validar o sistema de agentes B
 Execute qualquer consulta e verifique os logs do SupervisorAgent
 
 **O que verificar:**
-- [ ] `[BMAD:SupervisorAgent] 🔍 Validating initial input`
-- [ ] `[BMAD:SupervisorAgent] ✅ Intent validation passed`
-- [ ] `[BMAD:SupervisorAgent] ✅ Permission validation passed`
-- [ ] `[BMAD:SupervisorAgent] ✅ Query validation passed`
-- [ ] `[BMAD:SupervisorAgent] ✅ Final validation passed`
+- [ ] `[ORDX:SupervisorAgent] 🔍 Validating initial input`
+- [ ] `[ORDX:SupervisorAgent] ✅ Intent validation passed`
+- [ ] `[ORDX:SupervisorAgent] ✅ Permission validation passed`
+- [ ] `[ORDX:SupervisorAgent] ✅ Query validation passed`
+- [ ] `[ORDX:SupervisorAgent] ✅ Final validation passed`
 
 **Logs esperados:**
 ```
-[BMAD:SupervisorAgent] ✅ Initial validation passed
-[BMAD:SupervisorAgent] ✅ Intent validation passed
-[BMAD:SupervisorAgent] ✅ Permission validation passed
-[BMAD:SupervisorAgent] ✅ Query validation passed
-[BMAD:SupervisorAgent] ✅ Final validation passed
+[ORDX:SupervisorAgent] ✅ Initial validation passed
+[ORDX:SupervisorAgent] ✅ Intent validation passed
+[ORDX:SupervisorAgent] ✅ Permission validation passed
+[ORDX:SupervisorAgent] ✅ Query validation passed
+[ORDX:SupervisorAgent] ✅ Final validation passed
 ```
 
 ---
@@ -227,12 +227,12 @@ Execute várias consultas e verifique se as respostas são relevantes
 
 **Logs esperados:**
 ```
-[BMAD:Orchestrator] 📋 Step 1/12: Initial validation
-[BMAD:Orchestrator] 📋 Step 2/12: Intent classification
+[NEX:Orchestrator] 📋 Step 1/12: Initial validation
+[NEX:Orchestrator] 📋 Step 2/12: Intent classification
 ...
-[BMAD:Orchestrator] 📋 Step 12/12: Updating conversation history
-[BMAD:Orchestrator] ✅ Command processing finished successfully in Xms
-[BMAD:Orchestrator] 📊 Summary: { intent, qualityScore, visualizations, ... }
+[NEX:Orchestrator] 📋 Step 12/12: Updating conversation history
+[NEX:Orchestrator] ✅ Command processing finished successfully in Xms
+[NEX:Orchestrator] 📊 Summary: { intent, qualityScore, visualizations, ... }
 ```
 
 ---
@@ -277,7 +277,7 @@ Execute 5 consultas seguidas rapidamente
 
 ## 🔍 Checklist de Validação
 
-### Agentes BMAD
+### Agentes NEX/FLX/AGX/OPX/ORDX
 - [ ] VoiceIntentAgent classifica intenções corretamente
 - [ ] PermissionAgent valida permissões
 - [ ] ContextAgent coleta contexto

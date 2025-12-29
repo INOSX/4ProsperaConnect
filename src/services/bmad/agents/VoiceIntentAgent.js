@@ -38,8 +38,8 @@ export default class VoiceIntentAgent {
   }
 
   async classifyIntent(text, user) {
-    console.log('[BMAD:VoiceIntentAgent] 🔍 ========== CLASSIFICANDO INTENÇÃO ==========')
-    console.log('[BMAD:VoiceIntentAgent] 📝 Input:', {
+    console.log('[FLX:VoiceIntentAgent] 🔍 ========== CLASSIFICANDO INTENÇÃO ==========')
+    console.log('[FLX:VoiceIntentAgent] 📝 Input:', {
       text: text?.substring(0, 200),
       textLength: text?.length || 0,
       userId: user?.id,
@@ -47,7 +47,7 @@ export default class VoiceIntentAgent {
     })
     
     const lowerText = text.toLowerCase()
-    console.log('[BMAD:VoiceIntentAgent] 🔄 Texto normalizado (primeiros 100 chars):', lowerText.substring(0, 100))
+    console.log('[FLX:VoiceIntentAgent] 🔄 Texto normalizado (primeiros 100 chars):', lowerText.substring(0, 100))
     
     // PRIORIDADE 1: Consultas de comparação temporal (ANTES de tudo)
     const temporalComparisonKeywords = [
@@ -69,13 +69,13 @@ export default class VoiceIntentAgent {
         confidence: 0.95,
         originalText: text
       }
-      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (comparação temporal):', {
+      console.log('[FLX:VoiceIntentAgent] ✅ Intenção classificada (comparação temporal):', {
         intent: result.intent,
         confidence: result.confidence,
         params: result.params,
         matchedKeyword: temporalComparisonKeywords.find(kw => lowerText.includes(kw))
       })
-      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+      console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
       return result
     }
     
@@ -97,12 +97,12 @@ export default class VoiceIntentAgent {
         confidence: 0.95,
         originalText: text
       }
-      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (empresas sem colaboradores):', {
+      console.log('[FLX:VoiceIntentAgent] ✅ Intenção classificada (empresas sem colaboradores):', {
         intent: result.intent,
         confidence: result.confidence,
         params: result.params
       })
-      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+      console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
       return result
     }
     
@@ -124,13 +124,13 @@ export default class VoiceIntentAgent {
         confidence: 0.9,
         originalText: text
       }
-      console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (palavra-chave de query):', {
+      console.log('[FLX:VoiceIntentAgent] ✅ Intenção classificada (palavra-chave de query):', {
         intent: result.intent,
         confidence: result.confidence,
         params: result.params,
         matchedKeyword: queryKeywords.find(kw => lowerText.includes(kw))
       })
-      console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+      console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
       return result
     }
     
@@ -145,13 +145,13 @@ export default class VoiceIntentAgent {
             confidence: 0.8,
             originalText: text
           }
-        console.log('[BMAD:VoiceIntentAgent] ✅ Intenção classificada (padrão correspondente):', {
+        console.log('[FLX:VoiceIntentAgent] ✅ Intenção classificada (padrão correspondente):', {
           intent: result.intent,
           pattern: pattern,
           confidence: result.confidence,
           params: result.params
         })
-        console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+        console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
         return result
         }
       }
@@ -166,19 +166,19 @@ export default class VoiceIntentAgent {
       confidence: 0.6,
       originalText: text
     }
-        console.log('[BMAD:VoiceIntentAgent] ⚠️ Intenção classificada (fallback padrão):', {
+        console.log('[FLX:VoiceIntentAgent] ⚠️ Intenção classificada (fallback padrão):', {
           intent: result.intent,
           confidence: result.confidence,
           params: result.params,
           reason: 'Nenhum padrão específico encontrado'
         })
-        console.log('[BMAD:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+        console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
         return result
   }
 
   extractParams(text, intent) {
-    console.log('[BMAD:VoiceIntentAgent] 🔧 ========== EXTRAINDO PARÂMETROS ==========')
-    console.log('[BMAD:VoiceIntentAgent] 📝 Input:', {
+    console.log('[FLX:VoiceIntentAgent] 🔧 ========== EXTRAINDO PARÂMETROS ==========')
+    console.log('[FLX:VoiceIntentAgent] 📝 Input:', {
       text: text?.substring(0, 100),
       intent: intent
     })
@@ -192,7 +192,7 @@ export default class VoiceIntentAgent {
     if (cnpjMatch) {
       params.cnpj = cnpjMatch[0].replace(/\D/g, '')
       extractedCount++
-      console.log('[BMAD:VoiceIntentAgent]   ✅ CNPJ extraído:', params.cnpj)
+      console.log('[FLX:VoiceIntentAgent]   ✅ CNPJ extraído:', params.cnpj)
     }
 
     // Extrair CPF
@@ -200,7 +200,7 @@ export default class VoiceIntentAgent {
     if (cpfMatch) {
       params.cpf = cpfMatch[0].replace(/\D/g, '')
       extractedCount++
-      console.log('[BMAD:VoiceIntentAgent]   ✅ CPF extraído:', params.cpf)
+      console.log('[FLX:VoiceIntentAgent]   ✅ CPF extraído:', params.cpf)
     }
 
     // Extrair ID
@@ -208,7 +208,7 @@ export default class VoiceIntentAgent {
     if (idMatch) {
       params.id = idMatch[1]
       extractedCount++
-      console.log('[BMAD:VoiceIntentAgent]   ✅ ID extraído:', params.id)
+      console.log('[FLX:VoiceIntentAgent]   ✅ ID extraído:', params.id)
     }
 
     // Extrair nome (após palavras-chave)
@@ -218,7 +218,7 @@ export default class VoiceIntentAgent {
       if (nameMatch) {
         params.name = nameMatch[1].trim()
         extractedCount++
-        console.log('[BMAD:VoiceIntentAgent]   ✅ Nome extraído:', params.name)
+        console.log('[FLX:VoiceIntentAgent]   ✅ Nome extraído:', params.name)
         break
       }
     }
@@ -228,16 +228,16 @@ export default class VoiceIntentAgent {
     if (emailMatch) {
       params.email = emailMatch[0]
       extractedCount++
-      console.log('[BMAD:VoiceIntentAgent]   ✅ Email extraído:', params.email)
+      console.log('[FLX:VoiceIntentAgent]   ✅ Email extraído:', params.email)
     }
 
-    console.log('[BMAD:VoiceIntentAgent] ✅ ========== EXTRAÇÃO DE PARÂMETROS CONCLUÍDA ==========')
-    console.log('[BMAD:VoiceIntentAgent] 📊 Resumo:', {
+    console.log('[FLX:VoiceIntentAgent] ✅ ========== EXTRAÇÃO DE PARÂMETROS CONCLUÍDA ==========')
+    console.log('[FLX:VoiceIntentAgent] 📊 Resumo:', {
       totalExtracted: extractedCount,
       params: params,
       hasParams: Object.keys(params).length > 0
     })
-    console.log('[BMAD:VoiceIntentAgent] 📤 Parâmetros extraídos:', JSON.stringify(params, null, 2))
+    console.log('[FLX:VoiceIntentAgent] 📤 Parâmetros extraídos:', JSON.stringify(params, null, 2))
     return params
   }
 }

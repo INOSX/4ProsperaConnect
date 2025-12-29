@@ -1,6 +1,6 @@
 # 🎨 Testes Criativos para o Especialista IA
 
-Este documento contém uma coleção de testes criativos e desafiadores para validar as capacidades do Especialista IA e dos agentes BMAD.
+Este documento contém uma coleção de testes criativos e desafiadores para validar as capacidades do Especialista IA e dos agentes NEX/FLX/AGX/OPX/ORDX.
 
 ---
 

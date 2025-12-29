@@ -68,10 +68,10 @@ const FloatingSpecialist = () => {
           console.log('🔵 Received text:', text)
           
           const isConnected = avatarConnectedRef.current
-          console.log('🔵 Avatar connected status:', isConnected)
+          console.log('🔵 Status de conexão do especialista:', isConnected)
           
           if (!isConnected) {
-            console.warn('⚠️ Avatar not connected, skipping sendText')
+            console.warn('⚠️ Especialista não conectado, pulando envio de texto')
             setRecordingStatus('Especialista não conectado. Clique em "Conectar" primeiro.')
             setTimeout(() => setRecordingStatus(''), 3000)
             return
@@ -80,7 +80,7 @@ const FloatingSpecialist = () => {
           try {
             let responseText = text
             
-            // Se OpenAI Assistant estiver disponível, obter resposta inteligente
+            // Se assistente estiver disponível, obter resposta inteligente
             const assistant = openaiAssistantRef.current
             
             if (assistant && assistant.isInitialized()) {
@@ -111,7 +111,7 @@ const FloatingSpecialist = () => {
                     }
                   }
                 } catch (ctxError) {
-                  console.warn('⚠️ Error loading context:', ctxError)
+                  console.warn('⚠️ Erro ao carregar contexto:', ctxError)
                 }
                 
                 // Detectar contexto de prospecção
@@ -130,23 +130,23 @@ const FloatingSpecialist = () => {
                     )
                   }
                 } catch (ctxError) {
-                  console.warn('⚠️ Error loading prospecting context:', ctxError)
+                  console.warn('⚠️ Erro ao carregar contexto de prospecção:', ctxError)
                 }
                 
                 responseText = await assistant.getResponse(text, fileName, companyId, employeeId, contextType, prospectingContext)
-                console.log('✅ OpenAI Assistant response received:', responseText)
+                console.log('✅ Resposta do assistente recebida:', responseText)
               } catch (error) {
-                console.error('❌ Error getting OpenAI response:', error)
+                console.error('❌ Erro ao obter resposta do assistente:', error)
                 responseText = text
               }
             }
             
-            // Enviar resposta para o avatar falar
+            // Enviar resposta para o especialista falar
             setRecordingStatus('Enviando para especialista...')
             
             try {
               const result = await streamingService.sendText(responseText)
-              console.log('✅ Text sent successfully to avatar!')
+              console.log('✅ Texto enviado com sucesso para o especialista!')
               setRecordingStatus('Especialista respondendo...')
               setTimeout(() => setRecordingStatus(''), 3000)
             } catch (sendError) {
@@ -173,7 +173,7 @@ const FloatingSpecialist = () => {
                       await new Promise(resolve => setTimeout(resolve, 1000))
                       
                       const retryResult = await streamingService.sendText(responseText)
-                      console.log('✅ Text sent successfully after reconnection!')
+                      console.log('✅ Texto enviado com sucesso após reconexão!')
                       setRecordingStatus('Especialista respondendo...')
                       setTimeout(() => setRecordingStatus(''), 3000)
                       isReconnectingRef.current = false
@@ -227,7 +227,7 @@ const FloatingSpecialist = () => {
     }
   }, [avatarConnected, streamingService])
 
-  // Função para inicializar o avatar
+  // Função para inicializar o especialista
   const initializeAvatar = async (forceNewToken = false) => {
     if (!videoRef.current) return
     
@@ -249,10 +249,10 @@ const FloatingSpecialist = () => {
     try {
       setRecordingStatus('Conectando especialista...')
       
-      // Inicializar OpenAI Assistant primeiro
+      // Inicializar assistente primeiro
       if (!openaiAssistant) {
         try {
-          setRecordingStatus('Inicializando assistente OpenAI...')
+          setRecordingStatus('Inicializando assistente...')
           
           if (!user) {
             throw new Error('Usuário não autenticado')
@@ -267,26 +267,26 @@ const FloatingSpecialist = () => {
           const assistantId = client.openai_assistant_id
           
           if (!assistantId) {
-            throw new Error('Assistant não configurado para este cliente.')
+            throw new Error('Assistente não configurado para este cliente.')
           }
           
           const assistant = new OpenAIAssistantApiService(assistantId)
           await assistant.initialize()
           setOpenaiAssistant(assistant)
-          console.log('✅ OpenAI Assistant initialized via API route')
+          console.log('✅ Assistente inicializado via API route')
         } catch (error) {
-          console.error('❌ Error initializing OpenAI Assistant:', error)
+          console.error('❌ Erro ao inicializar assistente:', error)
           setRecordingStatus('Erro ao inicializar assistente. Especialista funcionará sem IA.')
         }
       }
       
-      // Buscar avatar Dexter
+      // Buscar especialista
       let dexterAvatarId = null
       try {
         const avatars = await streamingService.listAvatars()
         
         if (!Array.isArray(avatars)) {
-          throw new Error('listAvatars did not return an array')
+          throw new Error('listAvatars não retornou um array')
         }
         
         const dexterAvatar = avatars.find(avatar => 
@@ -300,24 +300,24 @@ const FloatingSpecialist = () => {
         )
         if (dexterAvatar) {
           dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
-          console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+          console.log('🔵 Especialista encontrado:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
         } else {
           dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-          console.log('⚠️ Dexter avatar not found in list, using fallback:', dexterAvatarId)
+          console.log('⚠️ Especialista não encontrado na lista, usando fallback:', dexterAvatarId)
         }
       } catch (error) {
-        console.warn('⚠️ Error listing avatars, using fallback:', error)
+        console.warn('⚠️ Erro ao listar especialistas, usando fallback:', error)
         dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
       }
       
-      // Callback para quando o avatar desconectar
+      // Callback para quando o especialista desconectar
       const handleDisconnect = () => {
-        console.log('⚠️ Avatar disconnected, updating state...')
+        console.log('⚠️ Especialista desconectado, atualizando estado...')
         setAvatarConnected(false)
         streamingService.clearSessionToken()
         
         if (isReconnectingRef.current) {
-          console.log('⚠️ Reconnection already in progress, skipping...')
+          console.log('⚠️ Reconexão já em progresso, pulando...')
           return
         }
         
@@ -325,7 +325,7 @@ const FloatingSpecialist = () => {
         setTimeout(() => {
           if (videoRef.current && !avatarConnectedRef.current && !isReconnectingRef.current) {
             isReconnectingRef.current = true
-            console.log('🔄 Attempting to reconnect avatar...')
+            console.log('🔄 Tentando reconectar especialista...')
             initializeAvatar(true)
               .then(() => {
                 isReconnectingRef.current = false
@@ -334,7 +334,7 @@ const FloatingSpecialist = () => {
               })
               .catch(err => {
                 isReconnectingRef.current = false
-                console.error('❌ Failed to reconnect avatar:', err)
+                console.error('❌ Falha ao reconectar especialista:', err)
                 setRecordingStatus('Erro ao reconectar. Tente novamente.')
                 setTimeout(() => setRecordingStatus(''), 3000)
               })
@@ -353,7 +353,7 @@ const FloatingSpecialist = () => {
       setRecordingStatus('Especialista conectado!')
       setTimeout(() => setRecordingStatus(''), 2000)
     } catch (error) {
-      console.error('Error connecting avatar:', error)
+      console.error('Erro ao conectar especialista:', error)
       setRecordingStatus('Erro ao conectar: ' + error.message)
       setTimeout(() => setRecordingStatus(''), 3000)
     }

@@ -10,8 +10,8 @@ export default class VectorSearchService {
   }
 
   async semanticSearch(query, tableName = null, limit = 10) {
-    console.log('[BMAD:VectorSearchService] 🔍 ========== BUSCA SEMÂNTICA ==========')
-    console.log('[BMAD:VectorSearchService] 📝 Input:', {
+    console.log('[OPX:VectorSearchService] 🔍 ========== BUSCA SEMÂNTICA ==========')
+    console.log('[OPX:VectorSearchService] 📝 Input:', {
       query: query?.substring(0, 200),
       queryLength: query?.length || 0,
       tableName: tableName,
@@ -21,20 +21,20 @@ export default class VectorSearchService {
     const startTime = Date.now()
     try {
       // Converter query em embedding
-      console.log('[BMAD:VectorSearchService] 🔮 Gerando embedding da query...')
+      console.log('[OPX:VectorSearchService] 🔮 Gerando embedding da query...')
       const queryEmbedding = await this.embeddingGenerator.generateEmbedding(query)
-      console.log('[BMAD:VectorSearchService] ✅ Embedding gerado, dimensões:', queryEmbedding?.length || 'N/A')
+      console.log('[OPX:VectorSearchService] ✅ Embedding gerado, dimensões:', queryEmbedding?.length || 'N/A')
       
       // Buscar similaridade usando pgvector (se tabela existir)
       try {
-        console.log('[BMAD:VectorSearchService] 🔍 Tentando busca via RPC semantic_search...')
+        console.log('[OPX:VectorSearchService] 🔍 Tentando busca via RPC semantic_search...')
         const rpcParams = {
           query_embedding: queryEmbedding,
           table_filter: tableName,
           similarity_threshold: 0.7,
           result_limit: limit
         }
-        console.log('[BMAD:VectorSearchService] 📤 Parâmetros RPC:', {
+        console.log('[OPX:VectorSearchService] 📤 Parâmetros RPC:', {
           hasEmbedding: !!rpcParams.query_embedding,
           embeddingDimensions: rpcParams.query_embedding?.length || 'N/A',
           tableFilter: rpcParams.table_filter,
@@ -48,7 +48,7 @@ export default class VectorSearchService {
 
         const { data, error } = rpcResult
 
-        console.log('[BMAD:VectorSearchService] 📥 Resposta RPC (elapsed:', rpcTime + 'ms):', {
+        console.log('[OPX:VectorSearchService] 📥 Resposta RPC (elapsed:', rpcTime + 'ms):', {
           hasError: !!error,
           error: error?.message,
           dataCount: data?.length || 0,
@@ -56,7 +56,7 @@ export default class VectorSearchService {
         })
 
         if (!error && data && data.length > 0) {
-          console.log('[BMAD:VectorSearchService] ✅ Busca RPC bem-sucedida,', data.length, 'resultados encontrados')
+          console.log('[OPX:VectorSearchService] ✅ Busca RPC bem-sucedida,', data.length, 'resultados encontrados')
           const results = data.map(item => ({
             record_id: item.record_id,
             table_name: item.table_name,
@@ -65,7 +65,7 @@ export default class VectorSearchService {
             similarity: item.similarity
           }))
           
-          console.log('[BMAD:VectorSearchService] 📊 Primeiros 3 resultados:', results.slice(0, 3).map(r => ({
+          console.log('[OPX:VectorSearchService] 📊 Primeiros 3 resultados:', results.slice(0, 3).map(r => ({
             record_id: r.record_id,
             table_name: r.table_name,
             similarity: r.similarity?.toFixed(3)
@@ -77,8 +77,8 @@ export default class VectorSearchService {
           }
           
           const totalTime = Date.now() - startTime
-          console.log('[BMAD:VectorSearchService] ✅ ========== BUSCA SEMÂNTICA CONCLUÍDA ==========')
-          console.log('[BMAD:VectorSearchService] 📊 Resumo:', {
+          console.log('[OPX:VectorSearchService] ✅ ========== BUSCA SEMÂNTICA CONCLUÍDA ==========')
+          console.log('[OPX:VectorSearchService] 📊 Resumo:', {
             resultsCount: finalResult.results.length,
             summary: finalResult.summary,
             totalTime: totalTime + 'ms',
@@ -88,22 +88,22 @@ export default class VectorSearchService {
           return finalResult
         }
         
-        console.log('[BMAD:VectorSearchService] ⚠️ RPC não retornou resultados, usando fallback')
+        console.log('[OPX:VectorSearchService] ⚠️ RPC não retornou resultados, usando fallback')
       } catch (rpcError) {
         const rpcTime = Date.now() - startTime
-        console.warn('[BMAD:VectorSearchService] ⚠️ RPC semantic_search não disponível ou falhou (elapsed:', rpcTime + 'ms):', rpcError)
-        console.warn('[BMAD:VectorSearchService] ⚠️ Usando fallback de busca vetorial...')
+        console.warn('[OPX:VectorSearchService] ⚠️ RPC semantic_search não disponível ou falhou (elapsed:', rpcTime + 'ms):', rpcError)
+        console.warn('[OPX:VectorSearchService] ⚠️ Usando fallback de busca vetorial...')
       }
 
       // Fallback: buscar usando cosine similarity manual
-      console.log('[BMAD:VectorSearchService] 🔄 Usando fallback de busca vetorial...')
+      console.log('[OPX:VectorSearchService] 🔄 Usando fallback de busca vetorial...')
       return await this.fallbackVectorSearch(queryEmbedding, tableName, limit)
     } catch (error) {
       const totalTime = Date.now() - startTime
-      console.error('[BMAD:VectorSearchService] ❌ ========== ERRO NA BUSCA SEMÂNTICA ==========')
-      console.error('[BMAD:VectorSearchService] ❌ Erro após', totalTime + 'ms:', error)
-      console.error('[BMAD:VectorSearchService] ❌ Stack:', error.stack)
-      console.log('[BMAD:VectorSearchService] 🔄 Usando fallback de busca básica...')
+      console.error('[OPX:VectorSearchService] ❌ ========== ERRO NA BUSCA SEMÂNTICA ==========')
+      console.error('[OPX:VectorSearchService] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[OPX:VectorSearchService] ❌ Stack:', error.stack)
+      console.log('[OPX:VectorSearchService] 🔄 Usando fallback de busca básica...')
       
       // Fallback para busca básica
       return await this.fallbackSearch(query, tableName, limit)
@@ -111,8 +111,8 @@ export default class VectorSearchService {
   }
 
   async fallbackVectorSearch(queryEmbedding, tableName, limit) {
-    console.log('[BMAD:VectorSearchService] 🔄 ========== FALLBACK DE BUSCA VETORIAL ==========')
-    console.log('[BMAD:VectorSearchService] 📝 Input:', {
+    console.log('[OPX:VectorSearchService] 🔄 ========== FALLBACK DE BUSCA VETORIAL ==========')
+    console.log('[OPX:VectorSearchService] 📝 Input:', {
       tableName: tableName,
       limit: limit,
       queryEmbeddingLength: queryEmbedding?.length || 0,
@@ -121,7 +121,7 @@ export default class VectorSearchService {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:VectorSearchService] 🔍 Buscando embeddings no banco...')
+      console.log('[OPX:VectorSearchService] 🔍 Buscando embeddings no banco...')
       let query = supabase
         .from('data_embeddings')
         .select('*')
@@ -130,13 +130,13 @@ export default class VectorSearchService {
 
       if (tableName) {
         query = query.eq('table_name', tableName)
-        console.log('[BMAD:VectorSearchService]   - Filtro por tabela:', tableName)
+        console.log('[OPX:VectorSearchService]   - Filtro por tabela:', tableName)
       }
 
       const { data, error } = await query
       const queryTime = Date.now() - startTime
 
-      console.log('[BMAD:VectorSearchService] 📥 Resposta do banco (elapsed:', queryTime + 'ms):', {
+      console.log('[OPX:VectorSearchService] 📥 Resposta do banco (elapsed:', queryTime + 'ms):', {
         hasError: !!error,
         error: error?.message,
         dataCount: data?.length || 0,
@@ -144,14 +144,14 @@ export default class VectorSearchService {
       })
 
       if (error || !data || data.length === 0) {
-        console.log('[BMAD:VectorSearchService] ⚠️ Nenhum embedding encontrado, usando fallback de busca básica')
+        console.log('[OPX:VectorSearchService] ⚠️ Nenhum embedding encontrado, usando fallback de busca básica')
         return await this.fallbackSearch('', tableName, limit)
       }
 
-      console.log('[BMAD:VectorSearchService] 📊 Encontrados', data.length, 'embeddings para processar')
+      console.log('[OPX:VectorSearchService] 📊 Encontrados', data.length, 'embeddings para processar')
 
       // Calcular similaridade para cada resultado
-      console.log('[BMAD:VectorSearchService] 🔄 Calculando similaridade...')
+      console.log('[OPX:VectorSearchService] 🔄 Calculando similaridade...')
       const { cosineSimilarity } = await import('../utils/vectorSearch.js')
       const queryEmbeddingLength = queryEmbedding?.length || 0
       
@@ -173,7 +173,7 @@ export default class VectorSearchService {
           if (queryEmbeddingLength !== itemEmbeddingLength) {
             mismatchCount++
             if (index < 3) {
-              console.warn('[BMAD:VectorSearchService] ⚠️ Embedding dimension mismatch (item', index, '):', {
+              console.warn('[OPX:VectorSearchService] ⚠️ Embedding dimension mismatch (item', index, '):', {
                 query: queryEmbeddingLength,
                 item: itemEmbeddingLength
               })
@@ -190,7 +190,7 @@ export default class VectorSearchService {
           } catch (error) {
             errorCount++
             if (index < 3) {
-              console.warn('[BMAD:VectorSearchService] ⚠️ Erro ao calcular similaridade (item', index, '):', error)
+              console.warn('[OPX:VectorSearchService] ⚠️ Erro ao calcular similaridade (item', index, '):', error)
             }
             return { ...item, similarity: 0 }
           }
@@ -200,7 +200,7 @@ export default class VectorSearchService {
         .slice(0, limit)
       
       const similarityTime = Date.now() - startTime
-      console.log('[BMAD:VectorSearchService] 📊 Processamento de similaridade:', {
+      console.log('[OPX:VectorSearchService] 📊 Processamento de similaridade:', {
         totalProcessed: processedCount,
         validSimilarities: validCount,
         dimensionMismatches: mismatchCount,
@@ -210,7 +210,7 @@ export default class VectorSearchService {
       })
       
       if (resultsWithSimilarity.length > 0) {
-        console.log('[BMAD:VectorSearchService] 📊 Top 3 resultados:', resultsWithSimilarity.slice(0, 3).map(r => ({
+        console.log('[OPX:VectorSearchService] 📊 Top 3 resultados:', resultsWithSimilarity.slice(0, 3).map(r => ({
           record_id: r.record_id,
           table_name: r.table_name,
           similarity: r.similarity?.toFixed(3)
@@ -229,8 +229,8 @@ export default class VectorSearchService {
       }
       
       const totalTime = Date.now() - startTime
-      console.log('[BMAD:VectorSearchService] ✅ ========== FALLBACK VETORIAL CONCLUÍDO ==========')
-      console.log('[BMAD:VectorSearchService] 📊 Resumo:', {
+      console.log('[OPX:VectorSearchService] ✅ ========== FALLBACK VETORIAL CONCLUÍDO ==========')
+      console.log('[OPX:VectorSearchService] 📊 Resumo:', {
         resultsCount: finalResult.results.length,
         summary: finalResult.summary,
         totalTime: totalTime + 'ms',
@@ -240,38 +240,38 @@ export default class VectorSearchService {
       return finalResult
     } catch (error) {
       const totalTime = Date.now() - startTime
-      console.error('[BMAD:VectorSearchService] ❌ ========== ERRO NO FALLBACK VETORIAL ==========')
-      console.error('[BMAD:VectorSearchService] ❌ Erro após', totalTime + 'ms:', error)
-      console.error('[BMAD:VectorSearchService] ❌ Stack:', error.stack)
-      console.log('[BMAD:VectorSearchService] 🔄 Usando fallback de busca básica...')
+      console.error('[OPX:VectorSearchService] ❌ ========== ERRO NO FALLBACK VETORIAL ==========')
+      console.error('[OPX:VectorSearchService] ❌ Erro após', totalTime + 'ms:', error)
+      console.error('[OPX:VectorSearchService] ❌ Stack:', error.stack)
+      console.log('[OPX:VectorSearchService] 🔄 Usando fallback de busca básica...')
       
       return await this.fallbackSearch('', tableName, limit)
     }
   }
 
   async fallbackSearch(query, tableName, limit) {
-    console.log('[BMAD:VectorSearchService] 🔄 ========== FALLBACK DE BUSCA BÁSICA ==========')
-    console.log('[BMAD:VectorSearchService] 📝 Input:', {
+    console.log('[OPX:VectorSearchService] 🔄 ========== FALLBACK DE BUSCA BÁSICA ==========')
+    console.log('[OPX:VectorSearchService] 📝 Input:', {
       query: query?.substring(0, 100),
       tableName: tableName,
       limit: limit
     })
     
-    console.log('[BMAD:VectorSearchService] ⚠️ Busca básica requer contexto de usuário')
-    console.log('[BMAD:VectorSearchService] 💡 DatabaseQueryAgent deve usar serviços apropriados diretamente')
+    console.log('[OPX:VectorSearchService] ⚠️ Busca básica requer contexto de usuário')
+    console.log('[OPX:VectorSearchService] 💡 DatabaseQueryAgent deve usar serviços apropriados diretamente')
     
     const result = {
       results: [],
       summary: 'Busca requer contexto de usuário. Use serviços apropriados no DatabaseQueryAgent.'
     }
     
-    console.log('[BMAD:VectorSearchService] 📤 Resultado:', JSON.stringify(result, null, 2))
+    console.log('[OPX:VectorSearchService] 📤 Resultado:', JSON.stringify(result, null, 2))
     return result
   }
 
   async hybridSearch(query, filters, limit = 10) {
-    console.log('[BMAD:VectorSearchService] 🔄 ========== BUSCA HÍBRIDA ==========')
-    console.log('[BMAD:VectorSearchService] 📝 Input:', {
+    console.log('[OPX:VectorSearchService] 🔄 ========== BUSCA HÍBRIDA ==========')
+    console.log('[OPX:VectorSearchService] 📝 Input:', {
       query: query?.substring(0, 200),
       filters: filters,
       limit: limit
@@ -279,24 +279,24 @@ export default class VectorSearchService {
     
     const startTime = Date.now()
     try {
-      console.log('[BMAD:VectorSearchService] 🔍 Executando busca semântica...')
+      console.log('[OPX:VectorSearchService] 🔍 Executando busca semântica...')
       // Combina busca vetorial com filtros SQL
       const vectorResults = await this.semanticSearch(query, null, limit)
       
-      console.log('[BMAD:VectorSearchService] 📊 Resultados da busca semântica:', {
+      console.log('[OPX:VectorSearchService] 📊 Resultados da busca semântica:', {
         count: vectorResults.results?.length || 0,
         summary: vectorResults.summary
       })
       
       // Aplicar filtros adicionais se necessário
       if (filters) {
-        console.log('[BMAD:VectorSearchService] 🔍 Aplicando filtros adicionais:', JSON.stringify(filters, null, 2))
+        console.log('[OPX:VectorSearchService] 🔍 Aplicando filtros adicionais:', JSON.stringify(filters, null, 2))
         // Filtrar resultados
       }
 
       const elapsed = Date.now() - startTime
-      console.log('[BMAD:VectorSearchService] ✅ ========== BUSCA HÍBRIDA CONCLUÍDA ==========')
-      console.log('[BMAD:VectorSearchService] 📊 Resumo:', {
+      console.log('[OPX:VectorSearchService] ✅ ========== BUSCA HÍBRIDA CONCLUÍDA ==========')
+      console.log('[OPX:VectorSearchService] 📊 Resumo:', {
         resultsCount: vectorResults.results?.length || 0,
         hasFilters: !!filters,
         elapsed: elapsed + 'ms'
@@ -305,15 +305,15 @@ export default class VectorSearchService {
       return vectorResults
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:VectorSearchService] ❌ ========== ERRO NA BUSCA HÍBRIDA ==========')
-      console.error('[BMAD:VectorSearchService] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[OPX:VectorSearchService] ❌ ========== ERRO NA BUSCA HÍBRIDA ==========')
+      console.error('[OPX:VectorSearchService] ❌ Erro após', elapsed + 'ms:', error)
       throw error
     }
   }
 
   async crossTableSearch(query, tableNames, limit = 10) {
-    console.log('[BMAD:VectorSearchService] 🔄 ========== BUSCA CRUZADA ENTRE TABELAS ==========')
-    console.log('[BMAD:VectorSearchService] 📝 Input:', {
+    console.log('[OPX:VectorSearchService] 🔄 ========== BUSCA CRUZADA ENTRE TABELAS ==========')
+    console.log('[OPX:VectorSearchService] 📝 Input:', {
       query: query?.substring(0, 200),
       tableNames: tableNames,
       limit: limit
@@ -324,22 +324,22 @@ export default class VectorSearchService {
       // Busca cruzada entre múltiplas tabelas
       const allResults = []
       
-      console.log('[BMAD:VectorSearchService] 🔍 Buscando em', tableNames.length, 'tabelas...')
+      console.log('[OPX:VectorSearchService] 🔍 Buscando em', tableNames.length, 'tabelas...')
       for (let i = 0; i < tableNames.length; i++) {
         const tableName = tableNames[i]
-        console.log('[BMAD:VectorSearchService]   📋 Tabela', i + 1, 'de', tableNames.length, ':', tableName)
+        console.log('[OPX:VectorSearchService]   📋 Tabela', i + 1, 'de', tableNames.length, ':', tableName)
         
         const results = await this.semanticSearch(query, tableName, limit)
         const tableResults = results.results || []
         allResults.push(...tableResults)
         
-        console.log('[BMAD:VectorSearchService]   ✅', tableResults.length, 'resultados encontrados em', tableName)
+        console.log('[OPX:VectorSearchService]   ✅', tableResults.length, 'resultados encontrados em', tableName)
       }
 
       const finalResults = allResults.slice(0, limit)
       const elapsed = Date.now() - startTime
       
-      console.log('[BMAD:VectorSearchService] 📊 Resumo da busca cruzada:', {
+      console.log('[OPX:VectorSearchService] 📊 Resumo da busca cruzada:', {
         tablesSearched: tableNames.length,
         totalResults: allResults.length,
         finalResults: finalResults.length,
@@ -351,15 +351,15 @@ export default class VectorSearchService {
         summary: `Encontrados ${allResults.length} resultados em ${tableNames.length} tabelas`
       }
       
-      console.log('[BMAD:VectorSearchService] ✅ ========== BUSCA CRUZADA CONCLUÍDA ==========')
-      console.log('[BMAD:VectorSearchService] 📤 Resultado:', JSON.stringify(result, null, 2))
+      console.log('[OPX:VectorSearchService] ✅ ========== BUSCA CRUZADA CONCLUÍDA ==========')
+      console.log('[OPX:VectorSearchService] 📤 Resultado:', JSON.stringify(result, null, 2))
       
       return result
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:VectorSearchService] ❌ ========== ERRO NA BUSCA CRUZADA ==========')
-      console.error('[BMAD:VectorSearchService] ❌ Erro após', elapsed + 'ms:', error)
-      console.error('[BMAD:VectorSearchService] ❌ Stack:', error.stack)
+      console.error('[OPX:VectorSearchService] ❌ ========== ERRO NA BUSCA CRUZADA ==========')
+      console.error('[OPX:VectorSearchService] ❌ Erro após', elapsed + 'ms:', error)
+      console.error('[OPX:VectorSearchService] ❌ Stack:', error.stack)
       throw error
     }
   }

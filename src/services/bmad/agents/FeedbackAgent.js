@@ -3,8 +3,8 @@
  */
 export default class FeedbackAgent {
   async generateFeedback(originalText, actionResult, visualizations, intentResult) {
-    console.log('[BMAD:FeedbackAgent] 💬 ========== GERANDO FEEDBACK ==========')
-    console.log('[BMAD:FeedbackAgent] 📝 Input:', {
+    console.log('[OPX:FeedbackAgent] 💬 ========== GERANDO FEEDBACK ==========')
+    console.log('[OPX:FeedbackAgent] 📝 Input:', {
       originalText: originalText?.substring(0, 100),
       intent: intentResult?.intent,
       hasActionResult: !!actionResult,
@@ -16,7 +16,7 @@ export default class FeedbackAgent {
 
     if (!actionResult || !actionResult.success) {
       text = actionResult?.error || 'Não foi possível processar sua solicitação.'
-      console.log('[BMAD:FeedbackAgent] ❌ Ação falhou, retornando feedback de erro:', text)
+      console.log('[OPX:FeedbackAgent] ❌ Ação falhou, retornando feedback de erro:', text)
       const errorFeedback = {
         text,
         voiceConfig: {
@@ -25,24 +25,24 @@ export default class FeedbackAgent {
         },
         visualizations: []
       }
-      console.log('[BMAD:FeedbackAgent] 📤 Feedback de erro:', JSON.stringify(errorFeedback, null, 2))
+      console.log('[OPX:FeedbackAgent] 📤 Feedback de erro:', JSON.stringify(errorFeedback, null, 2))
       return errorFeedback
     }
     
-    console.log('[BMAD:FeedbackAgent] ✅ Ação bem-sucedida, gerando feedback interpretado...')
+    console.log('[OPX:FeedbackAgent] ✅ Ação bem-sucedida, gerando feedback interpretado...')
 
     // Para consultas de banco de dados, usar IA para gerar resposta interpretada
     const intent = intentResult.intent
     if (intent === 'query_database' || intent === 'search_data' || intent === 'get_all_data' || intent === 'know_all_data') {
-      console.log('[BMAD:FeedbackAgent] 🤖 Gerando resposta interpretada com IA para consulta de banco...')
+      console.log('[OPX:FeedbackAgent] 🤖 Gerando resposta interpretada com IA para consulta de banco...')
       try {
         text = await this.generateInterpretedResponse(originalText, actionResult, intentResult)
-        console.log('[BMAD:FeedbackAgent] ✅ Resposta interpretada gerada pela IA')
+        console.log('[OPX:FeedbackAgent] ✅ Resposta interpretada gerada pela IA')
       } catch (error) {
-        console.error('[BMAD:FeedbackAgent] ❌ Erro ao gerar resposta interpretada:', error)
+        console.error('[OPX:FeedbackAgent] ❌ Erro ao gerar resposta interpretada:', error)
         // Fallback para resposta simples
         text = this.generateSimpleResponse(actionResult, intent)
-        console.log('[BMAD:FeedbackAgent] ⚠️ Usando resposta simples como fallback')
+        console.log('[OPX:FeedbackAgent] ⚠️ Usando resposta simples como fallback')
       }
     } else if (intent.startsWith('create_')) {
       const entity = intent.split('_')[1]
@@ -70,14 +70,14 @@ export default class FeedbackAgent {
       visualizations: visualizations || []
     }
     
-    console.log('[BMAD:FeedbackAgent] ✅ ========== FEEDBACK GERADO COM SUCESSO ==========')
-    console.log('[BMAD:FeedbackAgent] 📤 Feedback completo:', {
+    console.log('[OPX:FeedbackAgent] ✅ ========== FEEDBACK GERADO COM SUCESSO ==========')
+    console.log('[OPX:FeedbackAgent] 📤 Feedback completo:', {
       text: text?.substring(0, 200),
       textLength: text?.length || 0,
       voiceConfig: finalFeedback.voiceConfig,
       visualizationsCount: finalFeedback.visualizations.length
     })
-    console.log('[BMAD:FeedbackAgent] 📋 Feedback JSON:', JSON.stringify(finalFeedback, null, 2))
+    console.log('[OPX:FeedbackAgent] 📋 Feedback JSON:', JSON.stringify(finalFeedback, null, 2))
     
     return finalFeedback
   }
@@ -86,8 +86,8 @@ export default class FeedbackAgent {
    * Gera resposta interpretada usando OpenAI
    */
   async generateInterpretedResponse(originalQuestion, actionResult, intentResult) {
-    console.log('[BMAD:FeedbackAgent] 🤖 ========== GERANDO RESPOSTA INTERPRETADA COM IA ==========')
-    console.log('[BMAD:FeedbackAgent] 📝 Input para IA:', {
+    console.log('[OPX:FeedbackAgent] 🤖 ========== GERANDO RESPOSTA INTERPRETADA COM IA ==========')
+    console.log('[OPX:FeedbackAgent] 📝 Input para IA:', {
       question: originalQuestion?.substring(0, 200),
       hasResults: !!actionResult.results,
       resultsCount: actionResult.results?.length || 0,
@@ -135,7 +135,7 @@ INSTRUÇÕES:
 
 RESPOSTA (máximo 200 palavras):`
 
-    console.log('[BMAD:FeedbackAgent] 📤 Enviando prompt para OpenAI...')
+    console.log('[OPX:FeedbackAgent] 📤 Enviando prompt para OpenAI...')
     const startTime = Date.now()
     
     try {
@@ -162,11 +162,11 @@ RESPOSTA (máximo 200 palavras):`
       })
 
       const elapsed = Date.now() - startTime
-      console.log('[BMAD:FeedbackAgent] 📥 Resposta recebida em', elapsed + 'ms, status:', response.status)
+      console.log('[OPX:FeedbackAgent] 📥 Resposta recebida em', elapsed + 'ms, status:', response.status)
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('[BMAD:FeedbackAgent] ❌ Erro na resposta da API:', {
+        console.error('[OPX:FeedbackAgent] ❌ Erro na resposta da API:', {
           status: response.status,
           statusText: response.statusText,
           body: errorData
@@ -175,7 +175,7 @@ RESPOSTA (máximo 200 palavras):`
       }
 
       const data = await response.json()
-      console.log('[BMAD:FeedbackAgent] 📦 Dados recebidos:', {
+      console.log('[OPX:FeedbackAgent] 📦 Dados recebidos:', {
         hasChoices: !!data.choices,
         choicesCount: data.choices?.length || 0,
         hasMessage: !!data.choices?.[0]?.message,
@@ -183,19 +183,19 @@ RESPOSTA (máximo 200 palavras):`
       })
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message || !data.choices[0].message.content) {
-        console.error('[BMAD:FeedbackAgent] ❌ Resposta da IA sem conteúdo')
+        console.error('[OPX:FeedbackAgent] ❌ Resposta da IA sem conteúdo')
         throw new Error('Resposta da IA sem conteúdo')
       }
 
       const interpretedText = data.choices[0].message.content.trim()
-      console.log('[BMAD:FeedbackAgent] ✅ Resposta interpretada gerada:', interpretedText?.substring(0, 200))
-      console.log('[BMAD:FeedbackAgent] 📊 Tamanho da resposta:', interpretedText.length, 'caracteres')
+      console.log('[OPX:FeedbackAgent] ✅ Resposta interpretada gerada:', interpretedText?.substring(0, 200))
+      console.log('[OPX:FeedbackAgent] 📊 Tamanho da resposta:', interpretedText.length, 'caracteres')
       
       return interpretedText
     } catch (error) {
       const elapsed = Date.now() - startTime
-      console.error('[BMAD:FeedbackAgent] ❌ Erro ao gerar resposta interpretada após', elapsed + 'ms:', error)
-      console.error('[BMAD:FeedbackAgent] ❌ Stack:', error.stack)
+      console.error('[OPX:FeedbackAgent] ❌ Erro ao gerar resposta interpretada após', elapsed + 'ms:', error)
+      console.error('[OPX:FeedbackAgent] ❌ Stack:', error.stack)
       throw error
     }
   }
@@ -204,7 +204,7 @@ RESPOSTA (máximo 200 palavras):`
    * Gera resposta simples como fallback
    */
   generateSimpleResponse(actionResult, intent) {
-    console.log('[BMAD:FeedbackAgent] 🔄 Gerando resposta simples (fallback)...')
+    console.log('[OPX:FeedbackAgent] 🔄 Gerando resposta simples (fallback)...')
     
     if (actionResult.isCount && actionResult.results && actionResult.results.length > 0) {
       const countResult = actionResult.results[0]

@@ -1,4 +1,4 @@
-# Resumo da Implementação do Sistema BMAD
+# Resumo da Implementação do Sistema NEX/FLX/AGX/OPX/ORDX
 
 ## ✅ Implementações Concluídas
 
@@ -14,7 +14,7 @@
 - ✅ DataVisualizationArea.jsx - Área de visualização de dados/gráficos
 - ✅ VoiceCommandHistory.jsx - Histórico de comandos de voz
 
-### 3. BMAD Orchestrator
+### 3. NEX Orchestrator
 - ✅ bmadOrchestrator.js - Orquestrador principal que coordena todos os agentes
 
 ### 4. Agentes Principais (Orquestração)
@@ -55,7 +55,7 @@
 - ✅ responseFormatter.js - Formatação de respostas
 
 ### 9. Configuração
-- ✅ bmadConfig.js - Configurações dos agentes BMAD
+- ✅ bmadConfig.js - Configurações dos agentes NEX/FLX/AGX/OPX/ORDX
 
 ### 10. Script SQL
 - ✅ create_vectorization_system.sql - Script para criar sistema de vetorização

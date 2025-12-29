@@ -1,7 +1,7 @@
 /**
- * Configurações dos agentes BMAD
+ * Configurações dos agentes NEX/FLX/AGX/OPX/ORDX
  */
-export const bmadConfig = {
+export const nexConfig = {
   // Configurações do SupervisorAgent
   supervisor: {
     minQualityScore: 70,
@@ -54,5 +54,5 @@ export const bmadConfig = {
   }
 }
 
-export default bmadConfig
+export default nexConfig
 

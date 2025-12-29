@@ -5,7 +5,7 @@ import { ClientService } from '../../services/clientService'
 import { AudioRecorder } from '../../services/audioHandler'
 import { HeyGenStreamingService } from '../../services/heygenStreamingService'
 import { OpenAIAssistantApiService } from '../../services/openaiAssistantApiService'
-import BMADOrchestrator from '../../services/bmad/bmadOrchestrator'
+import NEXOrchestrator from '../../services/bmad/bmadOrchestrator'
 import Card from '../ui/Card'
 import DataVisualizationArea from './DataVisualizationArea'
 import VoiceCommandHistory from './VoiceCommandHistory'
@@ -34,7 +34,7 @@ const SpecialistModule = () => {
   const [visualizations, setVisualizations] = useState([])
   const [commandHistory, setCommandHistory] = useState([])
   const [isMinimized, setIsMinimized] = useState(false)
-  const [bmadOrchestrator] = useState(() => new BMADOrchestrator())
+  const [nexOrchestrator] = useState(() => new NEXOrchestrator())
 
   // Sincronizar refs com state
   useEffect(() => {
@@ -58,7 +58,7 @@ const SpecialistModule = () => {
           const isConnected = avatarConnectedRef.current
           
           if (!isConnected) {
-            console.warn('⚠️ Avatar not connected, skipping sendText')
+            console.warn('⚠️ Especialista não conectado, pulando envio de texto')
             setRecordingStatus('Especialista não conectado. Clique em "Conectar" primeiro.')
             setTimeout(() => setRecordingStatus(''), 3000)
             return
@@ -73,11 +73,11 @@ const SpecialistModule = () => {
               timestamp: new Date()
             }])
 
-            setRecordingStatus('Processando comando com BMAD...')
+            setRecordingStatus('Processando comando com NEX...')
             
-            // Processar comando através do BMAD Orchestrator
+            // Processar comando através do NEX Orchestrator
             console.log('[SpecialistModule] Processing command:', text)
-            const result = await bmadOrchestrator.processCommand(text, user, {
+            const result = await nexOrchestrator.processCommand(text, user, {
               pageContext: {
                 pathname: window.location.pathname
               }
@@ -115,12 +115,12 @@ const SpecialistModule = () => {
               })
             }
             
-            // Enviar resposta para o avatar falar
+            // Enviar resposta para o especialista falar
             setRecordingStatus('Enviando para especialista...')
             
             try {
               const sendResult = await streamingService.sendText(responseText)
-              console.log('✅ Text sent successfully to avatar!')
+              console.log('✅ Texto enviado com sucesso para o especialista!')
               setRecordingStatus('Especialista respondendo...')
               
               // Adicionar resposta ao histórico
@@ -162,7 +162,7 @@ const SpecialistModule = () => {
     }
   }, [avatarConnected, streamingService])
 
-  // Função para inicializar o avatar
+  // Função para inicializar o especialista
   const initializeAvatar = async (forceNewToken = false) => {
     if (!videoRef.current) return
     
@@ -184,10 +184,10 @@ const SpecialistModule = () => {
     try {
       setRecordingStatus('Conectando especialista...')
       
-      // Inicializar OpenAI Assistant primeiro
+      // Inicializar assistente primeiro
       if (!openaiAssistant) {
         try {
-          setRecordingStatus('Inicializando assistente OpenAI...')
+          setRecordingStatus('Inicializando assistente...')
           
           if (!user) {
             throw new Error('Usuário não autenticado')
@@ -202,30 +202,30 @@ const SpecialistModule = () => {
           const assistantId = client.openai_assistant_id
           
           if (!assistantId) {
-            throw new Error('Assistant não configurado para este cliente.')
+            throw new Error('Assistente não configurado para este cliente.')
           }
           
           const assistant = new OpenAIAssistantApiService(assistantId)
           await assistant.initialize()
           setOpenaiAssistant(assistant)
-          console.log('✅ OpenAI Assistant initialized via API route')
+          console.log('✅ Assistente inicializado via API route')
         } catch (error) {
-          console.error('❌ Error initializing OpenAI Assistant:', error)
+          console.error('❌ Erro ao inicializar assistente:', error)
           setRecordingStatus('Erro ao inicializar assistente. Especialista funcionará sem IA.')
         }
       }
       
-      // Buscar avatar Dexter
+      // Buscar especialista
       let dexterAvatarId = null
       try {
         const avatarsResult = await streamingService.listAvatars()
         
-        // O listAvatars pode retornar um array diretamente ou um objeto com avatars
+        // O listAvatars pode retornar um array diretamente ou um objeto
         let avatars = []
         if (Array.isArray(avatarsResult)) {
           avatars = avatarsResult
         } else if (avatarsResult && typeof avatarsResult === 'object') {
-          // Se for objeto, tentar extrair o array de avatars
+          // Se for objeto, tentar extrair o array
           avatars = avatarsResult.avatars || avatarsResult.data || []
         }
         
@@ -241,28 +241,28 @@ const SpecialistModule = () => {
           )
           if (dexterAvatar) {
             dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
-            console.log('🔵 Found Dexter avatar:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+            console.log('🔵 Especialista encontrado:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
           } else {
             dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-            console.log('⚠️ Dexter avatar not found in list, using fallback:', dexterAvatarId)
+            console.log('⚠️ Especialista não encontrado na lista, usando fallback:', dexterAvatarId)
           }
         } else {
           dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-          console.log('⚠️ No avatars returned, using fallback:', dexterAvatarId)
+          console.log('⚠️ Nenhum especialista retornado, usando fallback:', dexterAvatarId)
         }
       } catch (error) {
-        console.warn('⚠️ Error listing avatars, using fallback:', error)
+        console.warn('⚠️ Erro ao listar especialistas, usando fallback:', error)
         dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
       }
       
-      // Callback para quando o avatar desconectar
+      // Callback para quando o especialista desconectar
       const handleDisconnect = () => {
-        console.log('⚠️ Avatar disconnected, updating state...')
+        console.log('⚠️ Especialista desconectado, atualizando estado...')
         setAvatarConnected(false)
         streamingService.clearSessionToken()
         
         if (isReconnectingRef.current) {
-          console.log('⚠️ Reconnection already in progress, skipping...')
+          console.log('⚠️ Reconexão já em progresso, pulando...')
           return
         }
         
@@ -270,7 +270,7 @@ const SpecialistModule = () => {
         setTimeout(() => {
           if (videoRef.current && !avatarConnectedRef.current && !isReconnectingRef.current) {
             isReconnectingRef.current = true
-            console.log('🔄 Attempting to reconnect avatar...')
+            console.log('🔄 Tentando reconectar especialista...')
             initializeAvatar(true)
               .then(() => {
                 isReconnectingRef.current = false
@@ -279,7 +279,7 @@ const SpecialistModule = () => {
               })
               .catch(err => {
                 isReconnectingRef.current = false
-                console.error('❌ Failed to reconnect avatar:', err)
+                console.error('❌ Falha ao reconectar especialista:', err)
                 setRecordingStatus('Erro ao reconectar. Tente novamente.')
                 setTimeout(() => setRecordingStatus(''), 3000)
               })
@@ -317,7 +317,7 @@ const SpecialistModule = () => {
       setRecordingStatus('Especialista conectado!')
       setTimeout(() => setRecordingStatus(''), 2000)
     } catch (error) {
-      console.error('Error connecting avatar:', error)
+      console.error('Erro ao conectar especialista:', error)
       setRecordingStatus('Erro ao conectar: ' + error.message)
       setTimeout(() => setRecordingStatus(''), 3000)
     }
