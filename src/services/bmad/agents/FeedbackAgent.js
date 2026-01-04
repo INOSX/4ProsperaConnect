@@ -108,32 +108,28 @@ export default class FeedbackAgent {
       return clean
     })
 
-    const prompt = `Você é um assistente especializado em análise de dados empresariais. 
-Analise os dados obtidos e responda à pergunta do usuário de forma NATURAL e INTERPRETADA, não técnica.
+    const prompt = `Você é um assistente empresarial brasileiro especializado em análise de dados.
 
 PERGUNTA DO USUÁRIO: "${originalQuestion}"
 
 DADOS OBTIDOS:
 ${JSON.stringify(resultsPreview, null, 2)}
 
-INFORMAÇÕES ADICIONAIS:
+INFORMAÇÕES:
 - Total de resultados: ${resultsData.length}
-- Tipo de consulta: ${actionResult.isCount ? 'Contagem' : actionResult.isAggregate ? 'Agregação' : actionResult.isTimeSeries ? 'Série Temporal' : actionResult.isGrouped ? 'Agrupamento' : 'Lista'}
-${actionResult.summary ? `- Resumo técnico: ${actionResult.summary}` : ''}
+- Tipo: ${actionResult.isCount ? 'Contagem' : actionResult.isAggregate ? 'Agregação' : actionResult.isTimeSeries ? 'Série Temporal' : actionResult.isGrouped ? 'Agrupamento' : 'Lista'}
 
-INSTRUÇÕES:
-1. Responda de forma NATURAL e CONVERSACIONAL, como se estivesse explicando para um colega
-2. INTERPRETE os dados, não apenas repita informações técnicas
-3. Responda DIRETAMENTE à pergunta do usuário
-4. Se houver dados específicos (nomes, valores, setores), mencione-os
-5. Se for uma análise de tendência, indique se está crescendo, estagnando ou diminuindo
-6. Se for uma comparação, compare os períodos/grupos
-7. NÃO use termos técnicos como "consulta", "query", "agrupamento", "agregação", "embeddings", "RPC", "SQL"
-8. NÃO repita a descrição técnica da query
-9. Seja CONCISO mas INFORMATIVO
-10. Use português brasileiro natural
+INSTRUÇÕES CRÍTICAS:
+1. Responda APENAS em PORTUGUÊS BRASILEIRO - NUNCA misture inglês
+2. Seja EXTREMAMENTE CONCISO - máximo 3 frases curtas
+3. Para listas: mencione APENAS 2-3 exemplos, não liste tudo
+4. Valores monetários: use "reais" (nunca "dollars" ou "dólares")
+5. Exemplo de resposta curta: "Encontrei 10 empresas cadastradas. Entre elas: Santos Comércio ME (Comércio, R$ 120 mil), Ferreira Consultoria (R$ 800 mil) e Silva & Associados (R$ 500 mil)."
+6. NÃO use termos técnicos (query, SQL, RPC, embeddings, agrupamento)
+7. NÃO liste todos os itens - apenas os principais
+8. Seja direto e objetivo
 
-RESPOSTA (máximo 200 palavras):`
+RESPOSTA (máximo 50 palavras):`
 
     console.log('[OPX:FeedbackAgent] 📤 Enviando prompt para OpenAI...')
     const startTime = Date.now()
@@ -148,7 +144,7 @@ RESPOSTA (máximo 200 palavras):`
           messages: [
             {
               role: 'system',
-              content: 'Você é um assistente especializado em análise de dados empresariais. Responda sempre de forma natural, interpretada e conversacional, sem usar termos técnicos.'
+              content: 'Você é um assistente empresarial BRASILEIRO. Responda SEMPRE em português brasileiro, de forma CURTA e OBJETIVA. Use "reais" para valores monetários (NUNCA "dollars"). Máximo 3 frases. Seja direto.'
             },
             {
               role: 'user',
@@ -156,8 +152,8 @@ RESPOSTA (máximo 200 palavras):`
             }
           ],
           model: 'gpt-4o-mini',
-          temperature: 0.7,
-          max_tokens: 300
+          temperature: 0.3,
+          max_tokens: 150
         })
       })
 
