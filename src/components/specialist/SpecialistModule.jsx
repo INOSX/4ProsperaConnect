@@ -376,9 +376,9 @@ const SpecialistModule = () => {
           </div>
 
           {!isMinimized && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <>
               {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
-              <div className="lg:col-span-9">
+              <div className="w-full">
                 <Card className="p-0 overflow-hidden">
                   <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '600px' }} data-tour-id="specialist-video">
                     <video
@@ -448,16 +448,16 @@ const SpecialistModule = () => {
                 </Card>
               </div>
 
-              {/* Área Lateral - Visualizações e Histórico */}
-              <div className="lg:col-span-3 space-y-4">
-                <div data-tour-id="specialist-visualizations">
-                  <DataVisualizationArea visualizations={visualizations} />
-                </div>
-                <div data-tour-id="specialist-history">
-                  <VoiceCommandHistory history={commandHistory} />
-                </div>
+              {/* Visualizações ABAIXO do Avatar */}
+              <div className="w-full mt-6" data-tour-id="specialist-visualizations">
+                <DataVisualizationArea visualizations={visualizations} />
               </div>
-            </div>
+
+              {/* Histórico ABAIXO das Visualizações */}
+              <div className="w-full mt-6" data-tour-id="specialist-history">
+                <VoiceCommandHistory history={commandHistory} />
+              </div>
+            </>
           )}
         </Card>
       </div>
