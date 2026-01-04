@@ -157,26 +157,26 @@ export default function FloatingChart({ data, config }) {
 
   return (
     <div
-      className={`absolute left-0 right-0 bottom-24 mx-auto max-w-4xl px-4 z-30 transition-all duration-700 ${
+      className={`absolute left-0 right-0 bottom-24 mx-auto max-w-2xl px-4 z-30 transition-all duration-700 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
     >
-      <div className="bg-gradient-to-br from-indigo-600/70 to-purple-600/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+      <div className="bg-gradient-to-br from-indigo-600/30 to-purple-600/30 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/30 overflow-hidden">
         {/* Header */}
-        <div className="bg-white/10 backdrop-blur-md px-6 py-4 border-b border-white/20">
+        <div className="bg-white/5 backdrop-blur-md px-4 py-3 border-b border-white/20">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg">
-              <ChartIcon className="h-5 w-5 text-white" />
+            <div className="p-2 bg-white/10 rounded-lg">
+              <ChartIcon className="h-4 w-4 text-white" />
             </div>
             <div className="flex-1">
-              <h3 className="text-white font-semibold text-lg truncate">
+              <h3 className="text-white font-semibold text-base truncate">
                 {title.length > 60 ? title.substring(0, 60) + '...' : title}
               </h3>
-              <p className="text-white/70 text-sm">
+              <p className="text-white/70 text-xs">
                 {data.length} {data.length === 1 ? 'registro' : 'registros'}
               </p>
             </div>
-            <div className="px-3 py-1 bg-white/20 rounded-full">
+            <div className="px-2 py-1 bg-white/10 rounded-full">
               <span className="text-xs font-medium text-white uppercase tracking-wide">
                 {chartType === 'bar' ? 'Barras' : chartType === 'pie' ? 'Pizza' : 'Linha'}
               </span>
@@ -185,30 +185,30 @@ export default function FloatingChart({ data, config }) {
         </div>
 
         {/* Chart */}
-        <div className="p-6">
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4" style={{ height: '400px' }}>
+        <div className="p-4">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-3" style={{ height: '280px' }}>
             <ChartComponent data={chartData} options={chartOptions} />
           </div>
         </div>
 
         {/* Footer com estatísticas */}
-        <div className="bg-white/5 backdrop-blur-sm px-6 py-4 border-t border-white/10">
-          <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white/5 backdrop-blur-sm px-4 py-3 border-t border-white/10">
+          <div className="grid grid-cols-3 gap-3">
             <div className="text-center">
               <p className="text-xs text-white/60 uppercase tracking-wide mb-1">Total</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-base font-bold text-white">
                 {data.length}
               </p>
             </div>
             <div className="text-center border-l border-r border-white/20">
               <p className="text-xs text-white/60 uppercase tracking-wide mb-1">Máximo</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-base font-bold text-white">
                 {Math.max(...values)}
               </p>
             </div>
             <div className="text-center">
               <p className="text-xs text-white/60 uppercase tracking-wide mb-1">Média</p>
-              <p className="text-lg font-bold text-white">
+              <p className="text-base font-bold text-white">
                 {(values.reduce((a, b) => a + b, 0) / values.length).toFixed(0)}
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function FloatingChart({ data, config }) {
       </div>
 
       {/* Pulse animation */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl -z-10 animate-pulse"></div>
+      <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-3xl blur-xl -z-10 animate-pulse"></div>
     </div>
   )
 }
