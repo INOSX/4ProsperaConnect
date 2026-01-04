@@ -273,13 +273,14 @@ function CompanyCard({ company, offset, isActive, isAnimating }) {
             <div className="flex items-center gap-2 text-white/70">
               <Calendar className="h-3.5 w-3.5" />
               <p className="text-xs">
-              Cadastrado em {new Date(company.created_at).toLocaleDateString('pt-BR')}
-            </p>
+                Cadastrado em {new Date(company.created_at).toLocaleDateString('pt-BR')}
+              </p>
+            </div>
+            <span className="text-xs font-medium text-white/90 bg-white/20 px-2 py-1 rounded-full">
+              {company.company_type}
+            </span>
           </div>
-          <span className="text-xs font-medium text-white/90 bg-white/20 px-2 py-1 rounded-full">
-            {company.company_type}
-          </span>
-        </div>
+        )}
       </div>
     </div>
   )
