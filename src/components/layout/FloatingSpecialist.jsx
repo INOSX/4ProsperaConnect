@@ -316,7 +316,7 @@ const FloatingSpecialist = () => {
         }
       } catch (error) {
         console.warn('⚠️ Erro ao listar especialistas, usando fallback:', error)
-        dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
+        dexterAvatarId = 'Bryan_Businessman_Public'
       }
       
       // Callback para quando o especialista desconectar
