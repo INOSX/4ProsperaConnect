@@ -397,8 +397,13 @@ export default class DatabaseQueryAgent {
             console.log('[OPX:DatabaseQueryAgent] ✅ Todos os resultados:', JSON.stringify(results, null, 2))
             
             // Formatar resultado baseado no tipo de query
-            const isAggregate = queryPlan.queryType === 'aggregate' || !!queryPlan.aggregationType
-            const isGrouped = !!queryPlan.groupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')
+            // 🔧 FIX: A OpenAI pode retornar a STRING "null" ao invés do valor null
+            // Por isso, verificamos se o valor é uma string "null" ou se é realmente null/undefined
+            const isRealAggregation = queryPlan.aggregationType && queryPlan.aggregationType !== 'null'
+            const isRealGroupBy = queryPlan.groupBy && queryPlan.groupBy !== 'null'
+            
+            const isAggregate = queryPlan.queryType === 'aggregate' || isRealAggregation
+            const isGrouped = isRealGroupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')
             const isCount = queryPlan.queryType === 'count' || queryPlan.sqlQuery.toLowerCase().includes('count(')
             const isList = queryPlan.queryType === 'list' && !isGrouped && !isAggregate
             
