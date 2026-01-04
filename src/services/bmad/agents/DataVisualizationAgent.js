@@ -2,10 +2,11 @@
  * DataVisualizationAgent - Gera visualizações de dados
  */
 export default class DataVisualizationAgent {
-  async generateVisualizations(actionResult, intent) {
+  async generateVisualizations(actionResult, intent, originalText = '') {
     console.log('[OPX:DataVisualizationAgent] 📊 ========== GERANDO VISUALIZAÇÕES ==========')
     console.log('[OPX:DataVisualizationAgent] 📝 Input:', {
       intent: intent,
+      originalText: originalText,
       hasActionResult: !!actionResult,
       actionResultType: actionResult ? typeof actionResult : 'null',
       actionResultKeys: actionResult ? Object.keys(actionResult) : []
@@ -18,6 +19,13 @@ export default class DataVisualizationAgent {
       return visualizations
     }
     
+    // Detectar se usuário pediu explicitamente um gráfico/chart
+    const userWantsChart = originalText && (
+      originalText.toLowerCase().includes('gráfico') || 
+      originalText.toLowerCase().includes('grafico') ||
+      originalText.toLowerCase().includes('chart')
+    )
+    
     console.log('[OPX:DataVisualizationAgent] 📊 Propriedades do actionResult:', {
       success: actionResult.success,
       isCount: actionResult.isCount,
@@ -29,22 +37,28 @@ export default class DataVisualizationAgent {
       resultsCount: Array.isArray(actionResult.results) ? actionResult.results.length : 'N/A',
       hasChartConfig: !!actionResult.chartConfig,
       hasSummary: !!actionResult.summary,
-      summary: actionResult.summary?.substring(0, 100)
+      summary: actionResult.summary?.substring(0, 100),
+      userWantsChart: userWantsChart
     })
 
     // 🎨 FLOATING CARDS: Para dados ricos (empresas, clientes, etc)
-    // IMPORTANTE: Verificar TANTO companies QUANTO results pois diferentes agents retornam dados em locais diferentes
-    const dataSource = actionResult.companies || actionResult.results
+    // IMPORTANTE: Verificar TODOS os locais onde agents podem retornar dados:
+    // - CompanyActionAgent retorna em actionResult.data
+    // - DatabaseQueryAgent retorna em actionResult.results
+    // - Alguns agents podem retornar em actionResult.companies
+    const dataSource = actionResult.data || actionResult.companies || actionResult.results
     
     console.log('[OPX:DataVisualizationAgent] 🎴 ========== DEBUG FLOATING CARDS ==========')
+    console.log('[OPX:DataVisualizationAgent] 🎴 Tem actionResult.data?', !!actionResult.data)
     console.log('[OPX:DataVisualizationAgent] 🎴 Tem actionResult.companies?', !!actionResult.companies)
     console.log('[OPX:DataVisualizationAgent] 🎴 Tem actionResult.results?', !!actionResult.results)
+    console.log('[OPX:DataVisualizationAgent] 🎴 data length:', actionResult.data?.length || 0)
     console.log('[OPX:DataVisualizationAgent] 🎴 companies length:', actionResult.companies?.length || 0)
     console.log('[OPX:DataVisualizationAgent] 🎴 results length:', actionResult.results?.length || 0)
     console.log('[OPX:DataVisualizationAgent] 🎴 isList:', actionResult.isList)
     console.log('[OPX:DataVisualizationAgent] 🎴 isAggregate:', actionResult.isAggregate)
     console.log('[OPX:DataVisualizationAgent] 🎴 isGrouped:', actionResult.isGrouped)
-    console.log('[OPX:DataVisualizationAgent] 🎴 Fonte de dados escolhida:', actionResult.companies ? 'companies' : (actionResult.results ? 'results' : 'NENHUMA'))
+    console.log('[OPX:DataVisualizationAgent] 🎴 Fonte de dados escolhida:', actionResult.data ? 'data' : (actionResult.companies ? 'companies' : (actionResult.results ? 'results' : 'NENHUMA')))
     
     if (dataSource && dataSource.length > 0) {
       const firstItem = dataSource[0]
@@ -72,10 +86,20 @@ export default class DataVisualizationAgent {
       console.log('[OPX:DataVisualizationAgent] 🎴 hasRevenue:', hasRevenue)
       console.log('[OPX:DataVisualizationAgent] 🎴 hasIndustry:', hasIndustry)
       console.log('[OPX:DataVisualizationAgent] 🎴 hasManyFields (>5):', hasManyFields, '(' + Object.keys(firstItem).length + ' campos)')
+      console.log('[OPX:DataVisualizationAgent] 🎴 userWantsChart:', userWantsChart)
+      console.log('[OPX:DataVisualizationAgent] 🎴 isAggregate:', actionResult.isAggregate)
+      console.log('[OPX:DataVisualizationAgent] 🎴 isGrouped:', actionResult.isGrouped)
+      
+      // 🎯 DECISÃO: Floating Cards APENAS para listagens simples (não agregadas)
+      // Se usuário pediu gráfico explicitamente OU é uma query agregada, usar CHART
+      const shouldUseChart = userWantsChart || actionResult.isAggregate || actionResult.isGrouped
+      
       console.log('[OPX:DataVisualizationAgent] 🎴 ========== DECISÃO FINAL ==========')
       console.log('[OPX:DataVisualizationAgent] 🎴 hasRichData:', hasRichData)
+      console.log('[OPX:DataVisualizationAgent] 🎴 shouldUseChart:', shouldUseChart)
+      console.log('[OPX:DataVisualizationAgent] 🎴 Decisão: ', shouldUseChart ? 'GRÁFICO (chart)' : (hasRichData ? 'FLOATING CARDS' : 'TABLE'))
       
-      if (hasRichData) {
+      if (hasRichData && !shouldUseChart) {
         console.log('[OPX:DataVisualizationAgent] 🎴 ✅ ✅ ✅ CRIANDO FLOATING CARDS! ✅ ✅ ✅')
         const floatingCardsViz = {
           type: 'floating-cards',
@@ -93,6 +117,8 @@ export default class DataVisualizationAgent {
         console.log('[OPX:DataVisualizationAgent] 🎴 title:', floatingCardsViz.config.title)
         console.log('[OPX:DataVisualizationAgent] ✅ Retornando', visualizations.length, 'visualização(ões)')
         return visualizations
+      } else if (shouldUseChart && hasCompanyName && actionResult.isGrouped) {
+        console.log('[OPX:DataVisualizationAgent] 📊 Usuário pediu gráfico - continuando para criar CHART...')
       } else {
         console.log('[OPX:DataVisualizationAgent] ❌ Dados NÃO são ricos - continuando...')
       }

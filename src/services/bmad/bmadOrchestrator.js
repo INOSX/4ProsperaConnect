@@ -175,7 +175,8 @@ export class NEXOrchestrator {
       try {
         visualizations = await this.visualization.generateVisualizations(
           actionResult,
-          intent
+          intent,
+          text  // Passar texto original para detectar se usuário pediu "gráfico"
         )
         console.log('[NEX:Orchestrator] ✅ Visualizations generated:', { count: visualizations?.length || 0 })
       } catch (vizError) {

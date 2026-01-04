@@ -118,6 +118,17 @@ export default function FloatingDataCards({ data = [], type = 'companies' }) {
  * CompanyCard - Card individual de empresa com glassmorphism
  */
 function CompanyCard({ company, offset, isActive, isAnimating }) {
+  // Detectar se é um dado agregado (só tem company_name + 1 valor numérico)
+  const keys = Object.keys(company)
+  const isAggregateData = keys.length <= 3 && (company.total_employees !== undefined || company.num_colaboradores !== undefined || company.quantidade !== undefined)
+  
+  console.log('[FloatingDataCards] 🎴 CompanyCard render:', {
+    companyName: company.company_name,
+    keys: keys,
+    isAggregateData: isAggregateData,
+    isActive: isActive
+  })
+  
   // Gradientes por indústria
   const industryGradients = {
     'Comércio': 'from-blue-500/80 to-cyan-500/80',
@@ -131,7 +142,7 @@ function CompanyCard({ company, offset, isActive, isAnimating }) {
     'Alimentação': 'from-lime-500/80 to-green-500/80',
   }
 
-  const gradient = industryGradients[company.industry] || 'from-gray-500/80 to-slate-500/80'
+  const gradient = industryGradients[company.industry] || 'from-purple-600/90 to-blue-600/90'
 
   // Formatação de valores
   const formatRevenue = (value) => {
@@ -189,29 +200,44 @@ function CompanyCard({ company, offset, isActive, isAnimating }) {
 
         {/* Conteúdo */}
         <div className="bg-white/10 backdrop-blur-md p-4 space-y-3">
-          {/* Receita e Indústria */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 bg-white/20 rounded-lg p-2">
-              <DollarSign className="h-4 w-4 text-white flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-white/70">Receita Anual</p>
-                <p className="text-sm font-bold text-white truncate">
-                  {formatRevenue(company.annual_revenue)}
+          {/* Dados Agregados (se houver) */}
+          {isAggregateData && (
+            <div className="flex items-center gap-3 bg-white/20 rounded-lg p-4">
+              <TrendingUp className="h-8 w-8 text-white flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-xs text-white/70 uppercase tracking-wide">Colaboradores</p>
+                <p className="text-3xl font-bold text-white">
+                  {company.total_employees || company.num_colaboradores || company.quantidade || 0}
                 </p>
               </div>
             </div>
+          )}
+          
+          {/* Receita e Indústria (se houver - dados completos) */}
+          {!isAggregateData && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-2 bg-white/20 rounded-lg p-2">
+                <DollarSign className="h-4 w-4 text-white flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-white/70">Receita Anual</p>
+                  <p className="text-sm font-bold text-white truncate">
+                    {formatRevenue(company.annual_revenue)}
+                  </p>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-2 bg-white/20 rounded-lg p-2">
-              <TrendingUp className="h-4 w-4 text-white flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-xs text-white/70">Indústria</p>
-                <p className="text-sm font-bold text-white truncate">{company.industry}</p>
+              <div className="flex items-center gap-2 bg-white/20 rounded-lg p-2">
+                <TrendingUp className="h-4 w-4 text-white flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-xs text-white/70">Indústria</p>
+                  <p className="text-sm font-bold text-white truncate">{company.industry || 'N/A'}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Contato */}
-          {(company.email || company.phone) && (
+          {/* Contato (apenas para dados completos) */}
+          {!isAggregateData && (company.email || company.phone) && (
             <div className="space-y-2">
               {company.email && (
                 <div className="flex items-center gap-2 text-white/90">
@@ -228,8 +254,8 @@ function CompanyCard({ company, offset, isActive, isAnimating }) {
             </div>
           )}
 
-          {/* Endereço */}
-          {company.address && typeof company.address === 'object' && (
+          {/* Endereço (apenas para dados completos) */}
+          {!isAggregateData && company.address && typeof company.address === 'object' && (
             <div className="flex items-start gap-2 text-white/90">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0 mt-0.5" />
               <p className="text-xs line-clamp-2">
@@ -241,11 +267,12 @@ function CompanyCard({ company, offset, isActive, isAnimating }) {
           )}
         </div>
 
-        {/* Footer com data */}
-        <div className="bg-white/5 backdrop-blur-sm px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-white/70">
-            <Calendar className="h-3.5 w-3.5" />
-            <p className="text-xs">
+        {/* Footer com data (apenas para dados completos) */}
+        {!isAggregateData && (
+          <div className="bg-white/5 backdrop-blur-sm px-4 py-2 flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/70">
+              <Calendar className="h-3.5 w-3.5" />
+              <p className="text-xs">
               Cadastrado em {new Date(company.created_at).toLocaleDateString('pt-BR')}
             </p>
           </div>
