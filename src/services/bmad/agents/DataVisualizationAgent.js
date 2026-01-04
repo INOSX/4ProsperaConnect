@@ -33,13 +33,29 @@ export default class DataVisualizationAgent {
     })
 
     // 🎨 FLOATING CARDS: Para queries tipo LIST com dados ricos (empresas, clientes, etc)
+    console.log('[OPX:DataVisualizationAgent] 🔍 Verificando condições para FLOATING CARDS:', {
+      isList: actionResult.isList,
+      hasResults: !!actionResult.results,
+      resultsLength: actionResult.results?.length
+    })
+    
     if (actionResult.isList && actionResult.results && actionResult.results.length > 0) {
       const firstItem = actionResult.results[0]
+      console.log('[OPX:DataVisualizationAgent] 📦 Primeiro item:', {
+        keys: Object.keys(firstItem),
+        hasCompanyName: !!firstItem.company_name,
+        hasTradeName: !!firstItem.trade_name,
+        hasRevenue: !!firstItem.annual_revenue,
+        hasIndustry: !!firstItem.industry,
+        keysCount: Object.keys(firstItem).length
+      })
       
       // Detectar se são dados de empresas/clientes (dados ricos com múltiplos campos)
       const hasRichData = firstItem.company_name || firstItem.trade_name || 
                           firstItem.annual_revenue || firstItem.industry ||
                           (Object.keys(firstItem).length > 5)
+      
+      console.log('[OPX:DataVisualizationAgent] 🎯 hasRichData:', hasRichData)
       
       if (hasRichData) {
         console.log('[OPX:DataVisualizationAgent] 🎴 Criando FLOATING CARDS para dados ricos...')
@@ -59,7 +75,11 @@ export default class DataVisualizationAgent {
           title: floatingCardsViz.config.title
         })
         return visualizations
+      } else {
+        console.log('[OPX:DataVisualizationAgent] ⚠️ Dados NÃO são ricos o suficiente para floating cards')
       }
+    } else {
+      console.log('[OPX:DataVisualizationAgent] ⚠️ Condições para floating cards NÃO atendidas')
     }
 
     // Para consultas de contagem, criar visualização de card
