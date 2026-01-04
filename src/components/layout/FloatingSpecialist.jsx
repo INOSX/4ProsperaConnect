@@ -281,7 +281,7 @@ const FloatingSpecialist = () => {
       }
       
       // Buscar especialista
-      let dexterAvatarId = null
+      let bryanAvatarId = null
       try {
         const avatars = await streamingService.listAvatars()
         
@@ -297,8 +297,8 @@ const FloatingSpecialist = () => {
         
         if (bryanByUUID) {
           // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
-          dexterAvatarId = bryanByUUID.avatar_id || bryanByUUID.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
-          console.log('🔵 ✅ Bryan encontrado por UUID:', { id: dexterAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
+          bryanAvatarId = bryanByUUID.avatar_id || bryanByUUID.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+          console.log('🔵 ✅ Bryan encontrado por UUID:', { id: bryanAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
         } else {
           // PRIORIDADE 2: Procurar pelo nome Bryan
           const bryanAvatar = avatars.find(avatar => 
@@ -312,17 +312,17 @@ const FloatingSpecialist = () => {
           
           if (bryanAvatar) {
             // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
-            dexterAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
-            console.log('🔵 Bryan encontrado por nome:', { id: dexterAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
+            bryanAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+            console.log('🔵 Bryan encontrado por nome:', { id: bryanAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
           } else {
             // FALLBACK: Usar UUID direto
-            dexterAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
-            console.log('⚠️ Bryan não encontrado, usando UUID direto:', dexterAvatarId)
+            bryanAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
+            console.log('⚠️ Bryan não encontrado, usando UUID direto:', bryanAvatarId)
           }
         }
       } catch (error) {
         console.warn('⚠️ Erro ao listar especialistas, usando UUID Bryan direto:', error)
-        dexterAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
+        bryanAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
       }
       
       // Callback para quando o especialista desconectar
@@ -357,7 +357,7 @@ const FloatingSpecialist = () => {
         }, 2000)
       }
       
-      const sessionData = await streamingService.createSession(dexterAvatarId, videoRef.current, null, handleDisconnect, forceNewToken)
+      const sessionData = await streamingService.createSession(bryanAvatarId, videoRef.current, null, handleDisconnect, forceNewToken)
       setAvatarConnected(true)
       isReconnectingRef.current = false
       try {
