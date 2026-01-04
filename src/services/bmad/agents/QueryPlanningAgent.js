@@ -131,6 +131,8 @@ IMPORTANTE SOBRE A QUERY SQL:
   GROUP BY c.company_name, c.id
   ORDER BY number_of_employees DESC
 
+**NUNCA retorne company_id sozinho em agrupamentos! SEMPRE faça JOIN com companies para trazer company_name.**
+
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
   "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list|groupBy",
