@@ -139,10 +139,38 @@ export default class DataVisualizationAgent {
 
     // Para consultas tipo LIST (listar registros individuais)
     if (actionResult.isList && actionResult.results && actionResult.results.length > 0) {
-      console.log('[OPX:DataVisualizationAgent] 📋 Criando tabela para query tipo LIST...')
+      console.log('[OPX:DataVisualizationAgent] 📋 Query tipo LIST detectada...')
       console.log('[OPX:DataVisualizationAgent] 📊 Dados (primeiros 3):', actionResult.results?.slice(0, 3))
       
-      // Criar tabela com os dados
+      // 🎴 VERIFICAR SE SÃO DADOS RICOS (empresas/clientes) para usar Floating Cards
+      const firstItem = actionResult.results[0]
+      const hasRichData = firstItem.company_name || firstItem.trade_name || 
+                          firstItem.annual_revenue || firstItem.industry ||
+                          (Object.keys(firstItem).length > 5)
+      
+      if (hasRichData) {
+        console.log('[OPX:DataVisualizationAgent] 🎴 ========== CRIANDO FLOATING CARDS ==========')
+        console.log('[OPX:DataVisualizationAgent] 🎴 Dados ricos detectados!')
+        console.log('[OPX:DataVisualizationAgent] 🎴 Campos do primeiro item:', Object.keys(firstItem))
+        console.log('[OPX:DataVisualizationAgent] 🎴 Total de registros:', actionResult.results.length)
+        
+        const floatingCardsViz = {
+          type: 'floating-cards',
+          data: actionResult.results,
+          config: {
+            title: actionResult.summary || 'Resultados da Consulta',
+            dataType: firstItem.company_name ? 'companies' : 'generic'
+          }
+        }
+        
+        visualizations.push(floatingCardsViz)
+        console.log('[OPX:DataVisualizationAgent] ✅ Floating Cards criado com sucesso!')
+        console.log('[OPX:DataVisualizationAgent] ✅ Total de visualizações:', visualizations.length)
+        return visualizations
+      }
+      
+      // Se não são dados ricos, criar tabela normal
+      console.log('[OPX:DataVisualizationAgent] 📋 Dados simples, criando tabela...')
       const keys = Object.keys(actionResult.results[0])
       const tableViz = {
         type: 'table',
