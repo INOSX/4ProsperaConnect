@@ -241,6 +241,24 @@ const SpecialistModule = () => {
         }
         
         if (avatars.length > 0) {
+          // 🔍 DEBUG: Listar TODOS os avatares Bryan disponíveis
+          const bryanAvatars = avatars.filter(avatar => 
+            avatar.name?.includes('Bryan') || 
+            avatar.avatar_name?.includes('Bryan') ||
+            (typeof avatar.id === 'string' && avatar.id.includes('Bryan')) ||
+            (typeof avatar.avatar_id === 'string' && avatar.avatar_id?.includes('Bryan'))
+          )
+          
+          console.log('🔍 📋 TODOS OS AVATARES BRYAN DISPONÍVEIS:', bryanAvatars.length)
+          bryanAvatars.forEach((avatar, index) => {
+            console.log(`🔍 Bryan #${index + 1}:`, {
+              name: avatar.name || avatar.avatar_name,
+              id: avatar.id,
+              avatar_id: avatar.avatar_id,
+              avatar_name: avatar.avatar_name
+            })
+          })
+          
           // PRIORIDADE 1: Buscar pelo UUID específico do Bryan
           const bryanByUUID = avatars.find(avatar => 
             avatar.id === '64b526e4-741c-43b6-a918-4e40f3261c7a' ||
