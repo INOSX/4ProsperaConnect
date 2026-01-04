@@ -32,6 +32,36 @@ export default class DataVisualizationAgent {
       summary: actionResult.summary?.substring(0, 100)
     })
 
+    // 🎨 FLOATING CARDS: Para queries tipo LIST com dados ricos (empresas, clientes, etc)
+    if (actionResult.isList && actionResult.results && actionResult.results.length > 0) {
+      const firstItem = actionResult.results[0]
+      
+      // Detectar se são dados de empresas/clientes (dados ricos com múltiplos campos)
+      const hasRichData = firstItem.company_name || firstItem.trade_name || 
+                          firstItem.annual_revenue || firstItem.industry ||
+                          (Object.keys(firstItem).length > 5)
+      
+      if (hasRichData) {
+        console.log('[OPX:DataVisualizationAgent] 🎴 Criando FLOATING CARDS para dados ricos...')
+        const floatingCardsViz = {
+          type: 'floating-cards',
+          data: actionResult.results,
+          config: {
+            title: actionResult.summary || 'Resultados da Consulta',
+            dataType: firstItem.company_name ? 'companies' : 'generic'
+          }
+        }
+        visualizations.push(floatingCardsViz)
+        console.log('[OPX:DataVisualizationAgent] ✅ Floating Cards criados:', {
+          type: floatingCardsViz.type,
+          itemCount: floatingCardsViz.data.length,
+          dataType: floatingCardsViz.config.dataType,
+          title: floatingCardsViz.config.title
+        })
+        return visualizations
+      }
+    }
+
     // Para consultas de contagem, criar visualização de card
     if (actionResult.isCount) {
       // Se houver visualizationData específica, usar ela
