@@ -248,7 +248,8 @@ const SpecialistModule = () => {
           )
           
           if (bryanByUUID) {
-            dexterAvatarId = bryanByUUID.id || bryanByUUID.avatar_id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+            // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
+            dexterAvatarId = bryanByUUID.avatar_id || bryanByUUID.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
             console.log('🔵 ✅ Bryan encontrado por UUID:', { id: dexterAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
           } else {
             // PRIORIDADE 2: Procurar pelo nome Bryan
@@ -264,7 +265,8 @@ const SpecialistModule = () => {
             )
             
             if (bryanAvatar) {
-              dexterAvatarId = bryanAvatar.id || bryanAvatar.avatar_id || bryanAvatar.avatar_name || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+              // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
+              dexterAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
               console.log('🔵 Bryan encontrado por nome:', { id: dexterAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
             } else {
               // FALLBACK: Usar UUID diretamente
