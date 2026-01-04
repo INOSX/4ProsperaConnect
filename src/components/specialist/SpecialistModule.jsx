@@ -10,6 +10,7 @@ import Card from '../ui/Card'
 import DataVisualizationArea from './DataVisualizationArea'
 import VoiceCommandHistory from './VoiceCommandHistory'
 import FloatingDataCards from './FloatingDataCards'
+import FloatingChart from './FloatingChart'
 import { 
   Mic, 
   Loader2, 
@@ -412,16 +413,30 @@ const SpecialistModule = () => {
                       if (visualizations && visualizations.length > 0) {
                         console.log('[SpecialistModule] 🎴 visualizations[0].type:', visualizations[0].type)
                         console.log('[SpecialistModule] 🎴 visualizations[0].data length:', visualizations[0].data?.length || 0)
-                        console.log('[SpecialistModule] 🎴 Condição atendida?', visualizations[0].type === 'floating-cards')
+                        console.log('[SpecialistModule] 🎴 Condição floating-cards atendida?', visualizations[0].type === 'floating-cards')
+                        console.log('[SpecialistModule] 🎴 Condição chart atendida?', visualizations[0].type === 'chart')
                       }
                       return null
                     })()}
+                    
+                    {/* Renderizar Floating Cards */}
                     {visualizations && visualizations.length > 0 && visualizations[0].type === 'floating-cards' && (
                       <>
                         {console.log('[SpecialistModule] 🎴 ✅ ✅ ✅ RENDERIZANDO FLOATING CARDS! ✅ ✅ ✅')}
                         <FloatingDataCards 
                           data={visualizations[0].data} 
                           type={visualizations[0].config?.dataType || 'companies'}
+                        />
+                      </>
+                    )}
+                    
+                    {/* Renderizar Floating Chart */}
+                    {visualizations && visualizations.length > 0 && visualizations[0].type === 'chart' && (
+                      <>
+                        {console.log('[SpecialistModule] 📊 ✅ ✅ ✅ RENDERIZANDO FLOATING CHART! ✅ ✅ ✅')}
+                        <FloatingChart 
+                          data={visualizations[0].data} 
+                          config={visualizations[0].config}
                         />
                       </>
                     )}

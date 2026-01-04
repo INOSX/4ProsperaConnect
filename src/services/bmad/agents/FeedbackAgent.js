@@ -124,10 +124,12 @@ INSTRUÇÕES CRÍTICAS:
 2. Seja EXTREMAMENTE CONCISO - máximo 3 frases curtas
 3. Para listas: mencione APENAS 2-3 exemplos, não liste tudo
 4. Valores monetários: use "reais" (nunca "dollars" ou "dólares")
-5. Exemplo de resposta curta: "Encontrei 10 empresas cadastradas. Entre elas: Santos Comércio ME (Comércio, R$ 120 mil), Ferreira Consultoria (R$ 800 mil) e Silva & Associados (R$ 500 mil)."
-6. NÃO use termos técnicos (query, SQL, RPC, embeddings, agrupamento)
-7. NÃO liste todos os itens - apenas os principais
-8. Seja direto e objetivo
+5. NUNCA mencione IDs, UUIDs ou códigos técnicos (ex: "1be71941", "becfca41") - use APENAS nomes (company_name, employee_name, etc)
+6. Se não tiver nomes disponíveis, use "empresa 1", "empresa 2", etc
+7. Exemplo de resposta curta: "Encontrei 10 empresas cadastradas. Entre elas: Santos Comércio ME (Comércio, R$ 120 mil), Ferreira Consultoria (R$ 800 mil) e Silva & Associados (R$ 500 mil)."
+8. NÃO use termos técnicos (query, SQL, RPC, embeddings, agrupamento)
+9. NÃO liste todos os itens - apenas os principais
+10. Seja direto e objetivo
 
 RESPOSTA (máximo 50 palavras):`
 

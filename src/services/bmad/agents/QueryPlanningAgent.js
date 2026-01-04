@@ -123,6 +123,14 @@ IMPORTANTE SOBRE A QUERY SQL:
   GROUP BY industry 
   ORDER BY quantidade DESC
 
+**IMPORTANTE: Ao agrupar colaboradores por empresa, SEMPRE faça JOIN para trazer o nome da empresa (company_name) ao invés de apenas company_id:**
+- Exemplo para "número de colaboradores por empresa":
+  SELECT c.company_name, COUNT(e.id) AS number_of_employees 
+  FROM employees e
+  JOIN companies c ON e.company_id = c.id
+  GROUP BY c.company_name, c.id
+  ORDER BY number_of_employees DESC
+
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
   "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list|groupBy",
