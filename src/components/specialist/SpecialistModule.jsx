@@ -9,6 +9,7 @@ import NEXOrchestrator from '../../services/bmad/bmadOrchestrator'
 import Card from '../ui/Card'
 import DataVisualizationArea from './DataVisualizationArea'
 import VoiceCommandHistory from './VoiceCommandHistory'
+import FloatingDataCards from './FloatingDataCards'
 import { 
   Mic, 
   Loader2, 
@@ -375,12 +376,11 @@ const SpecialistModule = () => {
           </div>
 
           {!isMinimized && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Área do Avatar */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
               <div className="lg:col-span-1">
-                <Card className="p-4">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Especialista</h2>
-                  <div className="relative w-full bg-gray-100 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '280px' }} data-tour-id="specialist-video">
+                <Card className="p-0 overflow-hidden">
+                  <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '9/16', minHeight: '600px' }} data-tour-id="specialist-video">
                     <video
                       ref={videoRef}
                       autoPlay
@@ -389,18 +389,26 @@ const SpecialistModule = () => {
                       className="w-full h-full object-cover"
                     />
                     {isConnecting && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
-                        <Loader2 className="h-12 w-12 text-blue-500 mb-2 animate-spin" />
-                        <p className="text-sm text-gray-700 font-medium">Conectando especialista...</p>
-                        <p className="text-xs text-gray-500 mt-1">Aguarde um momento</p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 to-purple-900">
+                        <Loader2 className="h-16 w-16 text-white mb-4 animate-spin" />
+                        <p className="text-lg text-white font-medium">Conectando especialista...</p>
+                        <p className="text-sm text-white/70 mt-2">Aguarde um momento</p>
                       </div>
                     )}
                     {!avatarConnected && !isConnecting && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
-                        <Users className="h-12 w-12 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500 font-medium">Especialista não conectado</p>
-                        <p className="text-xs text-gray-400 mt-1">Clique em "Conectar" para iniciar</p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                        <Users className="h-16 w-16 text-white/60 mb-4" />
+                        <p className="text-lg text-white font-medium">Especialista não conectado</p>
+                        <p className="text-sm text-white/70 mt-2">Clique em "Conectar" para iniciar</p>
                       </div>
+                    )}
+                    
+                    {/* Floating Data Cards - Renderiza sobre o avatar */}
+                    {visualizations && visualizations.length > 0 && visualizations[0].type === 'floating-cards' && (
+                      <FloatingDataCards 
+                        data={visualizations[0].data} 
+                        type={visualizations[0].config?.dataType || 'companies'}
+                      />
                     )}
                   </div>
                   
