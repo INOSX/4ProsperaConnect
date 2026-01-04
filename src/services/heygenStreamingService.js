@@ -328,23 +328,14 @@ export class HeyGenStreamingService {
 
       // Criar e iniciar sessão
       // O SDK gerencia automaticamente a conexão LiveKit
-      // O SDK aceita avatarName que deve ser o avatar_id (não o nome)
+      // O SDK aceita avatarName que deve ser o avatar_id
       console.log('🔵 Creating session with avatarId:', avatarId)
       console.log('🔵 🔍 Avatar ID Type:', typeof avatarId)
       console.log('🔵 🔍 Avatar ID Length:', avatarId?.length)
-      console.log('🔵 🔍 Is UUID format?:', /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(avatarId))
       
       // Validar que temos um avatarId válido
       if (!avatarId) {
         throw new Error('Avatar ID is required. Please provide a valid avatar ID.')
-      }
-      
-      // ⚠️ VALIDAÇÃO CRÍTICA: Rejeitar nome público, aceitar apenas UUID
-      if (avatarId.includes('_public') || avatarId.includes('Casual') || avatarId.includes('Front')) {
-        console.error('❌ NOME PÚBLICO DETECTADO! Rejeitando:', avatarId)
-        console.error('❌ FORÇANDO UUID FALLBACK!')
-        avatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
-        console.log('✅ Usando UUID Bryan:', avatarId)
       }
       
       const sessionConfig = {

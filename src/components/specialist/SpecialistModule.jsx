@@ -271,22 +271,20 @@ const SpecialistModule = () => {
             console.log('🔵 ✅ Bryan encontrado por UUID:', { id: bryanAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
             console.log('🔵 🎯 Avatar ID que será usado:', bryanAvatarId)
           } else {
-            // PRIORIDADE 2: Procurar pelo nome Bryan
+            // PRIORIDADE 2: Procurar pelo "Bryan Tech Expert" ou "Bryan IT"
             const bryanAvatar = avatars.find(avatar => 
-              avatar.name === 'Bryan' || 
-              avatar.avatar_name === 'Bryan' ||
-              avatar.name?.includes('Bryan') ||
-              avatar.avatar_name?.includes('Bryan') ||
-              avatar.id === 'Bryan_Businessman_Public' ||
-              avatar.id === 'Bryan_Tech_Expert' ||
-              avatar.avatar_name === 'Bryan_Businessman_Public' ||
-              avatar.name === 'Bryan_Businessman_Public'
+              (avatar.name === 'Bryan Tech Expert' || avatar.avatar_name === 'Bryan Tech Expert') ||
+              (avatar.avatar_id === 'Bryan_IT_Sitting_public') ||
+              (avatar.name === 'Bryan' || avatar.avatar_name === 'Bryan') ||
+              (avatar.name?.includes('Bryan') || avatar.avatar_name?.includes('Bryan')) ||
+              avatar.id === 'Bryan_IT_Sitting_public' ||
+              avatar.id === 'Bryan_Tech_Expert'
             )
             
             if (bryanAvatar) {
-              // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
-              bryanAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
-              console.log('🔵 Bryan encontrado por nome:', { id: bryanAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
+              // IMPORTANTE: Para avatares públicos, avatar_id é o ID correto (formato: Bryan_XXX_public)
+              bryanAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || 'Bryan_IT_Sitting_public'
+              console.log('🔵 ✅ Bryan encontrado:', { id: bryanAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
               console.log('🔵 🎯 Avatar ID que será usado:', bryanAvatarId)
               console.log('🔵 🔍 Detalhes do avatar:', { 
                 'avatar.id': bryanAvatar.id, 
@@ -294,19 +292,19 @@ const SpecialistModule = () => {
                 'SELECIONADO': bryanAvatarId
               })
             } else {
-              // FALLBACK: Usar UUID diretamente
-              bryanAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
-              console.log('⚠️ Bryan não encontrado, usando UUID direto:', bryanAvatarId)
+              // FALLBACK: Usar Bryan IT Sitting Public direto
+              bryanAvatarId = 'Bryan_IT_Sitting_public'
+              console.log('⚠️ Bryan não encontrado, usando Bryan IT direto:', bryanAvatarId)
             }
           }
         } else {
-          // Sem avatares na lista, usar UUID direto
-          bryanAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
-          console.log('⚠️ Nenhum avatar retornado, usando UUID Bryan direto:', bryanAvatarId)
+          // Sem avatares na lista, usar Bryan IT Sitting Public
+          bryanAvatarId = 'Bryan_IT_Sitting_public'
+          console.log('⚠️ Nenhum avatar retornado, usando Bryan IT direto:', bryanAvatarId)
         }
       } catch (error) {
-        console.warn('⚠️ Erro ao listar especialistas, usando UUID Bryan direto:', error)
-        bryanAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
+        console.warn('⚠️ Erro ao listar especialistas, usando Bryan IT direto:', error)
+        bryanAvatarId = 'Bryan_IT_Sitting_public'
       }
       
       // Callback para quando o especialista desconectar
