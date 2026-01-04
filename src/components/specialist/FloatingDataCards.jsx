@@ -6,11 +6,18 @@ import { ChevronLeft, ChevronRight, TrendingUp, Building2, DollarSign, Calendar,
  * Exibe dados sobre o avatar do especialista de forma inovadora
  */
 export default function FloatingDataCards({ data = [], type = 'companies' }) {
+  console.log('[FloatingDataCards] 🎴 ========== COMPONENTE INICIADO ==========')
+  console.log('[FloatingDataCards] 🎴 data recebido:', data)
+  console.log('[FloatingDataCards] 🎴 data.length:', data?.length || 0)
+  console.log('[FloatingDataCards] 🎴 type:', type)
+  console.log('[FloatingDataCards] 🎴 Primeiro item:', data?.[0])
+  
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
 
   // Auto-scroll suave a cada 5 segundos
   useEffect(() => {
+    console.log('[FloatingDataCards] 🎴 useEffect auto-scroll - data.length:', data.length)
     if (data.length <= 1) return
 
     const interval = setInterval(() => {
@@ -36,8 +43,11 @@ export default function FloatingDataCards({ data = [], type = 'companies' }) {
   }
 
   if (!data || data.length === 0) {
+    console.log('[FloatingDataCards] ❌ SEM DADOS - retornando null')
     return null
   }
+  
+  console.log('[FloatingDataCards] ✅ RENDERIZANDO FLOATING CARDS COM', data.length, 'ITENS')
 
   // Pegar 3 cards visíveis (anterior, atual, próximo)
   const visibleCards = []

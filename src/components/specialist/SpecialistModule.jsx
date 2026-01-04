@@ -380,7 +380,7 @@ const SpecialistModule = () => {
               {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
               <div className="w-full">
                 <Card className="p-0 overflow-hidden">
-                  <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '600px' }} data-tour-id="specialist-video">
+                  <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '800px' }} data-tour-id="specialist-video">
                     <video
                       ref={videoRef}
                       autoPlay
@@ -404,11 +404,26 @@ const SpecialistModule = () => {
                     )}
                     
                     {/* Floating Data Cards - Renderiza sobre o avatar */}
+                    {(() => {
+                      console.log('[SpecialistModule] 🎴 ========== DEBUG FLOATING CARDS RENDER ==========')
+                      console.log('[SpecialistModule] 🎴 visualizations existe?', !!visualizations)
+                      console.log('[SpecialistModule] 🎴 visualizations.length:', visualizations?.length || 0)
+                      console.log('[SpecialistModule] 🎴 visualizations:', visualizations)
+                      if (visualizations && visualizations.length > 0) {
+                        console.log('[SpecialistModule] 🎴 visualizations[0].type:', visualizations[0].type)
+                        console.log('[SpecialistModule] 🎴 visualizations[0].data length:', visualizations[0].data?.length || 0)
+                        console.log('[SpecialistModule] 🎴 Condição atendida?', visualizations[0].type === 'floating-cards')
+                      }
+                      return null
+                    })()}
                     {visualizations && visualizations.length > 0 && visualizations[0].type === 'floating-cards' && (
-                      <FloatingDataCards 
-                        data={visualizations[0].data} 
-                        type={visualizations[0].config?.dataType || 'companies'}
-                      />
+                      <>
+                        {console.log('[SpecialistModule] 🎴 ✅ ✅ ✅ RENDERIZANDO FLOATING CARDS! ✅ ✅ ✅')}
+                        <FloatingDataCards 
+                          data={visualizations[0].data} 
+                          type={visualizations[0].config?.dataType || 'companies'}
+                        />
+                      </>
                     )}
                   </div>
                   

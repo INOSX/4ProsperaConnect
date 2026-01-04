@@ -32,54 +32,72 @@ export default class DataVisualizationAgent {
       summary: actionResult.summary?.substring(0, 100)
     })
 
-    // 🎨 FLOATING CARDS: Para queries tipo LIST com dados ricos (empresas, clientes, etc)
-    console.log('[OPX:DataVisualizationAgent] 🔍 Verificando condições para FLOATING CARDS:', {
-      isList: actionResult.isList,
-      hasResults: !!actionResult.results,
-      resultsLength: actionResult.results?.length
-    })
+    // 🎨 FLOATING CARDS: Para dados ricos (empresas, clientes, etc)
+    // IMPORTANTE: Verificar TANTO companies QUANTO results pois diferentes agents retornam dados em locais diferentes
+    const dataSource = actionResult.companies || actionResult.results
     
-    if (actionResult.isList && actionResult.results && actionResult.results.length > 0) {
-      const firstItem = actionResult.results[0]
-      console.log('[OPX:DataVisualizationAgent] 📦 Primeiro item:', {
-        keys: Object.keys(firstItem),
-        hasCompanyName: !!firstItem.company_name,
-        hasTradeName: !!firstItem.trade_name,
-        hasRevenue: !!firstItem.annual_revenue,
-        hasIndustry: !!firstItem.industry,
-        keysCount: Object.keys(firstItem).length
+    console.log('[OPX:DataVisualizationAgent] 🎴 ========== DEBUG FLOATING CARDS ==========')
+    console.log('[OPX:DataVisualizationAgent] 🎴 Tem actionResult.companies?', !!actionResult.companies)
+    console.log('[OPX:DataVisualizationAgent] 🎴 Tem actionResult.results?', !!actionResult.results)
+    console.log('[OPX:DataVisualizationAgent] 🎴 companies length:', actionResult.companies?.length || 0)
+    console.log('[OPX:DataVisualizationAgent] 🎴 results length:', actionResult.results?.length || 0)
+    console.log('[OPX:DataVisualizationAgent] 🎴 isList:', actionResult.isList)
+    console.log('[OPX:DataVisualizationAgent] 🎴 isAggregate:', actionResult.isAggregate)
+    console.log('[OPX:DataVisualizationAgent] 🎴 isGrouped:', actionResult.isGrouped)
+    console.log('[OPX:DataVisualizationAgent] 🎴 Fonte de dados escolhida:', actionResult.companies ? 'companies' : (actionResult.results ? 'results' : 'NENHUMA'))
+    
+    if (dataSource && dataSource.length > 0) {
+      const firstItem = dataSource[0]
+      console.log('[OPX:DataVisualizationAgent] 🎴 Primeiro item keys:', Object.keys(firstItem))
+      console.log('[OPX:DataVisualizationAgent] 🎴 Primeiro item sample:', {
+        id: firstItem.id?.substring(0, 8) + '...',
+        company_name: firstItem.company_name,
+        trade_name: firstItem.trade_name,
+        industry: firstItem.industry,
+        annual_revenue: firstItem.annual_revenue
       })
       
       // Detectar se são dados de empresas/clientes (dados ricos com múltiplos campos)
-      const hasRichData = firstItem.company_name || firstItem.trade_name || 
-                          firstItem.annual_revenue || firstItem.industry ||
-                          (Object.keys(firstItem).length > 5)
+      const hasCompanyName = !!firstItem.company_name
+      const hasTradeName = !!firstItem.trade_name
+      const hasRevenue = !!firstItem.annual_revenue
+      const hasIndustry = !!firstItem.industry
+      const hasManyFields = Object.keys(firstItem).length > 5
       
-      console.log('[OPX:DataVisualizationAgent] 🎯 hasRichData:', hasRichData)
+      const hasRichData = hasCompanyName || hasTradeName || hasRevenue || hasIndustry || hasManyFields
+      
+      console.log('[OPX:DataVisualizationAgent] 🎴 ========== ANÁLISE DE DADOS RICOS ==========')
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasCompanyName:', hasCompanyName)
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasTradeName:', hasTradeName)
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasRevenue:', hasRevenue)
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasIndustry:', hasIndustry)
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasManyFields (>5):', hasManyFields, '(' + Object.keys(firstItem).length + ' campos)')
+      console.log('[OPX:DataVisualizationAgent] 🎴 ========== DECISÃO FINAL ==========')
+      console.log('[OPX:DataVisualizationAgent] 🎴 hasRichData:', hasRichData)
       
       if (hasRichData) {
-        console.log('[OPX:DataVisualizationAgent] 🎴 Criando FLOATING CARDS para dados ricos...')
+        console.log('[OPX:DataVisualizationAgent] 🎴 ✅ ✅ ✅ CRIANDO FLOATING CARDS! ✅ ✅ ✅')
         const floatingCardsViz = {
           type: 'floating-cards',
-          data: actionResult.results,
+          data: dataSource,
           config: {
-            title: actionResult.summary || 'Resultados da Consulta',
+            title: actionResult.summary || 'Empresas',
             dataType: firstItem.company_name ? 'companies' : 'generic'
           }
         }
         visualizations.push(floatingCardsViz)
-        console.log('[OPX:DataVisualizationAgent] ✅ Floating Cards criados:', {
-          type: floatingCardsViz.type,
-          itemCount: floatingCardsViz.data.length,
-          dataType: floatingCardsViz.config.dataType,
-          title: floatingCardsViz.config.title
-        })
+        console.log('[OPX:DataVisualizationAgent] 🎴 ========== FLOATING CARDS CRIADO ==========')
+        console.log('[OPX:DataVisualizationAgent] 🎴 type:', floatingCardsViz.type)
+        console.log('[OPX:DataVisualizationAgent] 🎴 itemCount:', floatingCardsViz.data.length)
+        console.log('[OPX:DataVisualizationAgent] 🎴 dataType:', floatingCardsViz.config.dataType)
+        console.log('[OPX:DataVisualizationAgent] 🎴 title:', floatingCardsViz.config.title)
+        console.log('[OPX:DataVisualizationAgent] ✅ Retornando', visualizations.length, 'visualização(ões)')
         return visualizations
       } else {
-        console.log('[OPX:DataVisualizationAgent] ⚠️ Dados NÃO são ricos o suficiente para floating cards')
+        console.log('[OPX:DataVisualizationAgent] ❌ Dados NÃO são ricos - continuando...')
       }
     } else {
-      console.log('[OPX:DataVisualizationAgent] ⚠️ Condições para floating cards NÃO atendidas')
+      console.log('[OPX:DataVisualizationAgent] ❌ Nenhuma fonte de dados válida - continuando...')
     }
 
     // Para consultas de contagem, criar visualização de card
