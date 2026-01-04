@@ -376,10 +376,10 @@ const SpecialistModule = () => {
           </div>
 
           {!isMinimized && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
-              <div className="lg:col-span-1">
-                <Card className="p-0 overflow-hidden">
+              <div className="lg:col-span-2 flex justify-center">
+                <Card className="p-0 overflow-hidden w-full max-w-2xl">
                   <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '9/16', minHeight: '600px' }} data-tour-id="specialist-video">
                     <video
                       ref={videoRef}
@@ -448,8 +448,8 @@ const SpecialistModule = () => {
                 </Card>
               </div>
 
-              {/* Área de Visualização de Dados */}
-              <div className="lg:col-span-2" data-tour-id="specialist-visualizations">
+              {/* Área Lateral - Histórico e Controles */}
+              <div className="lg:col-span-1" data-tour-id="specialist-visualizations">
                 <DataVisualizationArea visualizations={visualizations} />
               </div>
             </div>
