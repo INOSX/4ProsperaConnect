@@ -376,11 +376,11 @@ const SpecialistModule = () => {
           </div>
 
           {!isMinimized && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
-              <div className="lg:col-span-2 flex justify-center">
-                <Card className="p-0 overflow-hidden w-full max-w-2xl">
-                  <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '9/16', minHeight: '600px' }} data-tour-id="specialist-video">
+              <div className="lg:col-span-9">
+                <Card className="p-0 overflow-hidden">
+                  <div className="relative w-full bg-gray-900 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '600px' }} data-tour-id="specialist-video">
                     <video
                       ref={videoRef}
                       autoPlay
@@ -448,17 +448,15 @@ const SpecialistModule = () => {
                 </Card>
               </div>
 
-              {/* Área Lateral - Histórico e Controles */}
-              <div className="lg:col-span-1" data-tour-id="specialist-visualizations">
-                <DataVisualizationArea visualizations={visualizations} />
+              {/* Área Lateral - Visualizações e Histórico */}
+              <div className="lg:col-span-3 space-y-4">
+                <div data-tour-id="specialist-visualizations">
+                  <DataVisualizationArea visualizations={visualizations} />
+                </div>
+                <div data-tour-id="specialist-history">
+                  <VoiceCommandHistory history={commandHistory} />
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Histórico de Comandos */}
-          {!isMinimized && (
-            <div className="mt-6" data-tour-id="specialist-history">
-              <VoiceCommandHistory history={commandHistory} />
             </div>
           )}
         </Card>
