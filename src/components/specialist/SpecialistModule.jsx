@@ -376,7 +376,7 @@ const SpecialistModule = () => {
           </div>
 
           {!isMinimized && (
-            <>
+            <div className="space-y-6">
               {/* Área do Avatar - FULLSCREEN com Cards Flutuantes */}
               <div className="w-full">
                 <Card className="p-0 overflow-hidden">
@@ -448,16 +448,11 @@ const SpecialistModule = () => {
                 </Card>
               </div>
 
-              {/* Visualizações ABAIXO do Avatar */}
-              <div className="w-full mt-6" data-tour-id="specialist-visualizations">
-                <DataVisualizationArea visualizations={visualizations} />
-              </div>
-
-              {/* Histórico ABAIXO das Visualizações */}
-              <div className="w-full mt-6" data-tour-id="specialist-history">
+              {/* Histórico de Comandos ABAIXO do Avatar */}
+              <div className="w-full" data-tour-id="specialist-history">
                 <VoiceCommandHistory history={commandHistory} />
               </div>
-            </>
+            </div>
           )}
         </Card>
       </div>
