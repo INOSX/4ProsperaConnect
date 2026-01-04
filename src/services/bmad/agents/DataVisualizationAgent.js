@@ -23,6 +23,7 @@ export default class DataVisualizationAgent {
       isCount: actionResult.isCount,
       isAggregate: actionResult.isAggregate,
       isGrouped: actionResult.isGrouped,
+      isList: actionResult.isList,
       isTimeSeries: actionResult.isTimeSeries,
       hasResults: !!actionResult.results,
       resultsCount: Array.isArray(actionResult.results) ? actionResult.results.length : 'N/A',
@@ -84,6 +85,45 @@ export default class DataVisualizationAgent {
         console.log('[OPX:DataVisualizationAgent] ✅ Generated', visualizations.length, 'visualization(s)')
         return visualizations
       }
+    }
+
+    // Para consultas tipo LIST (listar registros individuais)
+    if (actionResult.isList && actionResult.results && actionResult.results.length > 0) {
+      console.log('[OPX:DataVisualizationAgent] 📋 Criando tabela para query tipo LIST...')
+      console.log('[OPX:DataVisualizationAgent] 📊 Dados (primeiros 3):', actionResult.results?.slice(0, 3))
+      
+      // Criar tabela com os dados
+      const keys = Object.keys(actionResult.results[0])
+      const tableViz = {
+        type: 'table',
+        data: {
+          columns: keys,
+          rows: actionResult.results.map(item => keys.map(key => {
+            const value = item[key]
+            // Formatar valores especiais
+            if (value === null || value === undefined) return '-'
+            if (typeof value === 'object') return JSON.stringify(value)
+            if (typeof value === 'number' && key.includes('revenue')) {
+              return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+            }
+            return value
+          }))
+        },
+        config: {
+          title: actionResult.summary || 'Resultados da Consulta',
+          maxRows: 10
+        }
+      }
+      
+      visualizations.push(tableViz)
+      console.log('[OPX:DataVisualizationAgent] ✅ Tabela criada:', {
+        type: tableViz.type,
+        columns: tableViz.data.columns.length,
+        rows: tableViz.data.rows.length,
+        title: tableViz.config.title
+      })
+      console.log('[OPX:DataVisualizationAgent] ✅ Total de visualizações:', visualizations.length)
+      return visualizations
     }
 
     // Para consultas agregadas (média, etc)

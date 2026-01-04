@@ -397,14 +397,16 @@ export default class DatabaseQueryAgent {
             console.log('[OPX:DatabaseQueryAgent] ✅ Todos os resultados:', JSON.stringify(results, null, 2))
             
             // Formatar resultado baseado no tipo de query
-            const isAggregate = queryPlan.queryType === 'aggregate' || queryPlan.aggregationType
+            const isAggregate = queryPlan.queryType === 'aggregate' || !!queryPlan.aggregationType
             const isGrouped = !!queryPlan.groupBy || queryPlan.sqlQuery.toLowerCase().includes('group by')
             const isCount = queryPlan.queryType === 'count' || queryPlan.sqlQuery.toLowerCase().includes('count(')
+            const isList = queryPlan.queryType === 'list' && !isGrouped && !isAggregate
             
             console.log('[OPX:DatabaseQueryAgent] 📊 Classificação do resultado:', {
               isAggregate,
               isGrouped,
               isCount,
+              isList,
               queryType: queryPlan.queryType,
               aggregationType: queryPlan.aggregationType,
               groupBy: queryPlan.groupBy
@@ -419,6 +421,7 @@ export default class DatabaseQueryAgent {
               isAggregate: isAggregate,
               isGrouped: isGrouped,
               isCount: isCount,
+              isList: isList,
               chartConfig: isGrouped ? {
                 chartType: queryPlan.queryType === 'timeSeries' ? 'line' : 'bar',
                 xColumn: queryPlan.groupBy || queryPlan.selectFields?.[0] || Object.keys(results[0] || {})[0],
