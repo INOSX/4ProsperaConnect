@@ -241,25 +241,43 @@ const SpecialistModule = () => {
         }
         
         if (avatars.length > 0) {
-          const dexterAvatar = avatars.find(avatar => 
-            avatar.name === 'Dexter' || 
-            avatar.avatar_name === 'Dexter' ||
-            avatar.id === '1732323365' || 
-            avatar.id === 'Dexter_Casual_Front_public' ||
-            avatar.id === 'Dexter_Lawyer_Sitting_public' ||
-            avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
-            avatar.name === 'Dexter_Lawyer_Sitting_public'
+          // Procurar pelo Bryan Tech Expert primeiro
+          const bryanAvatar = avatars.find(avatar => 
+            avatar.name === 'Bryan' || 
+            avatar.avatar_name === 'Bryan' ||
+            avatar.name?.includes('Bryan') ||
+            avatar.avatar_name?.includes('Bryan') ||
+            avatar.id === 'Bryan_Businessman_Public' ||
+            avatar.id === 'Bryan_Tech_Expert' ||
+            avatar.avatar_name === 'Bryan_Businessman_Public' ||
+            avatar.name === 'Bryan_Businessman_Public'
           )
-          if (dexterAvatar) {
-            dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
-            console.log('🔵 Especialista encontrado:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+          
+          if (bryanAvatar) {
+            dexterAvatarId = bryanAvatar.id || bryanAvatar.avatar_id || bryanAvatar.avatar_name || 'Bryan_Businessman_Public'
+            console.log('🔵 Especialista encontrado (Bryan):', { id: dexterAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
           } else {
-            dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-            console.log('⚠️ Especialista não encontrado na lista, usando fallback:', dexterAvatarId)
+            // Fallback para Dexter se Bryan não estiver disponível
+            const dexterAvatar = avatars.find(avatar => 
+              avatar.name === 'Dexter' || 
+              avatar.avatar_name === 'Dexter' ||
+              avatar.id === '1732323365' || 
+              avatar.id === 'Dexter_Casual_Front_public' ||
+              avatar.id === 'Dexter_Lawyer_Sitting_public' ||
+              avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
+              avatar.name === 'Dexter_Lawyer_Sitting_public'
+            )
+            if (dexterAvatar) {
+              dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Bryan_Businessman_Public'
+              console.log('🔵 Especialista encontrado (Dexter fallback):', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+            } else {
+              dexterAvatarId = 'Bryan_Businessman_Public'
+              console.log('⚠️ Especialista não encontrado na lista, usando fallback Bryan:', dexterAvatarId)
+            }
           }
         } else {
-          dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
-          console.log('⚠️ Nenhum especialista retornado, usando fallback:', dexterAvatarId)
+          dexterAvatarId = 'Bryan_Businessman_Public'
+          console.log('⚠️ Nenhum especialista retornado, usando fallback Bryan:', dexterAvatarId)
         }
       } catch (error) {
         console.warn('⚠️ Erro ao listar especialistas, usando fallback:', error)

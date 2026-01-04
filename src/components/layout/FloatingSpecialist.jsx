@@ -290,6 +290,15 @@ const FloatingSpecialist = () => {
         }
         
         const dexterAvatar = avatars.find(avatar => 
+          avatar.name === 'Bryan' || 
+          avatar.avatar_name === 'Bryan' ||
+          avatar.name?.includes('Bryan') ||
+          avatar.avatar_name?.includes('Bryan') ||
+          avatar.id === 'Bryan_Businessman_Public' ||
+          avatar.id === 'Bryan_Tech_Expert' ||
+          avatar.avatar_name === 'Bryan_Businessman_Public' ||
+          avatar.name === 'Bryan_Businessman_Public' ||
+          // Fallback para Dexter se Bryan não disponível
           avatar.name === 'Dexter' || 
           avatar.avatar_name === 'Dexter' ||
           avatar.id === '1732323365' ||
@@ -299,10 +308,10 @@ const FloatingSpecialist = () => {
           avatar.name === 'Dexter_Lawyer_Sitting_public'
         )
         if (dexterAvatar) {
-          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Dexter_Lawyer_Sitting_public'
+          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Bryan_Businessman_Public'
           console.log('🔵 Especialista encontrado:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
         } else {
-          dexterAvatarId = 'Dexter_Lawyer_Sitting_public'
+          dexterAvatarId = 'Bryan_Businessman_Public'
           console.log('⚠️ Especialista não encontrado na lista, usando fallback:', dexterAvatarId)
         }
       } catch (error) {
