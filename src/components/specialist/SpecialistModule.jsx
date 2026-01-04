@@ -251,6 +251,7 @@ const SpecialistModule = () => {
             // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
             dexterAvatarId = bryanByUUID.avatar_id || bryanByUUID.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
             console.log('🔵 ✅ Bryan encontrado por UUID:', { id: dexterAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
+            console.log('🔵 🎯 Avatar ID que será usado:', dexterAvatarId)
           } else {
             // PRIORIDADE 2: Procurar pelo nome Bryan
             const bryanAvatar = avatars.find(avatar => 
@@ -268,6 +269,12 @@ const SpecialistModule = () => {
               // IMPORTANTE: avatar_id é o UUID, id pode ser o nome público
               dexterAvatarId = bryanAvatar.avatar_id || bryanAvatar.id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
               console.log('🔵 Bryan encontrado por nome:', { id: dexterAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
+              console.log('🔵 🎯 Avatar ID que será usado:', dexterAvatarId)
+              console.log('🔵 🔍 Detalhes do avatar:', { 
+                'avatar.id': bryanAvatar.id, 
+                'avatar.avatar_id': bryanAvatar.avatar_id,
+                'SELECIONADO': dexterAvatarId
+              })
             } else {
               // FALLBACK: Usar UUID diretamente
               dexterAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
