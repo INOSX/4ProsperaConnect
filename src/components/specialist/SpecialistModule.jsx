@@ -58,11 +58,18 @@ const SpecialistModule = () => {
           
           const isConnected = avatarConnectedRef.current
           
-          if (!isConnected) {
+          // Permitir teste sem avatar em modo de desenvolvimento
+          const allowTestWithoutAvatar = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost'
+          
+          if (!isConnected && !allowTestWithoutAvatar) {
             console.warn('⚠️ Especialista não conectado, pulando envio de texto')
             setRecordingStatus('Especialista não conectado. Clique em "Conectar" primeiro.')
             setTimeout(() => setRecordingStatus(''), 3000)
             return
+          }
+          
+          if (!isConnected && allowTestWithoutAvatar) {
+            console.log('🔧 Modo de teste: processando sem avatar')
           }
           
           try {
