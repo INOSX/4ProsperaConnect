@@ -27,6 +27,7 @@ const SpecialistModule = () => {
   const [streamingService] = useState(() => new HeyGenStreamingService())
   const [openaiAssistant, setOpenaiAssistant] = useState(null)
   const [avatarConnected, setAvatarConnected] = useState(false)
+  const [isConnecting, setIsConnecting] = useState(false)
   const avatarConnectedRef = useRef(false)
   const openaiAssistantRef = useRef(null)
   const videoRef = useRef(null)
@@ -182,6 +183,7 @@ const SpecialistModule = () => {
     }
 
     try {
+      setIsConnecting(true)
       setRecordingStatus('Conectando especialista...')
       
       // Inicializar assistente primeiro
@@ -292,8 +294,9 @@ const SpecialistModule = () => {
       // Marcar como conectado mesmo se o stream ainda não estiver pronto
       // O stream pode inicializar em background
       setAvatarConnected(true)
+      setIsConnecting(false)
       isReconnectingRef.current = false
-      
+
       // Tentar configurar o vídeo
       try {
         if (videoRef.current) {
@@ -313,11 +316,12 @@ const SpecialistModule = () => {
           }, 2000)
         }
       } catch (_) {}
-      
+
       setRecordingStatus('Especialista conectado!')
       setTimeout(() => setRecordingStatus(''), 2000)
     } catch (error) {
       console.error('Erro ao conectar especialista:', error)
+      setIsConnecting(false)
       setRecordingStatus('Erro ao conectar: ' + error.message)
       setTimeout(() => setRecordingStatus(''), 3000)
     }
@@ -377,7 +381,14 @@ const SpecialistModule = () => {
                       muted
                       className="w-full h-full object-cover"
                     />
-                    {!avatarConnected && (
+                    {isConnecting && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
+                        <Loader2 className="h-12 w-12 text-blue-500 mb-2 animate-spin" />
+                        <p className="text-sm text-gray-700 font-medium">Conectando especialista...</p>
+                        <p className="text-xs text-gray-500 mt-1">Aguarde um momento</p>
+                      </div>
+                    )}
+                    {!avatarConnected && !isConnecting && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100">
                         <Users className="h-12 w-12 text-gray-400 mb-2" />
                         <p className="text-sm text-gray-500 font-medium">Especialista não conectado</p>
