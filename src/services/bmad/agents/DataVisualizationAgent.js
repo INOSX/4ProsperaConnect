@@ -256,10 +256,31 @@ export default class DataVisualizationAgent {
         console.log('[OPX:DataVisualizationAgent] 📊 Config do gráfico:', JSON.stringify(actionResult.chartConfig, null, 2))
         console.log('[OPX:DataVisualizationAgent] 📊 Dados do gráfico (primeiros 3):', actionResult.results?.slice(0, 3))
         
+        // Melhorar título do gráfico
+        let chartTitle = actionResult.chartConfig.title || actionResult.summary || 'Gráfico'
+        
+        // Se o título for muito técnico ou longo, simplificar
+        if (chartTitle.includes('Esta consulta') || chartTitle.includes('Consulta para') || chartTitle.length > 60) {
+          // Detectar tipo de agrupamento pelo yColumn
+          const yCol = actionResult.chartConfig.yColumn || ''
+          if (yCol.includes('colaborador') || yCol.includes('employee')) {
+            chartTitle = 'Colaboradores por Empresa'
+          } else if (yCol.includes('quantidade') || yCol.includes('count')) {
+            chartTitle = 'Distribuição de Dados'
+          } else if (yCol.includes('revenue') || yCol.includes('receita')) {
+            chartTitle = 'Receita por Empresa'
+          } else {
+            chartTitle = 'Análise de Dados'
+          }
+        }
+        
         const chartViz = {
           type: 'chart',
           data: actionResult.results,
-          config: actionResult.chartConfig
+          config: {
+            ...actionResult.chartConfig,
+            title: chartTitle
+          }
         }
         
         visualizations.push(chartViz)

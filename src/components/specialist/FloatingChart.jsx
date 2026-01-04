@@ -161,7 +161,7 @@ export default function FloatingChart({ data, config }) {
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
     >
-      <div className="bg-gradient-to-br from-indigo-600/95 to-purple-600/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+      <div className="bg-gradient-to-br from-indigo-600/70 to-purple-600/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
         {/* Header */}
         <div className="bg-white/10 backdrop-blur-md px-6 py-4 border-b border-white/20">
           <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export default function FloatingChart({ data, config }) {
             </div>
             <div className="flex-1">
               <h3 className="text-white font-semibold text-lg truncate">
-                {title}
+                {title.length > 60 ? title.substring(0, 60) + '...' : title}
               </h3>
               <p className="text-white/70 text-sm">
                 {data.length} {data.length === 1 ? 'registro' : 'registros'}
