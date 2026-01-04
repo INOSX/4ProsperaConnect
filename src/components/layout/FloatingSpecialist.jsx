@@ -289,34 +289,38 @@ const FloatingSpecialist = () => {
           throw new Error('listAvatars não retornou um array')
         }
         
-        const dexterAvatar = avatars.find(avatar => 
-          avatar.name === 'Bryan' || 
-          avatar.avatar_name === 'Bryan' ||
-          avatar.name?.includes('Bryan') ||
-          avatar.avatar_name?.includes('Bryan') ||
-          avatar.id === 'Bryan_Businessman_Public' ||
-          avatar.id === 'Bryan_Tech_Expert' ||
-          avatar.avatar_name === 'Bryan_Businessman_Public' ||
-          avatar.name === 'Bryan_Businessman_Public' ||
-          // Fallback para Dexter se Bryan não disponível
-          avatar.name === 'Dexter' || 
-          avatar.avatar_name === 'Dexter' ||
-          avatar.id === '1732323365' ||
-          avatar.id === 'Dexter_Casual_Front_public' ||
-          avatar.id === 'Dexter_Lawyer_Sitting_public' ||
-          avatar.avatar_name === 'Dexter_Lawyer_Sitting_public' ||
-          avatar.name === 'Dexter_Lawyer_Sitting_public'
+        // PRIORIDADE 1: Buscar pelo UUID específico do Bryan
+        const bryanByUUID = avatars.find(avatar => 
+          avatar.id === '64b526e4-741c-43b6-a918-4e40f3261c7a' ||
+          avatar.avatar_id === '64b526e4-741c-43b6-a918-4e40f3261c7a'
         )
-        if (dexterAvatar) {
-          dexterAvatarId = dexterAvatar.id || dexterAvatar.avatar_id || dexterAvatar.avatar_name || 'Bryan_Businessman_Public'
-          console.log('🔵 Especialista encontrado:', { id: dexterAvatarId, name: dexterAvatar.name || dexterAvatar.avatar_name })
+        
+        if (bryanByUUID) {
+          dexterAvatarId = bryanByUUID.id || bryanByUUID.avatar_id || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+          console.log('🔵 ✅ Bryan encontrado por UUID:', { id: dexterAvatarId, name: bryanByUUID.name || bryanByUUID.avatar_name })
         } else {
-          dexterAvatarId = 'Bryan_Businessman_Public'
-          console.log('⚠️ Especialista não encontrado na lista, usando fallback:', dexterAvatarId)
+          // PRIORIDADE 2: Procurar pelo nome Bryan
+          const bryanAvatar = avatars.find(avatar => 
+            avatar.name === 'Bryan' || 
+            avatar.avatar_name === 'Bryan' ||
+            avatar.name?.includes('Bryan') ||
+            avatar.avatar_name?.includes('Bryan') ||
+            avatar.id === 'Bryan_Businessman_Public' ||
+            avatar.id === 'Bryan_Tech_Expert'
+          )
+          
+          if (bryanAvatar) {
+            dexterAvatarId = bryanAvatar.id || bryanAvatar.avatar_id || bryanAvatar.avatar_name || '64b526e4-741c-43b6-a918-4e40f3261c7a'
+            console.log('🔵 Bryan encontrado por nome:', { id: dexterAvatarId, name: bryanAvatar.name || bryanAvatar.avatar_name })
+          } else {
+            // FALLBACK: Usar UUID direto
+            dexterAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
+            console.log('⚠️ Bryan não encontrado, usando UUID direto:', dexterAvatarId)
+          }
         }
       } catch (error) {
-        console.warn('⚠️ Erro ao listar especialistas, usando fallback:', error)
-        dexterAvatarId = 'Bryan_Businessman_Public'
+        console.warn('⚠️ Erro ao listar especialistas, usando UUID Bryan direto:', error)
+        dexterAvatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
       }
       
       // Callback para quando o especialista desconectar
