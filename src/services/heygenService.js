@@ -156,10 +156,10 @@ export class HeyGenService {
         voiceId = firstVoice.voice_id || firstVoice.id || (typeof firstVoice === 'string' ? firstVoice : null)
       }
 
-      // Fallback: usar UUID Bryan Tech Expert se nenhum for encontrado
+      // Fallback: usar Bryan Tech Expert (Bryan_IT_Sitting_public) se nenhum for encontrado
       if (!avatarId) {
-        console.warn('No avatar found, using Bryan Tech Expert UUID')
-        avatarId = '64b526e4-741c-43b6-a918-4e40f3261c7a'
+        console.warn('No avatar found, using Bryan Tech Expert')
+        avatarId = 'Bryan_IT_Sitting_public'
       }
 
       if (!voiceId) {
