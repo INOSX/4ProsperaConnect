@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useModule } from '../../contexts/ModuleContext'
 import { useTheme } from '../../contexts/ThemeContext'
+import NotificationCenter from '../notifications/NotificationCenter'
+import { useNotificationMock } from '../../hooks/useNotificationMock'
 import { ClientService } from '../../services/clientService'
 import { isCompanyAdminAny } from '../../services/employeeService'
 import { canAccessProspecting, canAccessCampaigns } from '../../utils/permissions'
@@ -32,6 +34,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate()
   const { getCurrentModule, activeModule } = useModule()
   const { theme, toggleTheme, isDark } = useTheme()
+  const { addRandomNotification } = useNotificationMock()
   const [vectorFiles, setVectorFiles] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [error, setError] = useState(null)
@@ -364,6 +367,20 @@ const Sidebar = ({ isOpen, onClose }) => {
 
           {/* Bottom section */}
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+            {/* 🔔 Notification Center */}
+            <NotificationCenter />
+
+            {/* 🧪 Test Button (Temporário - Remover depois) */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={addRandomNotification}
+                className="w-full text-xs px-3 py-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors font-medium"
+                title="Adicionar notificação de teste"
+              >
+                🧪 Testar Notificação
+              </button>
+            )}
+
             {/* 🌙 Dark Mode Toggle */}
             <button
               onClick={toggleTheme}

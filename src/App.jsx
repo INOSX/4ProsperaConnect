@@ -4,6 +4,7 @@ import { DatasetProvider } from './contexts/DatasetContext'
 import { ModuleProvider } from './contexts/ModuleContext'
 import { TourProvider } from './contexts/TourContext'
 import { ThemeProvider } from './contexts/ThemeContext'
+import { NotificationProvider } from './contexts/NotificationContext'
 import TourProviderComponent from './components/tour/TourProvider'
 import LoginForm from './components/auth/LoginForm'
 import RegisterForm from './components/auth/RegisterForm'
@@ -53,13 +54,14 @@ import { Analytics } from '@vercel/analytics/react'
 function App() {
   return (
     <ThemeProvider>
-      <AuthProvider>
-        <DatasetProvider>
-          <BrowserRouter>
-            <TourProvider>
-              <TourProviderComponent>
-                <ModuleProvider>
-                  <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      <NotificationProvider>
+        <AuthProvider>
+          <DatasetProvider>
+            <BrowserRouter>
+              <TourProvider>
+                <TourProviderComponent>
+                  <ModuleProvider>
+                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
               <Routes>
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
@@ -349,12 +351,13 @@ function App() {
               </Routes>
               <Analytics />
                 </div>
-                </ModuleProvider>
-              </TourProviderComponent>
-            </TourProvider>
-          </BrowserRouter>
-        </DatasetProvider>
-      </AuthProvider>
+                  </ModuleProvider>
+                </TourProviderComponent>
+              </TourProvider>
+            </BrowserRouter>
+          </DatasetProvider>
+        </AuthProvider>
+      </NotificationProvider>
     </ThemeProvider>
   )
 }
