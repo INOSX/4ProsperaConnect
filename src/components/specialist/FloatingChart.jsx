@@ -210,7 +210,7 @@ export default function FloatingChart({ data, config }) {
 
   return (
     <div
-      className={`absolute left-0 right-0 bottom-4 mx-auto max-w-2xl px-4 z-30 transition-all duration-700 ${
+      className={`absolute left-[10px] bottom-4 max-w-2xl px-4 z-30 transition-all duration-700 ${
         isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
       }`}
     >
