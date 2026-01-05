@@ -15,13 +15,19 @@ import {
   TrendingUp,
   Building2,
   Database,
-  Grid3x3
+  Grid3x3,
+  UserPlus,
+  Package,
+  Briefcase,
+  UserCircle,
+  Target,
+  Mail
 } from 'lucide-react'
 
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { getCurrentModule } = useModule()
+  const { getCurrentModule, activeModule } = useModule()
   const [vectorFiles, setVectorFiles] = useState([])
   const [loadingFiles, setLoadingFiles] = useState(false)
   const [error, setError] = useState(null)
@@ -99,6 +105,97 @@ const Sidebar = ({ isOpen, onClose }) => {
     window.addEventListener('storage-updated', onUpdated)
     return () => window.removeEventListener('storage-updated', onUpdated)
   }, [])
+  // 🎯 Submenus dos módulos
+  const moduleSubmenus = {
+    people: [
+      {
+        icon: UserPlus,
+        label: 'Gerenciar Colaboradores',
+        href: '/people/employees',
+        description: 'Adicionar e gerenciar sua equipe',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        hoverColor: 'hover:bg-blue-100'
+      },
+      {
+        icon: Package,
+        label: 'Gerenciar Benefícios',
+        href: '/people/benefits',
+        description: 'Configurar benefícios para colaboradores',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        hoverColor: 'hover:bg-blue-100'
+      },
+      {
+        icon: Briefcase,
+        label: 'Produtos Financeiros',
+        href: '/people/products',
+        description: 'Ver produtos dos colaboradores',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        hoverColor: 'hover:bg-blue-100'
+      },
+      {
+        icon: UserCircle,
+        label: 'Portal do Colaborador',
+        href: '/employees',
+        description: 'Visualizar dashboard dos colaboradores',
+        color: 'text-blue-600',
+        bgColor: 'bg-blue-50',
+        hoverColor: 'hover:bg-blue-100'
+      }
+    ],
+    prospecting: [
+      {
+        icon: Target,
+        label: 'Prospecção CNPJ',
+        href: '/prospecting?tab=cnpj',
+        description: 'Dashboard de prospecção de empresas CNPJ',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        hoverColor: 'hover:bg-green-100'
+      },
+      {
+        icon: UserPlus,
+        label: 'CPF → CNPJ',
+        href: '/prospecting?tab=cpf',
+        description: 'Identificar empresas a partir de CPFs',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        hoverColor: 'hover:bg-green-100'
+      },
+      {
+        icon: Building2,
+        label: 'CNPJ → Cliente',
+        href: '/prospecting?tab=unbanked',
+        description: 'Empresas não bancarizadas ou subexploradas',
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        hoverColor: 'hover:bg-green-100'
+      }
+    ],
+    marketing: [
+      {
+        icon: Settings,
+        label: 'Gerenciar Campanhas',
+        href: '/campaigns',
+        description: 'Visualize e gerencie todas as campanhas',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+        hoverColor: 'hover:bg-purple-100'
+      },
+      {
+        icon: Mail,
+        label: 'Criar Campanha',
+        href: '/campaigns/create',
+        description: 'Criar uma nova campanha de marketing',
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+        hoverColor: 'hover:bg-purple-100'
+      }
+    ]
+  }
+
   // Menu items base - sempre visíveis
   const baseMenuItems = [
     {
@@ -149,6 +246,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   }
 
   const menuItems = [...baseMenuItems, ...additionalMenuItems]
+  
+  // 🎨 Obter submenu do módulo ativo
+  const activeModuleSubmenu = activeModule && moduleSubmenus[activeModule] ? moduleSubmenus[activeModule] : []
 
   return (
     <>
@@ -184,7 +284,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 px-4 py-6 space-y-2">
+          <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             <div className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon
@@ -209,6 +309,49 @@ const Sidebar = ({ isOpen, onClose }) => {
               })}
             </div>
 
+            {/* 🎯 SUBMENU DO MÓDULO ATIVO */}
+            {activeModuleSubmenu.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-gray-200 space-y-1 animate-fade-in">
+                <div className="px-3 mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    {activeModule === 'people' && '👥 Gestão de Pessoas'}
+                    {activeModule === 'prospecting' && '🎯 Prospecção'}
+                    {activeModule === 'marketing' && '📧 Marketing'}
+                  </h3>
+                </div>
+                {activeModuleSubmenu.map((item) => {
+                  const Icon = item.icon
+                  return (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        navigate(item.href)
+                        onClose()
+                      }}
+                      className={`
+                        group flex items-start space-x-3 px-3 py-3 rounded-lg text-sm 
+                        transition-all duration-200 ${item.hoverColor} border border-transparent
+                        hover:border-gray-200 hover:shadow-sm
+                      `}
+                    >
+                      <div className={`mt-0.5 p-1.5 rounded-md ${item.bgColor} group-hover:scale-110 transition-transform duration-200`}>
+                        <Icon className={`h-4 w-4 ${item.color}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 group-hover:text-gray-700">
+                          {item.label}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
+                          {item.description}
+                        </p>
+                      </div>
+                    </a>
+                  )
+                })}
+              </div>
+            )}
 
             {/* Lista de Arquivos do Supabase removida a pedido */}
 
