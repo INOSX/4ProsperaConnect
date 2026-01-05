@@ -2,6 +2,81 @@
  * DataVisualizationAgent - Gera visualizações de dados
  */
 export default class DataVisualizationAgent {
+  /**
+   * Detecta o melhor tipo de gráfico baseado nos dados e contexto
+   * @param {Array} data - Dados para visualização
+   * @param {Object} actionResult - Resultado da ação
+   * @param {string} originalText - Texto original do usuário
+   * @returns {string} Tipo de gráfico ideal ('bar', 'line', 'area', 'pie')
+   */
+  detectBestChartType(data, actionResult, originalText = '') {
+    console.log('[OPX:DataVisualizationAgent] 🎯 Detectando melhor tipo de gráfico...')
+    
+    if (!data || data.length === 0) {
+      return 'bar'
+    }
+
+    // 1. DETECÇÃO EXPLÍCITA DO USUÁRIO
+    const lowerText = originalText.toLowerCase()
+    if (lowerText.includes('pizza') || lowerText.includes('pie')) {
+      console.log('[OPX:DataVisualizationAgent] 🎯 Usuário pediu PIZZA explicitamente')
+      return 'pie'
+    }
+    if (lowerText.includes('linha') || lowerText.includes('line')) {
+      console.log('[OPX:DataVisualizationAgent] 🎯 Usuário pediu LINHA explicitamente')
+      return 'line'
+    }
+    if (lowerText.includes('área') || lowerText.includes('area')) {
+      console.log('[OPX:DataVisualizationAgent] 🎯 Usuário pediu ÁREA explicitamente')
+      return 'area'
+    }
+    if (lowerText.includes('barra') || lowerText.includes('bar')) {
+      console.log('[OPX:DataVisualizationAgent] 🎯 Usuário pediu BARRAS explicitamente')
+      return 'bar'
+    }
+
+    // 2. DADOS TEMPORAIS → Line ou Area
+    const firstItem = data[0]
+    const keys = Object.keys(firstItem)
+    const hasTimeColumn = keys.some(key => 
+      key.includes('date') || 
+      key.includes('time') || 
+      key.includes('period') ||
+      key.includes('ano') ||
+      key.includes('mes') ||
+      key.includes('year') ||
+      key.includes('month')
+    )
+    
+    if (hasTimeColumn || actionResult.isTimeSeries) {
+      // Se mencionar crescimento/tendência/evolução → Area
+      if (lowerText.includes('crescimento') || 
+          lowerText.includes('tendência') || 
+          lowerText.includes('tendencia') ||
+          lowerText.includes('evolução') ||
+          lowerText.includes('evolucao')) {
+        console.log('[OPX:DataVisualizationAgent] 🎯 Dados temporais com tendência → ÁREA')
+        return 'area'
+      }
+      console.log('[OPX:DataVisualizationAgent] 🎯 Dados temporais → LINHA')
+      return 'line'
+    }
+
+    // 3. POUCOS DADOS CATEGÓRICOS (≤ 6) → Pie Chart
+    if (data.length <= 6 && data.length >= 2) {
+      // Verificar se tem dados numéricos válidos
+      const yColumn = keys.find(k => typeof firstItem[k] === 'number')
+      if (yColumn) {
+        console.log('[OPX:DataVisualizationAgent] 🎯 Poucos dados categóricos (', data.length, ') → PIZZA')
+        return 'pie'
+      }
+    }
+
+    // 4. DISTRIBUIÇÃO/COMPARAÇÃO → Bar Chart (padrão)
+    console.log('[OPX:DataVisualizationAgent] 🎯 Dados categóricos ou agrupamento → BARRAS')
+    return 'bar'
+  }
+
   async generateVisualizations(actionResult, intent, originalText = '') {
     console.log('[OPX:DataVisualizationAgent] 📊 ========== GERANDO VISUALIZAÇÕES ==========')
     console.log('[OPX:DataVisualizationAgent] 📝 Input:', {
@@ -256,6 +331,17 @@ export default class DataVisualizationAgent {
         console.log('[OPX:DataVisualizationAgent] 📊 Config do gráfico:', JSON.stringify(actionResult.chartConfig, null, 2))
         console.log('[OPX:DataVisualizationAgent] 📊 Dados do gráfico (primeiros 3):', actionResult.results?.slice(0, 3))
         
+        // 🎯 PRIORIDADE 1: Usar tipo sugerido pelo QueryPlanningAgent (se disponível)
+        let chartType = actionResult.chartConfig.suggestedChartType || actionResult.chartConfig.chartType
+        
+        // 🎯 PRIORIDADE 2: Detectar automaticamente se não foi sugerido
+        if (!chartType || chartType === 'bar') {
+          chartType = this.detectBestChartType(actionResult.results, actionResult, originalText)
+          console.log('[OPX:DataVisualizationAgent] 🎯 Tipo de gráfico auto-detectado:', chartType)
+        } else {
+          console.log('[OPX:DataVisualizationAgent] 🎯 Tipo de gráfico sugerido pelo QueryPlanner:', chartType)
+        }
+        
         // Melhorar título do gráfico
         let chartTitle = actionResult.chartConfig.title || actionResult.summary || 'Gráfico'
         
@@ -279,6 +365,7 @@ export default class DataVisualizationAgent {
           data: actionResult.results,
           config: {
             ...actionResult.chartConfig,
+            chartType: chartType, // 🎯 Usar tipo sugerido ou detectado
             title: chartTitle
           }
         }
@@ -319,16 +406,21 @@ export default class DataVisualizationAgent {
     // Para consultas temporais (gráficos)
     if (actionResult.isTimeSeries && actionResult.results && actionResult.results.length > 0) {
       const chartData = this.prepareChartData(actionResult.results)
+      
+      // 🎯 DETECTAR AUTOMATICAMENTE O MELHOR TIPO DE GRÁFICO
+      const detectedChartType = this.detectBestChartType(actionResult.results, actionResult, originalText)
+      console.log('[OPX:DataVisualizationAgent] 🎯 Tipo de gráfico detectado para time series:', detectedChartType)
+      
       const config = actionResult.chartConfig || {
-        chartType: 'line',
+        chartType: detectedChartType,
         title: actionResult.summary || 'Gráfico Temporal',
         xColumn: 'period',
         yColumn: 'count'
       }
       
-      // Garantir que chartType está definido
+      // Se não tem chartType definido, usar o detectado
       if (!config.chartType) {
-        config.chartType = 'line'
+        config.chartType = detectedChartType
       }
       
       console.log('[OPX:DataVisualizationAgent] 📊 Creating time series chart:', config.chartType, 'with', chartData.length, 'data points')

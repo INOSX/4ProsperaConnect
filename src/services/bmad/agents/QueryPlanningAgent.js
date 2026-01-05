@@ -133,6 +133,19 @@ IMPORTANTE SOBRE A QUERY SQL:
 
 **NUNCA retorne company_id sozinho em agrupamentos! SEMPRE faça JOIN com companies para trazer company_name.**
 
+INSTRUÇÕES PARA TIPO DE GRÁFICO:
+Escolha o melhor tipo de visualização baseado na consulta:
+- "bar" (Barras): Para comparações categóricas, distribuições, agrupamentos (padrão)
+- "line" (Linha): Para séries temporais sem ênfase em tendência
+- "area" (Área): Para séries temporais com crescimento/tendência/evolução
+- "pie" (Pizza): Para distribuição percentual com poucos dados (2-6 categorias)
+
+Exemplos:
+- "Número de colaboradores por empresa" → "bar"
+- "Evolução de vendas ao longo do tempo" → "area"
+- "Vendas mensais" → "line"
+- "Distribuição por setor" (4 setores) → "pie"
+
 RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
 {
   "queryType": "count|aggregate|timeSeries|semantic|sql|crossTable|list|groupBy",
@@ -147,7 +160,8 @@ RESPONDA APENAS EM JSON NO SEGUINTE FORMATO:
   "description": "Descrição detalhada do que a consulta deve fazer",
   "sqlQuery": "SELECT ... FROM ... WHERE ... GROUP BY ... ORDER BY ...",
   "executionSteps": ["passo1", "passo2", "passo3"],
-  "expectedResultFormat": "array|object|count|chart"
+  "expectedResultFormat": "array|object|count|chart",
+  "suggestedChartType": "bar|line|area|pie"
 }
 
 O campo "sqlQuery" é OBRIGATÓRIO quando strategy for "sql" ou queryType for "sql", "aggregate", "groupBy", "timeSeries" ou "count".

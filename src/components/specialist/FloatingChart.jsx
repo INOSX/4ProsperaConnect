@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { BarChart3, TrendingUp, PieChart, Activity } from 'lucide-react'
+import { BarChart3, TrendingUp, PieChart, Activity, AreaChart } from 'lucide-react'
 import { Bar, Pie, Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -12,6 +12,7 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js'
 
 // Registrar componentes do Chart.js
@@ -24,7 +25,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 )
 
 /**
@@ -69,35 +71,86 @@ export default function FloatingChart({ data, config }) {
 
   const values = data.map(item => item[yColumn] || item.number_of_employees || 0)
 
+  // Cores para cada tipo de gráfico
+  const colors = [
+    'rgba(99, 102, 241, 0.8)',
+    'rgba(139, 92, 246, 0.8)',
+    'rgba(236, 72, 153, 0.8)',
+    'rgba(251, 146, 60, 0.8)',
+    'rgba(34, 197, 94, 0.8)',
+    'rgba(59, 130, 246, 0.8)',
+    'rgba(168, 85, 247, 0.8)',
+    'rgba(244, 63, 94, 0.8)',
+  ]
+
+  const borderColors = [
+    'rgba(99, 102, 241, 1)',
+    'rgba(139, 92, 246, 1)',
+    'rgba(236, 72, 153, 1)',
+    'rgba(251, 146, 60, 1)',
+    'rgba(34, 197, 94, 1)',
+    'rgba(59, 130, 246, 1)',
+    'rgba(168, 85, 247, 1)',
+    'rgba(244, 63, 94, 1)',
+  ]
+
+  // Configurações específicas por tipo de gráfico
+  let datasetConfig = {
+    label: yColumn || 'Valor',
+    data: values,
+  }
+
+  if (chartType === 'area') {
+    // Gráfico de Área: preenchimento com gradiente
+    datasetConfig = {
+      ...datasetConfig,
+      fill: true,
+      backgroundColor: 'rgba(99, 102, 241, 0.3)',
+      borderColor: 'rgba(99, 102, 241, 1)',
+      borderWidth: 3,
+      pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      tension: 0.4, // Curvas suaves
+    }
+  } else if (chartType === 'line') {
+    // Gráfico de Linha: sem preenchimento
+    datasetConfig = {
+      ...datasetConfig,
+      fill: false,
+      backgroundColor: 'rgba(139, 92, 246, 0.8)',
+      borderColor: 'rgba(139, 92, 246, 1)',
+      borderWidth: 3,
+      pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      pointRadius: 5,
+      pointHoverRadius: 7,
+      tension: 0.3,
+    }
+  } else if (chartType === 'pie') {
+    // Gráfico de Pizza: múltiplas cores
+    datasetConfig = {
+      ...datasetConfig,
+      backgroundColor: colors,
+      borderColor: borderColors,
+      borderWidth: 2,
+    }
+  } else {
+    // Gráfico de Barras (padrão): múltiplas cores
+    datasetConfig = {
+      ...datasetConfig,
+      backgroundColor: colors,
+      borderColor: borderColors,
+      borderWidth: 2,
+    }
+  }
+
   const chartData = {
     labels: labels,
-    datasets: [
-      {
-        label: yColumn || 'Valor',
-        data: values,
-        backgroundColor: [
-          'rgba(99, 102, 241, 0.8)',
-          'rgba(139, 92, 246, 0.8)',
-          'rgba(236, 72, 153, 0.8)',
-          'rgba(251, 146, 60, 0.8)',
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(168, 85, 247, 0.8)',
-          'rgba(244, 63, 94, 0.8)',
-        ],
-        borderColor: [
-          'rgba(99, 102, 241, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(236, 72, 153, 1)',
-          'rgba(251, 146, 60, 1)',
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(168, 85, 247, 1)',
-          'rgba(244, 63, 94, 1)',
-        ],
-        borderWidth: 2,
-      },
-    ],
+    datasets: [datasetConfig],
   }
 
   const chartOptions = {
@@ -129,7 +182,7 @@ export default function FloatingChart({ data, config }) {
         }
       },
     },
-    scales: chartType === 'bar' || chartType === 'line' ? {
+    scales: chartType === 'bar' || chartType === 'line' || chartType === 'area' ? {
       y: {
         beginAtZero: true,
         grid: {
@@ -152,8 +205,8 @@ export default function FloatingChart({ data, config }) {
     } : {},
   }
 
-  const ChartComponent = chartType === 'pie' ? Pie : chartType === 'line' ? Line : Bar
-  const ChartIcon = chartType === 'pie' ? PieChart : chartType === 'line' ? Activity : BarChart3
+  const ChartComponent = chartType === 'pie' ? Pie : (chartType === 'line' || chartType === 'area') ? Line : Bar
+  const ChartIcon = chartType === 'pie' ? PieChart : chartType === 'line' ? Activity : chartType === 'area' ? AreaChart : BarChart3
 
   return (
     <div
@@ -178,7 +231,7 @@ export default function FloatingChart({ data, config }) {
             </div>
             <div className="px-2 py-1 bg-white/10 rounded-full">
               <span className="text-xs font-medium text-white uppercase tracking-wide">
-                {chartType === 'bar' ? 'Barras' : chartType === 'pie' ? 'Pizza' : 'Linha'}
+                {chartType === 'bar' ? 'Barras' : chartType === 'pie' ? 'Pizza' : chartType === 'area' ? 'Área' : 'Linha'}
               </span>
             </div>
           </div>

@@ -429,6 +429,7 @@ export default class DatabaseQueryAgent {
               isList: isList,
               chartConfig: isGrouped ? {
                 chartType: queryPlan.queryType === 'timeSeries' ? 'line' : 'bar',
+                suggestedChartType: queryPlan.suggestedChartType, // 🎯 Tipo sugerido pelo QueryPlanner
                 xColumn: queryPlan.groupBy || queryPlan.selectFields?.[0] || Object.keys(results[0] || {})[0],
                 yColumn: queryPlan.aggregationType === 'count' ? 'quantidade' : queryPlan.selectFields?.[1] || Object.keys(results[0] || {})[1],
                 title: queryPlan.description || 'Resultados da consulta'
