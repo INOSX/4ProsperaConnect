@@ -4,13 +4,43 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 🎨 CSS Variables para Dark Mode */
+:root {
+  --bg-primary: #f9fafb;
+  --bg-secondary: #ffffff;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+/* 🌊 Transição suave entre temas */
+.theme-transitioning,
+.theme-transitioning *,
+.theme-transitioning *:before,
+.theme-transitioning *:after {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
 @layer base {
   * {
-    @apply border-gray-200;
+    @apply border-gray-200 dark:border-gray-700;
   }
   
   body {
-    @apply bg-gray-50 text-gray-900 font-sans overflow-x-hidden;
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans overflow-x-hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   html {
@@ -25,28 +55,28 @@
   }
   
   .btn-secondary {
-    @apply bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-300 hover:bg-gray-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-lg font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
   
   .card {
-    @apply bg-white rounded-xl shadow-card border border-gray-100 p-6;
+    @apply bg-white dark:bg-gray-800 rounded-xl shadow-card dark:shadow-gray-900/50 border border-gray-100 dark:border-gray-700 p-6;
   }
   
   .card-hover {
-    @apply card hover:shadow-card-hover transition-shadow duration-200;
+    @apply card hover:shadow-card-hover dark:hover:shadow-gray-900/70 transition-shadow duration-200;
   }
   
   .input {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-all duration-200;
+    @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-xl focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 focus:border-orange-500 dark:focus:border-orange-400 outline-none transition-all duration-200 placeholder:text-gray-400 dark:placeholder:text-gray-500;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
   
   .kpi-card {
-    @apply card bg-gradient-to-br from-orange-500 to-blue-500 text-white;
+    @apply card bg-gradient-to-br from-orange-500 to-blue-500 text-white border-0;
   }
   
   .sidebar {
-    @apply bg-white border-r border-gray-200 h-full;
+    @apply bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 h-full;
   }
   
   .chart-container {
