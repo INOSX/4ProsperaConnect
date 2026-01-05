@@ -43,14 +43,55 @@ export default class DatabaseKnowledgeAgent {
           email: 'TEXT - Email',
           phone: 'TEXT - Telefone',
           position: 'TEXT - Cargo',
+          department: 'TEXT - Departamento',
           salary: 'NUMERIC - Salário',
           hire_date: 'DATE - Data de contratação',
           is_active: 'BOOLEAN - Se está ativo',
           created_at: 'TIMESTAMP - Data de cadastro'
         },
         relationships: {
-          company: 'belongs_to - Um colaborador pertence a uma empresa'
+          company: 'belongs_to - Um colaborador pertence a uma empresa',
+          employee_benefits: 'has_many - Um colaborador pode ter muitos benefícios ativos'
         }
+      },
+      company_benefits: {
+        table: 'company_benefits',
+        description: 'Tabela de benefícios oferecidos pelas empresas',
+        columns: {
+          id: 'UUID - Identificador único',
+          company_id: 'UUID - ID da empresa (FK)',
+          benefit_type: 'TEXT - Tipo de benefício (health_insurance, meal_voucher, transportation, financial_product, education, wellness, other)',
+          name: 'TEXT - Nome do benefício',
+          description: 'TEXT - Descrição',
+          configuration: 'JSONB - Configuração do benefício',
+          eligibility_rules: 'JSONB - Regras de elegibilidade',
+          is_active: 'BOOLEAN - Se está ativo',
+          created_at: 'TIMESTAMP - Data de criação'
+        },
+        relationships: {
+          company: 'belongs_to - Um benefício pertence a uma empresa',
+          employee_benefits: 'has_many - Um benefício pode estar ativo para muitos colaboradores'
+        },
+        notes: 'Esta é a tabela de catálogo de benefícios da empresa. Para saber quais colaboradores têm benefícios, use a tabela employee_benefits'
+      },
+      employee_benefits: {
+        table: 'employee_benefits',
+        description: 'Tabela de benefícios ATIVOS por colaborador (tabela de associação entre employees e company_benefits)',
+        columns: {
+          id: 'UUID - Identificador único',
+          employee_id: 'UUID - ID do colaborador (FK)',
+          company_benefit_id: 'UUID - ID do benefício da empresa (FK)',
+          status: 'TEXT - Status (active, suspended, cancelled, expired)',
+          activation_date: 'DATE - Data de ativação',
+          expiration_date: 'DATE - Data de expiração (opcional)',
+          usage_data: 'JSONB - Dados de uso',
+          created_at: 'TIMESTAMP - Data de criação'
+        },
+        relationships: {
+          employee: 'belongs_to - Pertence a um colaborador',
+          company_benefit: 'belongs_to - Pertence a um benefício da empresa'
+        },
+        notes: 'IMPORTANTE: Para contar colaboradores COM benefícios, faça JOIN employees -> employee_benefits. Para contar colaboradores SEM benefícios, use LEFT JOIN e WHERE employee_benefits.id IS NULL. Para filtrar por tipo de benefício (ex: financeiros/banco), faça JOIN com company_benefits e filtre por benefit_type = \'financial_product\''
       },
       prospects: {
         table: 'prospects',
