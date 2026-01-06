@@ -201,14 +201,18 @@ export default class DataVisualizationAgent {
       console.log('[OPX:DataVisualizationAgent] ❌ Nenhuma fonte de dados válida - continuando...')
     }
 
-    // Para consultas de contagem, criar visualização de card
+    // Para consultas de contagem, criar visualização de tabela
     if (actionResult.isCount) {
       // Se houver visualizationData específica, usar ela
       if (actionResult.visualizationData && actionResult.visualizationData.length > 0) {
-        console.log('[OPX:DataVisualizationAgent] 📊 Creating count card from visualizationData')
+        console.log('[OPX:DataVisualizationAgent] 📊 Creating count table from visualizationData')
+        const keys = Object.keys(actionResult.visualizationData[0])
         visualizations.push({
-          type: 'card',
-          data: actionResult.visualizationData,
+          type: 'table',
+          data: {
+            columns: keys,
+            rows: actionResult.visualizationData.map(item => keys.map(key => item[key]))
+          },
           config: {
             title: actionResult.summary || 'Contagem'
           }
@@ -222,13 +226,13 @@ export default class DataVisualizationAgent {
         const countResult = actionResult.results[0]
         if (countResult.count !== undefined || actionResult.companiesWithoutEmployees !== undefined) {
           const count = countResult.count !== undefined ? countResult.count : actionResult.companiesWithoutEmployees
-          console.log('[OPX:DataVisualizationAgent] 📊 Creating count card visualization:', count)
+          console.log('[OPX:DataVisualizationAgent] 📊 Creating count table visualization:', count)
           visualizations.push({
-            type: 'card',
-            data: [{
-              label: countResult.label || 'Total',
-              value: count
-            }],
+            type: 'table',
+            data: {
+              columns: ['Total'],
+              rows: [[count]]
+            },
             config: {
               title: actionResult.summary || 'Contagem'
             }
@@ -240,13 +244,13 @@ export default class DataVisualizationAgent {
       
       // Se for apenas um count numérico
       if (actionResult.companiesWithoutEmployees !== undefined) {
-        console.log('[OPX:DataVisualizationAgent] 📊 Creating count card from companiesWithoutEmployees')
+        console.log('[OPX:DataVisualizationAgent] 📊 Creating count table from companiesWithoutEmployees')
         visualizations.push({
-          type: 'card',
-          data: [{
-            label: 'Empresas sem Colaboradores',
-            value: actionResult.companiesWithoutEmployees
-          }],
+          type: 'table',
+          data: {
+            columns: ['Empresas sem Colaboradores'],
+            rows: [[actionResult.companiesWithoutEmployees]]
+          },
           config: {
             title: actionResult.summary || 'Contagem'
           }
