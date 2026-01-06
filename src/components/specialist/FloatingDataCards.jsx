@@ -57,7 +57,7 @@ export default function FloatingDataCards({ data = [], type = 'companies' }) {
   }
 
   return (
-    <div className="absolute left-[10px] bottom-4 max-w-2xl px-4 z-30 pointer-events-none">
+    <div className="absolute left-[10px] bottom-[66px] max-w-2xl px-4 z-30 pointer-events-none">
       {/* Gradiente de fade no topo */}
       <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black/40 via-black/20 to-transparent pointer-events-none" />
 
