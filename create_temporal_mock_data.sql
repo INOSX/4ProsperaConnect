@@ -12,7 +12,7 @@
 -- ============================================================
 
 -- ============================================
--- 1. LIMPAR DADOS EXISTENTES (OPCIONAL)
+-- 1. CONFIGURAÇÕES E LIMPEZA INICIAL
 -- ============================================
 
 DO $$
@@ -20,7 +20,13 @@ BEGIN
     RAISE NOTICE '🧹 Limpando dados existentes...';
 END $$;
 
--- Desabilitar triggers temporariamente para performance
+-- Desabilitar RLS (Row Level Security) temporariamente
+ALTER TABLE IF EXISTS public.companies DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.employees DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.company_benefits DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.employee_benefits DISABLE ROW LEVEL SECURITY;
+
+-- Desabilitar triggers temporariamente para evitar validações
 SET session_replication_role = 'replica';
 
 -- Limpar dados de teste antigos (CUIDADO: isso apaga tudo!)
@@ -28,9 +34,6 @@ TRUNCATE TABLE public.employee_benefits CASCADE;
 TRUNCATE TABLE public.company_benefits CASCADE;
 TRUNCATE TABLE public.employees CASCADE;
 TRUNCATE TABLE public.companies CASCADE;
-
--- Reabilitar triggers
-SET session_replication_role = 'origin';
 
 DO $$
 BEGIN
@@ -588,5 +591,25 @@ BEGIN
     RAISE NOTICE '  4. "Quantos colaboradores têm benefícios do banco?"';
     RAISE NOTICE '';
     RAISE NOTICE '🚀 PRONTO PARA O PITCH! 🚀';
+    RAISE NOTICE '';
+END $$;
+
+-- ============================================
+-- 7. RESTAURAR CONFIGURAÇÕES
+-- ============================================
+
+-- Reabilitar triggers
+SET session_replication_role = 'origin';
+
+-- Reabilitar RLS (Row Level Security)
+ALTER TABLE IF EXISTS public.companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.employees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.company_benefits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.employee_benefits ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    RAISE NOTICE '';
+    RAISE NOTICE '🔒 RLS e Triggers reabilitados com sucesso!';
     RAISE NOTICE '';
 END $$;
