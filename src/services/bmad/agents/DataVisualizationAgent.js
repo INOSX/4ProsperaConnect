@@ -443,11 +443,14 @@ export default class DataVisualizationAgent {
       return visualizations
     }
 
-    // Se for array de objetos, criar tabela
+    // Se for array de objetos, criar visualização apropriada
     if (Array.isArray(data) && data.length > 0) {
-      if (data.length <= 10) {
-        // Tabela para poucos itens
-        const keys = Object.keys(data[0])
+      const firstItem = data[0]
+      const keys = Object.keys(firstItem)
+      
+      // 🔍 DETECÇÃO 1: Contagem simples (1 linha, 1 coluna numérica)
+      if (data.length === 1 && keys.length === 1 && typeof firstItem[keys[0]] === 'number') {
+        console.log('[OPX:DataVisualizationAgent] 📊 Contagem simples detectada - criando tabela')
         visualizations.push({
           type: 'table',
           data: {
@@ -455,26 +458,51 @@ export default class DataVisualizationAgent {
             rows: data.map(item => keys.map(key => item[key] ?? ''))
           },
           config: {
-            title: this.getTitleForIntent(intent)
+            title: actionResult.summary || this.getTitleForIntent(intent)
           }
         })
+        console.log('[OPX:DataVisualizationAgent] ✅ Tabela de contagem criada')
+        return visualizations
+      }
+      
+      // 🔍 DETECÇÃO 2: Poucos itens (≤ 10) - Tabela
+      if (data.length <= 10) {
+        console.log('[OPX:DataVisualizationAgent] 📋 Poucos itens (', data.length, ') - criando tabela')
+        visualizations.push({
+          type: 'table',
+          data: {
+            columns: keys,
+            rows: data.map(item => keys.map(key => item[key] ?? ''))
+          },
+          config: {
+            title: actionResult.summary || this.getTitleForIntent(intent),
+            maxRows: 10
+          }
+        })
+        console.log('[OPX:DataVisualizationAgent] ✅ Tabela criada com', data.length, 'linhas')
+        return visualizations
       } else {
-        // Gráfico para muitos itens
-        const keys = Object.keys(data[0])
+        // 🔍 DETECÇÃO 3: Muitos itens (> 10) - Gráfico
+        console.log('[OPX:DataVisualizationAgent] 📊 Muitos itens (', data.length, ') - criando gráfico')
         const chartData = this.prepareChartData(data)
+        const detectedChartType = this.detectBestChartType(data, actionResult, originalText)
+        
         visualizations.push({
           type: 'chart',
           data: chartData,
           config: {
-            chartType: 'bar',
-            title: this.getTitleForIntent(intent),
+            chartType: detectedChartType,
+            title: actionResult.summary || this.getTitleForIntent(intent),
             xColumn: keys[0] || 'x',
             yColumn: keys[1] || 'y'
           }
         })
+        console.log('[OPX:DataVisualizationAgent] ✅ Gráfico criado:', detectedChartType)
+        return visualizations
       }
     } else if (typeof data === 'object' && !Array.isArray(data)) {
       // Cards para objetos únicos
+      console.log('[OPX:DataVisualizationAgent] 📊 Objeto único - criando card')
       visualizations.push({
         type: 'card',
         data: Object.entries(data).map(([key, value]) => ({

@@ -11,6 +11,7 @@ import DataVisualizationArea from './DataVisualizationArea'
 import VoiceCommandHistory from './VoiceCommandHistory'
 import FloatingDataCards from './FloatingDataCards'
 import FloatingChart from './FloatingChart'
+import FloatingTable from './FloatingTable'
 import { 
   Mic, 
   Loader2, 
@@ -483,6 +484,17 @@ const SpecialistModule = () => {
                       <>
                         {console.log('[SpecialistModule] 📊 ✅ ✅ ✅ RENDERIZANDO FLOATING CHART! ✅ ✅ ✅')}
                         <FloatingChart 
+                          data={visualizations[0].data} 
+                          config={visualizations[0].config}
+                        />
+                      </>
+                    )}
+                    
+                    {/* Renderizar Floating Table */}
+                    {visualizations && visualizations.length > 0 && visualizations[0].type === 'table' && (
+                      <>
+                        {console.log('[SpecialistModule] 📋 ✅ ✅ ✅ RENDERIZANDO FLOATING TABLE! ✅ ✅ ✅')}
+                        <FloatingTable 
                           data={visualizations[0].data} 
                           config={visualizations[0].config}
                         />

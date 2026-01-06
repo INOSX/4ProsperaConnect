@@ -11,9 +11,9 @@ export default class VoiceIntentAgent {
       'delete_company': ['deletar empresa', 'remover empresa', 'excluir empresa'],
       'get_company_stats': ['estatísticas empresa', 'dados empresa', 'informações empresa'],
       
-      // Colaboradores
+      // Colaboradores (apenas para ações específicas, não queries genéricas)
       'create_employee': ['criar colaborador', 'adicionar colaborador', 'novo colaborador'],
-      'list_employees': ['listar colaboradores', 'mostrar colaboradores', 'colaboradores'],
+      'list_employees': ['listar colaboradores da empresa', 'mostrar colaboradores da empresa', 'colaboradores da empresa'],
       'update_employee': ['editar colaborador', 'atualizar colaborador'],
       'delete_employee': ['deletar colaborador', 'remover colaborador'],
       
@@ -106,7 +106,34 @@ export default class VoiceIntentAgent {
       return result
     }
     
-    // PRIORIDADE 3: Consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
+    // PRIORIDADE 3: Consultas genéricas sobre empresas/colaboradores (sem especificar ID)
+    const genericQueryKeywords = [
+      'temos alguma', 'existe alguma', 'existe algum', 'tem alguma', 'tem algum',
+      'quais empresas', 'quais colaboradores', 'que empresas', 'que colaboradores',
+      'alguma empresa', 'algum colaborador', 'empresas que', 'colaboradores que',
+      'cujos colaboradores', 'cujas empresas', 'quantas empresas', 'quantos colaboradores'
+    ]
+    const hasGenericQuery = genericQueryKeywords.some(keyword => lowerText.includes(keyword))
+    
+    if (hasGenericQuery) {
+      const params = this.extractParams(text, 'query_database')
+      const result = {
+        intent: 'query_database',
+        params,
+        confidence: 0.95,
+        originalText: text
+      }
+      console.log('[FLX:VoiceIntentAgent] ✅ Intenção classificada (query genérica):', {
+        intent: result.intent,
+        confidence: result.confidence,
+        params: result.params,
+        matchedKeyword: genericQueryKeywords.find(kw => lowerText.includes(kw))
+      })
+      console.log('[FLX:VoiceIntentAgent] 📤 Resultado completo:', JSON.stringify(result, null, 2))
+      return result
+    }
+    
+    // PRIORIDADE 4: Consultas de banco de dados (query_database) para consultas sobre média, gráficos, etc
     const queryKeywords = [
       'média', 'média de', 'average', 'gráfico', 'chart', 
       'por período', 'por mês', 'por ano', 'tendência', 'evolução',
