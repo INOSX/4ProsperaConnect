@@ -23,7 +23,7 @@
 
 ## ⏱️ **HORAS DE DESENVOLVIMENTO**
 
-**Período:** 18 de dezembro de 2024 a 05 de janeiro de 2025  
+**Período:** 18 de dezembro de 2025 a 05 de janeiro de 2026  
 **Carga horária:** 2 horas por dia (incluindo finais de semana)  
 **Total:** 38 horas (19 dias)
 

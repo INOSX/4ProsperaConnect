@@ -59,7 +59,7 @@ A plataforma elimina os 3 principais gargalos na gestão de carteira PMEs:
 
 ### **Contexto do Desenvolvimento:**
 
-**Período:** 18 de dezembro de 2024 a 05 de janeiro de 2025  
+**Período:** 18 de dezembro de 2025 a 05 de janeiro de 2026  
 **Carga horária:** 2 horas por dia (incluindo finais de semana)  
 **Total de dias:** 19 dias  
 **Total de horas:** 38 horas
