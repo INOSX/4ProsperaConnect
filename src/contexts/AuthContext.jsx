@@ -148,27 +148,70 @@ export const AuthProvider = ({ children }) => {
         return { success: false, error: errorMessage }
       }
 
-      // Se o usuário foi criado com sucesso, tentar criar cliente automaticamente
-      // Isso é opcional - o registro não falha se a criação do cliente falhar
+      // ✅ GARANTIR que o cliente seja criado em public.clients
+      // Isso é CRÍTICO para que o usuário tenha acesso à plataforma
       if (data.user) {
         try {
+          // Tentar criar via API (que cria recursos OpenAI também)
           const clientResult = await ClientService.createClient({
             name: userData.full_name || email.split('@')[0],
             email: email,
             userId: data.user.id
           })
 
-          if (!clientResult.success) {
-            console.warn('Usuário criado, mas falha ao criar cliente:', clientResult.error)
-            // Não falhar o registro por causa do cliente, apenas logar o erro
-            // O usuário pode criar o cliente manualmente depois se necessário
+          if (clientResult.success) {
+            console.log('✅ Cliente criado com sucesso (com recursos OpenAI):', data.user.id)
           } else {
-            console.log('Cliente criado com sucesso para o usuário:', data.user.id)
+            console.warn('⚠️ Falha ao criar cliente via API, tentando criação direta...', clientResult.error)
+            
+            // ✅ FALLBACK: Criar registro direto em clients (sem OpenAI)
+            // Isso garante que o usuário tenha acesso mesmo se OpenAI falhar
+            try {
+              const { data: directClient, error: directError } = await supabase
+                .from('clients')
+                .insert({
+                  user_id: data.user.id,
+                  client_code: 'CLI-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                  name: userData.full_name || email.split('@')[0],
+                  email: email,
+                  role: 'admin' // ✅ Sempre admin por padrão
+                })
+                .select()
+                .single()
+              
+              if (directError && directError.code !== '23505') { // Ignorar erro de duplicata
+                console.error('❌ Erro crítico ao criar cliente:', directError)
+              } else {
+                console.log('✅ Cliente criado diretamente (fallback) com sucesso!')
+              }
+            } catch (fallbackError) {
+              console.error('❌ Erro no fallback de criação de cliente:', fallbackError)
+            }
           }
         } catch (clientError) {
-          console.warn('Erro ao criar cliente após registro:', clientError)
-          // Não falhar o registro por causa do cliente
-          // Isso pode acontecer se a tabela clients não existir ainda
+          console.error('❌ Erro ao criar cliente:', clientError)
+          
+          // ✅ ÚLTIMO RECURSO: Garantir que o registro existe
+          try {
+            const { error: emergencyError } = await supabase
+              .from('clients')
+              .upsert({
+                user_id: data.user.id,
+                client_code: 'CLI-' + Math.random().toString(36).substring(2, 10).toUpperCase(),
+                name: userData.full_name || email.split('@')[0],
+                email: email,
+                role: 'admin'
+              }, {
+                onConflict: 'user_id',
+                ignoreDuplicates: true
+              })
+            
+            if (!emergencyError) {
+              console.log('✅ Cliente garantido via upsert de emergência')
+            }
+          } catch (emergencyError) {
+            console.error('❌ Falha total ao criar cliente:', emergencyError)
+          }
         }
       }
       
