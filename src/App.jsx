@@ -15,6 +15,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import AdminRoute from './components/auth/AdminRoute'
 import BankAdminRoute from './components/auth/BankAdminRoute'
 import CompanyAdminRoute from './components/auth/CompanyAdminRoute'
+import SuperAdminRoute from './components/auth/SuperAdminRoute'
 import Layout from './components/layout/Layout'
 import ModuleSelector from './components/modules/ModuleSelector'
 import Dashboard from './components/dashboard/Dashboard'
@@ -64,7 +65,11 @@ function App() {
                     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
               <Routes>
               <Route path="/login" element={<LoginForm />} />
-              <Route path="/register" element={<RegisterForm />} />
+              <Route path="/register" element={
+                <SuperAdminRoute>
+                  <RegisterForm />
+                </SuperAdminRoute>
+              } />
               <Route path="/forgot-password" element={<ForgotPasswordForm />} />
               <Route path="/reset-password" element={<ResetPasswordForm />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
