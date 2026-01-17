@@ -34,12 +34,26 @@ const UserManagement = () => {
   const [actionLoading, setActionLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [stats, setStats] = useState(null)
+  const [searchInput, setSearchInput] = useState('')
   const pageSize = 15
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(searchInput)
+      setCurrentPage(1)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchInput])
 
   useEffect(() => {
     loadUsers()
-    loadStats()
   }, [currentPage, roleFilter, searchTerm, statusFilter])
+
+  useEffect(() => {
+    loadStats()
+  }, [])
 
   const loadUsers = async () => {
     try {
@@ -182,7 +196,7 @@ const UserManagement = () => {
             Gerenciamento de Usuários
           </h1>
           <p className="text-gray-400 mt-1">
-            {totalUsers} usuários • {users.length} nesta página
+            {totalUsers} usuários {searchTerm && `• Buscando por "${searchTerm}"`} {users.length > 0 && `• ${users.length} nesta página`}
           </p>
         </div>
         <button
@@ -265,13 +279,18 @@ const UserManagement = () => {
             <input
               type="text"
               placeholder="Buscar por nome ou email..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value)
-                setCurrentPage(1)
-              }}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
+            {searchInput && (
+              <button
+                onClick={() => setSearchInput('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           {/* Role Filter */}
