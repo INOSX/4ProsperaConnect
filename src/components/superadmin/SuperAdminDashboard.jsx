@@ -25,12 +25,17 @@ const SuperAdminDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
-      const [statsData, activityData] = await Promise.all([
-        superAdminService.getSystemStats(),
-        superAdminService.getRecentActivity({ limit: 10 })
-      ])
+      const statsData = await superAdminService.getSystemStats()
       setStats(statsData)
-      setRecentActivity(activityData)
+      
+      // Tentar carregar atividades recentes, mas não falhar se não houver
+      try {
+        const activityData = await superAdminService.getRecentActivity({ limit: 10 })
+        setRecentActivity(activityData)
+      } catch (err) {
+        console.log('Audit log ainda não configurado:', err)
+        setRecentActivity([])
+      }
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error)
     } finally {
@@ -174,22 +179,21 @@ const SuperAdminDashboard = () => {
             <h2 className="text-xl font-bold text-white mb-4">Atividade Recente</h2>
             <div className="space-y-3 max-h-80 overflow-y-auto">
               {recentActivity.length === 0 ? (
-                <p className="text-gray-500 text-sm">Nenhuma atividade recente</p>
+                <p className="text-gray-500 text-sm">Nenhuma atividade recente (Audit Log não configurado ainda)</p>
               ) : (
                 recentActivity.map((activity) => (
                   <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-900 rounded-lg border border-gray-700">
                     <Users className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{activity.name}</p>
-                      <p className="text-xs text-gray-400 truncate">{activity.email}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-2 py-0.5 rounded text-xs ${roleColors[activity.role]}`}>
-                          {roleNames[activity.role] || activity.role}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(activity.updated_at).toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
+                      <p className="text-sm font-medium text-white truncate">
+                        {activity.action || activity.name}
+                      </p>
+                      <p className="text-xs text-gray-400 truncate">
+                        {activity.user?.email || activity.email || 'Sistema'}
+                      </p>
+                      <span className="text-xs text-gray-500">
+                        {new Date(activity.created_at).toLocaleDateString('pt-BR')}
+                      </span>
                     </div>
                   </div>
                 ))

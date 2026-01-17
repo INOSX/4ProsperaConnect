@@ -131,6 +131,34 @@ export const superAdminService = {
   },
 
   /**
+   * Ativar/Desativar usuário
+   */
+  async toggleUserStatus(userId, isActive) {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .update({ is_active: isActive })
+        .eq('user_id', userId)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Registrar no audit log
+      await this.logAction('TOGGLE_USER_STATUS', {
+        userId,
+        isActive,
+        timestamp: new Date().toISOString()
+      })
+
+      return data
+    } catch (error) {
+      console.error('Erro ao alterar status:', error)
+      throw error
+    }
+  },
+
+  /**
    * Obter todas as empresas
    */
   async getAllCompanies({ page = 1, pageSize = 50, search = '' } = {}) {
@@ -163,14 +191,27 @@ export const superAdminService = {
   /**
    * Obter atividades recentes (audit log)
    */
-  async getRecentActivity({ limit = 20 } = {}) {
+  async getRecentActivity({ limit = 20, action = null, startDate = null, endDate = null } = {}) {
     try {
-      // Por enquanto, vamos simular com dados de created_at/updated_at
-      const { data, error } = await supabase
-        .from('clients')
-        .select('id, name, email, role, created_at, updated_at')
-        .order('updated_at', { ascending: false })
+      let query = supabase
+        .from('audit_logs')
+        .select('*, user:user_id(email)')
+        .order('created_at', { ascending: false })
         .limit(limit)
+
+      if (action) {
+        query = query.eq('action', action)
+      }
+
+      if (startDate) {
+        query = query.gte('created_at', startDate)
+      }
+
+      if (endDate) {
+        query = query.lte('created_at', endDate)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
 
@@ -182,23 +223,73 @@ export const superAdminService = {
   },
 
   /**
-   * Registrar ação no audit log (placeholder - criar tabela depois)
+   * Registrar ação no audit log
    */
-  async logAction(action, details) {
+  async logAction(action, details = {}) {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       
-      console.log('Audit Log:', {
-        action,
-        user_id: user?.id,
-        details,
-        timestamp: new Date().toISOString()
-      })
+      const { error } = await supabase
+        .from('audit_logs')
+        .insert({
+          user_id: user?.id,
+          action,
+          resource_type: details.resourceType || null,
+          resource_id: details.resourceId || null,
+          details,
+          created_at: new Date().toISOString()
+        })
 
-      // TODO: Criar tabela audit_logs e salvar lá
-      // await supabase.from('audit_logs').insert({ ... })
+      if (error) {
+        console.error('Erro ao registrar no audit log:', error)
+      }
     } catch (error) {
       console.error('Erro ao registrar ação:', error)
+    }
+  },
+
+  /**
+   * Obter estatísticas do audit log
+   */
+  async getAuditStats({ startDate = null, endDate = null } = {}) {
+    try {
+      let query = supabase
+        .from('audit_logs')
+        .select('action, created_at')
+
+      if (startDate) {
+        query = query.gte('created_at', startDate)
+      }
+
+      if (endDate) {
+        query = query.lte('created_at', endDate)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      // Contar por ação
+      const actionStats = data.reduce((acc, log) => {
+        acc[log.action] = (acc[log.action] || 0) + 1
+        return acc
+      }, {})
+
+      // Contar por dia
+      const dailyStats = data.reduce((acc, log) => {
+        const date = new Date(log.created_at).toLocaleDateString('pt-BR')
+        acc[date] = (acc[date] || 0) + 1
+        return acc
+      }, {})
+
+      return {
+        total: data.length,
+        byAction: actionStats,
+        byDay: dailyStats
+      }
+    } catch (error) {
+      console.error('Erro ao obter stats do audit:', error)
+      throw error
     }
   }
 }
