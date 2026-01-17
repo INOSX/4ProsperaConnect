@@ -1,14 +1,16 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
 import { useTour } from '../../contexts/TourContext'
+import useSuperAdmin from '../../hooks/useSuperAdmin'
 import Card from '../ui/Card'
-import { Users, Target, Mail, ArrowRight, HelpCircle, X, Bot } from 'lucide-react'
+import { Users, Target, Mail, ArrowRight, HelpCircle, X, Bot, Shield } from 'lucide-react'
 
 const ModuleSelector = () => {
   const navigate = useNavigate()
   const { selectModule, modules } = useModule()
   const { run, startTour, stopTour, steps } = useTour()
+  const { isSuperAdmin, isLoading } = useSuperAdmin()
 
   const handleTourClick = () => {
     if (run) {
@@ -94,6 +96,27 @@ const ModuleSelector = () => {
     }
   ]
 
+  // Adicionar módulo Super Admin apenas se o usuário for super_admin
+  if (isSuperAdmin && !isLoading) {
+    moduleCards.push({
+      id: modules.SUPERADMIN.id,
+      name: modules.SUPERADMIN.name,
+      subtitle: '👑 God Mode',
+      description: modules.SUPERADMIN.description,
+      icon: Shield,
+      color: 'bg-red-600',
+      gradient: 'from-red-600 to-red-800',
+      route: modules.SUPERADMIN.defaultRoute,
+      features: [
+        '⚡ Acesso total ao sistema',
+        '🔍 SQL Console',
+        '👥 Gerenciar todos os usuários',
+        '🏢 Controle de empresas'
+      ],
+      dangerous: true
+    })
+  }
+
   const handleSelectModule = (moduleId, route) => {
     selectModule(moduleId)
     navigate(route)
@@ -136,33 +159,46 @@ const ModuleSelector = () => {
         </div>
 
         {/* Module Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8" data-tour-id="module-selector">
+        <div className={`grid grid-cols-1 md:grid-cols-2 ${isSuperAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-8`} data-tour-id="module-selector">
           {moduleCards.map((module) => {
             const Icon = module.icon
+            const isDangerous = module.dangerous
+            
             return (
               <Card
                 key={module.id}
-                data-tour-id={module.id === 'people' ? 'module-people' : module.id === 'prospecting' ? 'module-prospecting' : module.id === 'marketing' ? 'module-marketing' : 'module-specialist'}
-                className="relative overflow-hidden group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+                data-tour-id={module.id === 'people' ? 'module-people' : module.id === 'prospecting' ? 'module-prospecting' : module.id === 'marketing' ? 'module-marketing' : module.id === 'superadmin' ? 'module-superadmin' : 'module-specialist'}
+                className={`relative overflow-hidden group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+                  isDangerous ? 'border-2 border-red-500 ring-2 ring-red-500/20' : ''
+                }`}
                 onClick={() => handleSelectModule(module.id, module.route)}
                 hover
               >
                 {/* Gradient Background */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${module.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                 
+                {/* Dangerous Badge */}
+                {isDangerous && (
+                  <div className="absolute top-0 right-0 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    ⚡ GOD MODE
+                  </div>
+                )}
+                
                 <div className="relative p-8">
                   {/* Icon */}
-                  <div className={`${module.color} w-16 h-16 rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300`}>
+                  <div className={`${module.color} w-16 h-16 rounded-xl flex items-center justify-center mb-6 transform group-hover:scale-110 transition-transform duration-300 ${
+                    isDangerous ? 'animate-pulse' : ''
+                  }`}>
                     <Icon className="h-8 w-8 text-white" />
                   </div>
 
                   {/* Title */}
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
+                  <h2 className={`text-2xl font-bold mb-1 ${isDangerous ? 'text-red-600' : 'text-gray-900'}`}>
                     {module.name}
                   </h2>
 
                   {/* Subtitle */}
-                  <p className="text-sm font-medium text-gray-500 mb-4">
+                  <p className={`text-sm font-medium mb-4 ${isDangerous ? 'text-red-500' : 'text-gray-500'}`}>
                     {module.subtitle}
                   </p>
 
@@ -182,7 +218,9 @@ const ModuleSelector = () => {
                   </ul>
 
                   {/* CTA Button */}
-                  <div className="flex items-center text-primary-600 font-semibold group-hover:text-primary-700 transition-colors">
+                  <div className={`flex items-center font-semibold transition-colors ${
+                    isDangerous ? 'text-red-600 group-hover:text-red-700' : 'text-primary-600 group-hover:text-primary-700'
+                  }`}>
                     <span>Acessar módulo</span>
                     <ArrowRight className="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" />
                   </div>

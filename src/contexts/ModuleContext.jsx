@@ -39,6 +39,14 @@ const MODULES = {
     description: 'Consultoria inteligente por voz com IA avançada',
     routes: ['/specialist'],
     defaultRoute: '/specialist'
+  },
+  SUPERADMIN: {
+    id: 'superadmin',
+    name: 'Super Admin',
+    description: 'Acesso total à plataforma e banco de dados',
+    routes: ['/superadmin'],
+    defaultRoute: '/superadmin',
+    requiresSuperAdmin: true
   }
 }
 
