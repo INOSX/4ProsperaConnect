@@ -50,6 +50,13 @@ import CampaignDetail from './components/campaigns/CampaignDetail'
 import EditCampaign from './components/campaigns/EditCampaign'
 import SpecialistModule from './components/specialist/SpecialistModule'
 import VectorizationPage from './pages/VectorizationPage'
+// Super Admin Components
+import SuperAdminGuard from './components/superadmin/SuperAdminGuard'
+import SuperAdminLayout from './components/superadmin/SuperAdminLayout'
+import SuperAdminDashboard from './components/superadmin/SuperAdminDashboard'
+import UserManagement from './components/superadmin/UserManagement'
+import CompanyManagement from './components/superadmin/CompanyManagement'
+import SQLConsole from './components/superadmin/SQLConsole'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -353,6 +360,27 @@ function App() {
                 </AdminRoute>
               </ProtectedRoute>
             } />
+            
+            {/* Super Admin Routes */}
+            <Route path="/superadmin/*" element={
+              <SuperAdminGuard>
+                <SuperAdminLayout />
+              </SuperAdminGuard>
+            }>
+              <Route index element={<SuperAdminDashboard />} />
+              <Route path="users" element={<UserManagement />} />
+              <Route path="companies" element={<CompanyManagement />} />
+              <Route path="sql" element={<SQLConsole />} />
+              <Route path="monitor" element={
+                <div className="text-white">Monitor em desenvolvimento (Fase 3)</div>
+              } />
+              <Route path="audit" element={
+                <div className="text-white">Audit Log em desenvolvimento (Fase 2)</div>
+              } />
+              <Route path="settings" element={
+                <div className="text-white">Settings em desenvolvimento (Fase 2)</div>
+              } />
+            </Route>
               </Routes>
               <Analytics />
                 </div>
