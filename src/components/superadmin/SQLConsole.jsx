@@ -200,7 +200,7 @@ const SQLConsole = () => {
             <Terminal className="h-8 w-8 text-red-500" />
             Console SQL
           </h1>
-          <p className="text-gray-400 mt-1">⚠️ Acesso direto ao banco de dados - USE COM EXTREMO CUIDADO</p>
+          <p className="text-gray-400 mt-1">Acesso direto ao banco de dados • Todas as queries são registradas</p>
         </div>
         <div className="flex gap-2">
           <button
@@ -219,22 +219,6 @@ const SQLConsole = () => {
           </button>
         </div>
       </div>
-
-      {/* Warning */}
-      <Card className="bg-red-900/20 border-red-800 p-6">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-6 w-6 text-red-500 mt-1" />
-          <div>
-            <h3 className="text-lg font-bold text-red-500 mb-2">⚠️ ZONA DE PERIGO - MÁXIMA ATENÇÃO</h3>
-            <ul className="text-gray-300 text-sm space-y-1">
-              <li>• Qualquer query pode ser executada: SELECT, INSERT, UPDATE, DELETE, DROP</li>
-              <li>• Não há confirmação para operações destrutivas</li>
-              <li>• Todas as queries são registradas no Audit Log</li>
-              <li>• USE TRANSACTIONS quando necessário: BEGIN; ... COMMIT; ou ROLLBACK;</li>
-            </ul>
-          </div>
-        </div>
-      </Card>
 
       {/* Quick Queries */}
       <Card className="bg-gray-800 border-gray-700 p-6">

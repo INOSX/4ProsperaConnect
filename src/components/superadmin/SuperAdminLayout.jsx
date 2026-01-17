@@ -24,15 +24,12 @@ const SuperAdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-gray-900 to-black">
-      {/* Header com aviso */}
+      {/* Header */}
       <div className="bg-red-600 text-white px-6 py-3 border-b-4 border-red-800">
         <div className="max-w-7xl mx-auto flex items-center gap-3">
           <Shield className="h-6 w-6" />
           <div>
             <span className="font-bold text-lg">SUPER ADMIN MODE</span>
-            <span className="ml-4 text-sm opacity-90">
-              ⚠️ Você tem acesso total ao sistema. Use com responsabilidade.
-            </span>
           </div>
         </div>
       </div>
@@ -70,18 +67,6 @@ const SuperAdminLayout = () => {
               )
             })}
           </nav>
-
-          {/* Footer da sidebar */}
-          <div className="absolute bottom-6 left-3 right-3">
-            <div className="bg-red-900/30 border border-red-800 rounded-lg p-4">
-              <p className="text-xs text-red-400 font-semibold mb-1">
-                ⚠️ ZONA DE PERIGO
-              </p>
-              <p className="text-xs text-gray-400">
-                Todas as ações são registradas e rastreáveis.
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Main Content */}
