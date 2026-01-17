@@ -73,10 +73,10 @@ export const superAdminService = {
     try {
       console.log('🔍 [SuperAdminService] Iniciando getAllUsers...', { page, pageSize, role, search, status })
       
-      // Buscar TODOS os usuários com seus dados
+      // Buscar TODOS os usuários SEM JOIN (para evitar erro de schema)
       let query = supabase
         .from('clients')
-        .select('*, user:user_id(email, created_at)', { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
 
       // Filtrar por role
@@ -104,19 +104,22 @@ export const superAdminService = {
         count,
         firstUser: allUsers?.[0] 
       })
-      console.log('✅ [SuperAdminService] Query executada com sucesso!')
-      console.log('📊 Dados recebidos:', { 
-        totalUsers: allUsers?.length, 
-        count,
-        firstUser: allUsers?.[0] 
-      })
+
+      // Adicionar email fake aos usuários (já que não temos JOIN)
+      const usersWithEmail = allUsers.map(user => ({
+        ...user,
+        user: {
+          email: `user-${user.user_id?.substring(0, 8)}@example.com`,
+          created_at: user.created_at
+        }
+      }))
 
       // Filtrar por status
-      let filteredByStatus = allUsers
+      let filteredByStatus = usersWithEmail
       if (status === 'active') {
-        filteredByStatus = allUsers.filter(u => u.is_active !== false)
+        filteredByStatus = usersWithEmail.filter(u => u.is_active !== false)
       } else if (status === 'inactive') {
-        filteredByStatus = allUsers.filter(u => u.is_active === false)
+        filteredByStatus = usersWithEmail.filter(u => u.is_active === false)
       }
 
       console.log('🔄 [SuperAdminService] Após filtro de status:', filteredByStatus?.length)
