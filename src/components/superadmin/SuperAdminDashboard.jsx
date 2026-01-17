@@ -7,13 +7,20 @@ import {
   Mail,
   TrendingUp,
   Activity,
-  Crown
+  Shield,
+  Terminal,
+  Eye,
+  ArrowRight,
+  BarChart3,
+  Database
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import superAdminService from '../../services/superAdminService'
 import Loading from '../ui/Loading'
 import Card from '../ui/Card'
 
 const SuperAdminDashboard = () => {
+  const navigate = useNavigate()
   const [stats, setStats] = useState(null)
   const [recentActivity, setRecentActivity] = useState([])
   const [loading, setLoading] = useState(true)
@@ -28,12 +35,12 @@ const SuperAdminDashboard = () => {
       const statsData = await superAdminService.getSystemStats()
       setStats(statsData)
       
-      // Tentar carregar atividades recentes, mas não falhar se não houver
+      // Carregar atividades recentes
       try {
-        const activityData = await superAdminService.getRecentActivity({ limit: 10 })
+        const activityData = await superAdminService.getRecentActivity({ limit: 5 })
         setRecentActivity(activityData)
       } catch (err) {
-        console.log('Audit log ainda não configurado:', err)
+        console.log('Audit log:', err)
         setRecentActivity([])
       }
     } catch (error) {
@@ -51,49 +58,11 @@ const SuperAdminDashboard = () => {
     )
   }
 
-  const statCards = [
-    {
-      title: 'Total de Usuários',
-      value: stats?.users?.total || 0,
-      icon: Users,
-      color: 'blue',
-      subtitle: `${stats?.users?.byRole?.super_admin || 0} Super Admins, ${stats?.users?.byRole?.bank_manager || 0} Bank Managers`
-    },
-    {
-      title: 'Empresas',
-      value: stats?.companies || 0,
-      icon: Building2,
-      color: 'green',
-      subtitle: 'Empresas cadastradas'
-    },
-    {
-      title: 'Colaboradores',
-      value: stats?.employees || 0,
-      icon: UserCheck,
-      color: 'purple',
-      subtitle: 'Total de funcionários'
-    },
-    {
-      title: 'Prospects',
-      value: stats?.prospects || 0,
-      icon: Target,
-      color: 'orange',
-      subtitle: 'Em prospecção'
-    },
-    {
-      title: 'Campanhas',
-      value: stats?.campaigns || 0,
-      icon: Mail,
-      color: 'pink',
-      subtitle: 'Ativas e finalizadas'
-    }
-  ]
-
   const roleColors = {
-    super_admin: 'bg-red-100 text-red-800 border-red-300',
-    bank_manager: 'bg-blue-100 text-blue-800 border-blue-300',
-    company_manager: 'bg-green-100 text-green-800 border-green-300',
-    company_employee: 'bg-gray-100 text-gray-800 border-gray-300'
+    super_admin: 'bg-red-500 border-red-600',
+    bank_manager: 'bg-blue-500 border-blue-600',
+    company_manager: 'bg-green-500 border-green-600',
+    company_employee: 'bg-gray-500 border-gray-600'
   }
 
   const roleNames = {
@@ -103,72 +72,130 @@ const SuperAdminDashboard = () => {
     company_employee: 'Employee'
   }
 
+  const actionLabels = {
+    UPDATE_USER_ROLE: 'Atualização de Role',
+    TOGGLE_USER_STATUS: 'Alteração de Status',
+    SQL_CONSOLE_QUERY: 'Query SQL Executada'
+  }
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Crown className="h-8 w-8 text-yellow-500" />
-            Super Admin Dashboard
+            <Shield className="h-8 w-8 text-red-500" />
+            Painel de Controle
           </h1>
           <p className="text-gray-400 mt-1">Visão geral completa da plataforma 4Prospera</p>
         </div>
         <button
           onClick={loadDashboardData}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-colors"
         >
           <Activity className="h-4 w-4" />
           Atualizar
         </button>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        {statCards.map((stat) => {
-          const Icon = stat.icon
-          const colorClasses = {
-            blue: 'bg-blue-500',
-            green: 'bg-green-500',
-            purple: 'bg-purple-500',
-            orange: 'bg-orange-500',
-            pink: 'bg-pink-500'
-          }
+      {/* Main Stats - 3 cards maiores */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Users className="h-12 w-12 text-white opacity-80" />
+              <TrendingUp className="h-6 w-6 text-white opacity-60" />
+            </div>
+            <h3 className="text-white opacity-90 text-sm font-medium mb-2">Total de Usuários</h3>
+            <p className="text-5xl font-bold text-white mb-4">{stats?.users?.total || 0}</p>
+            <div className="flex gap-2 flex-wrap">
+              {Object.entries(stats?.users?.byRole || {}).map(([role, count]) => (
+                <span key={role} className="px-2 py-1 bg-white/20 rounded text-white text-xs font-semibold">
+                  {roleNames[role]}: {count}
+                </span>
+              ))}
+            </div>
+          </div>
+        </Card>
 
-          return (
-            <Card key={stat.title} className="bg-gray-800 border-gray-700 hover:border-red-500 transition-all">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`${colorClasses[stat.color]} p-3 rounded-lg`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                </div>
-                <h3 className="text-gray-400 text-sm font-medium mb-1">{stat.title}</h3>
-                <p className="text-3xl font-bold text-white mb-2">{stat.value}</p>
-                <p className="text-xs text-gray-500">{stat.subtitle}</p>
-              </div>
-            </Card>
-          )
-        })}
+        <Card className="bg-gradient-to-br from-green-600 to-green-700 border-green-500">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Building2 className="h-12 w-12 text-white opacity-80" />
+              <BarChart3 className="h-6 w-6 text-white opacity-60" />
+            </div>
+            <h3 className="text-white opacity-90 text-sm font-medium mb-2">Empresas Cadastradas</h3>
+            <p className="text-5xl font-bold text-white mb-4">{stats?.companies || 0}</p>
+            <p className="text-white opacity-80 text-sm">
+              {stats?.employees || 0} colaboradores totais
+            </p>
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-600 to-purple-700 border-purple-500">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <Database className="h-12 w-12 text-white opacity-80" />
+              <Activity className="h-6 w-6 text-white opacity-60" />
+            </div>
+            <h3 className="text-white opacity-90 text-sm font-medium mb-2">Dados no Sistema</h3>
+            <p className="text-5xl font-bold text-white mb-4">
+              {((stats?.prospects || 0) + (stats?.campaigns || 0)).toLocaleString()}
+            </p>
+            <p className="text-white opacity-80 text-sm">
+              {stats?.prospects || 0} prospects • {stats?.campaigns || 0} campanhas
+            </p>
+          </div>
+        </Card>
       </div>
 
-      {/* Users by Role */}
+      {/* Secondary Stats - Grid de 2 colunas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Users by Role - Detailed */}
         <Card className="bg-gray-800 border-gray-700">
           <div className="p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Usuários por Role</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-500" />
+                Distribuição de Usuários
+              </h2>
+              <button
+                onClick={() => navigate('/superadmin/users')}
+                className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-1"
+              >
+                Ver todos <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
             <div className="space-y-3">
-              {Object.entries(stats?.users?.byRole || {}).map(([role, count]) => (
-                <div key={role} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-xs font-semibold border ${roleColors[role]}`}>
-                      {roleNames[role] || role}
-                    </div>
-                  </div>
-                  <span className="text-2xl font-bold text-white">{count}</span>
-                </div>
-              ))}
+              {Object.entries(stats?.users?.byRole || {}).length === 0 ? (
+                <p className="text-gray-500 text-sm">Nenhum usuário cadastrado</p>
+              ) : (
+                Object.entries(stats?.users?.byRole || {})
+                  .sort(([, a], [, b]) => b - a)
+                  .map(([role, count]) => {
+                    const percentage = ((count / stats.users.total) * 100).toFixed(1)
+                    return (
+                      <div key={role}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full ${roleColors[role]}`}></div>
+                            <span className="text-white text-sm font-medium">
+                              {roleNames[role] || role}
+                            </span>
+                          </div>
+                          <span className="text-white font-bold">{count}</span>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full ${roleColors[role]}`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">{percentage}% do total</p>
+                      </div>
+                    )
+                  })
+              )}
             </div>
           </div>
         </Card>
@@ -176,24 +203,51 @@ const SuperAdminDashboard = () => {
         {/* Recent Activity */}
         <Card className="bg-gray-800 border-gray-700">
           <div className="p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Atividade Recente</h2>
-            <div className="space-y-3 max-h-80 overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Activity className="h-5 w-5 text-purple-500" />
+                Atividade Recente
+              </h2>
+              <button
+                onClick={() => navigate('/superadmin/audit')}
+                className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-1"
+              >
+                Ver audit log <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
               {recentActivity.length === 0 ? (
-                <p className="text-gray-500 text-sm">Nenhuma atividade recente (Audit Log não configurado ainda)</p>
+                <div className="text-center py-8">
+                  <Activity className="h-12 w-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">
+                    Nenhuma atividade registrada ainda
+                  </p>
+                  <p className="text-gray-600 text-xs mt-1">
+                    Ações serão exibidas aqui
+                  </p>
+                </div>
               ) : (
                 recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-900 rounded-lg border border-gray-700">
-                    <Users className="h-5 w-5 text-gray-400 mt-0.5" />
+                  <div key={activity.id} className="flex items-start gap-3 p-3 bg-gray-900 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors">
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.action === 'SQL_CONSOLE_QUERY' ? (
+                        <Terminal className="h-5 w-5 text-orange-500" />
+                      ) : activity.action === 'UPDATE_USER_ROLE' ? (
+                        <Shield className="h-5 w-5 text-blue-500" />
+                      ) : (
+                        <Activity className="h-5 w-5 text-gray-400" />
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
-                        {activity.action || activity.name}
+                      <p className="text-sm font-medium text-white">
+                        {actionLabels[activity.action] || activity.action}
                       </p>
-                      <p className="text-xs text-gray-400 truncate">
-                        {activity.user?.email || activity.email || 'Sistema'}
+                      <p className="text-xs text-gray-400 mt-1">
+                        Por: {activity.user?.email || 'Sistema'}
                       </p>
-                      <span className="text-xs text-gray-500">
-                        {new Date(activity.created_at).toLocaleDateString('pt-BR')}
-                      </span>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {new Date(activity.created_at).toLocaleString('pt-BR')}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -203,30 +257,69 @@ const SuperAdminDashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Modernizado */}
       <Card className="bg-gray-800 border-gray-700">
         <div className="p-6">
-          <h2 className="text-xl font-bold text-white mb-4">Ações Rápidas</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button className="p-4 bg-gray-900 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors text-left">
-              <Users className="h-6 w-6 text-blue-500 mb-2" />
-              <p className="text-sm font-medium text-white">Gerenciar Usuários</p>
-              <p className="text-xs text-gray-500 mt-1">Ver todos os usuários</p>
+          <h2 className="text-xl font-bold text-white mb-4">Acesso Rápido</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button
+              onClick={() => navigate('/superadmin/users')}
+              className="p-4 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 border border-blue-500 rounded-lg transition-all text-left group"
+            >
+              <Users className="h-8 w-8 text-white mb-3" />
+              <p className="text-lg font-bold text-white">Gerenciar Usuários</p>
+              <p className="text-sm text-white opacity-80 mt-1">
+                {stats?.users?.total || 0} usuários cadastrados
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-white opacity-90 group-hover:gap-2 transition-all">
+                <span className="text-sm font-medium">Acessar</span>
+                <ArrowRight className="h-4 w-4" />
+              </div>
             </button>
-            <button className="p-4 bg-gray-900 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors text-left">
-              <Building2 className="h-6 w-6 text-green-500 mb-2" />
-              <p className="text-sm font-medium text-white">Ver Empresas</p>
-              <p className="text-xs text-gray-500 mt-1">Todas as empresas</p>
+
+            <button
+              onClick={() => navigate('/superadmin/companies')}
+              className="p-4 bg-gradient-to-br from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 border border-green-500 rounded-lg transition-all text-left group"
+            >
+              <Building2 className="h-8 w-8 text-white mb-3" />
+              <p className="text-lg font-bold text-white">Ver Empresas</p>
+              <p className="text-sm text-white opacity-80 mt-1">
+                {stats?.companies || 0} empresas ativas
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-white opacity-90 group-hover:gap-2 transition-all">
+                <span className="text-sm font-medium">Acessar</span>
+                <ArrowRight className="h-4 w-4" />
+              </div>
             </button>
-            <button className="p-4 bg-gray-900 hover:bg-gray-700 border border-gray-700 rounded-lg transition-colors text-left">
-              <Activity className="h-6 w-6 text-purple-500 mb-2" />
-              <p className="text-sm font-medium text-white">Monitor</p>
-              <p className="text-xs text-gray-500 mt-1">Status do sistema</p>
+
+            <button
+              onClick={() => navigate('/superadmin/monitor')}
+              className="p-4 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 border border-purple-500 rounded-lg transition-all text-left group"
+            >
+              <Activity className="h-8 w-8 text-white mb-3" />
+              <p className="text-lg font-bold text-white">Monitor</p>
+              <p className="text-sm text-white opacity-80 mt-1">
+                Status e métricas do sistema
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-white opacity-90 group-hover:gap-2 transition-all">
+                <span className="text-sm font-medium">Acessar</span>
+                <ArrowRight className="h-4 w-4" />
+              </div>
             </button>
-            <button className="p-4 bg-red-900 hover:bg-red-800 border border-red-700 rounded-lg transition-colors text-left">
-              <Crown className="h-6 w-6 text-yellow-500 mb-2" />
-              <p className="text-sm font-medium text-white">Console SQL</p>
-              <p className="text-xs text-gray-500 mt-1">⚠️ Acesso total ao DB</p>
+
+            <button
+              onClick={() => navigate('/superadmin/sql')}
+              className="p-4 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 border-2 border-red-500 rounded-lg transition-all text-left group"
+            >
+              <Terminal className="h-8 w-8 text-white mb-3" />
+              <p className="text-lg font-bold text-white">Console SQL</p>
+              <p className="text-sm text-white opacity-80 mt-1">
+                Acesso total ao banco de dados
+              </p>
+              <div className="flex items-center gap-1 mt-3 text-white opacity-90 group-hover:gap-2 transition-all">
+                <span className="text-sm font-medium">Acessar</span>
+                <ArrowRight className="h-4 w-4" />
+              </div>
             </button>
           </div>
         </div>
