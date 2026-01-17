@@ -345,9 +345,12 @@ export const superAdminService = {
    */
   async getRecentActivity({ limit = 20, action = null, startDate = null, endDate = null } = {}) {
     try {
+      console.log('🔍 [SuperAdminService] Carregando audit logs...', { limit, action, startDate, endDate })
+      
+      // Buscar TODOS os logs SEM JOIN (para evitar erro de schema)
       let query = supabase
         .from('audit_logs')
-        .select('*, user:user_id(email)')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(limit)
 
@@ -363,13 +366,55 @@ export const superAdminService = {
         query = query.lte('created_at', endDate)
       }
 
+      console.log('📡 [SuperAdminService] Executando query audit logs...')
       const { data, error } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ [SuperAdminService] ERRO na query audit logs:', error)
+        throw error
+      }
 
-      return data
+      console.log('✅ [SuperAdminService] Audit logs carregados:', data?.length)
+
+      // Buscar emails dos usuários separadamente
+      const logsWithUser = await Promise.all(
+        data.map(async (log) => {
+          if (log.user_id) {
+            try {
+              // Buscar na tabela clients
+              const { data: clientData } = await supabase
+                .from('clients')
+                .select('user_id')
+                .eq('user_id', log.user_id)
+                .single()
+              
+              if (clientData) {
+                // Buscar email do auth
+                const { data: userData } = await supabase.auth.admin.getUserById(log.user_id)
+                return {
+                  ...log,
+                  user: {
+                    email: userData?.user?.email || `user-${log.user_id.substring(0, 8)}`
+                  }
+                }
+              }
+            } catch (err) {
+              console.log('⚠️ Não foi possível buscar user:', err)
+            }
+          }
+          return {
+            ...log,
+            user: {
+              email: log.user_id ? `user-${log.user_id.substring(0, 8)}` : 'Sistema'
+            }
+          }
+        })
+      )
+
+      console.log('🎯 [SuperAdminService] Retornando logs com users:', logsWithUser.length)
+      return logsWithUser
     } catch (error) {
-      console.error('Erro ao obter atividades:', error)
+      console.error('❌ [SuperAdminService] ERRO GERAL ao obter atividades:', error)
       throw error
     }
   },
