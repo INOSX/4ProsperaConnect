@@ -31,6 +31,7 @@ const ModuleSelector = () => {
     {
       id: modules.PEOPLE.id,
       name: modules.PEOPLE.name,
+      subtitle: 'Visão da Empresa',
       description: modules.PEOPLE.description,
       icon: Users,
       color: 'bg-blue-500',
@@ -46,6 +47,7 @@ const ModuleSelector = () => {
     {
       id: modules.PROSPECTING.id,
       name: modules.PROSPECTING.name,
+      subtitle: 'Visão do Banco',
       description: modules.PROSPECTING.description,
       icon: Target,
       color: 'bg-green-500',
@@ -61,6 +63,7 @@ const ModuleSelector = () => {
     {
       id: modules.MARKETING.id,
       name: modules.MARKETING.name,
+      subtitle: 'Ferramentas para o banco',
       description: modules.MARKETING.description,
       icon: Mail,
       color: 'bg-purple-500',
@@ -76,6 +79,7 @@ const ModuleSelector = () => {
     {
       id: modules.SPECIALIST.id,
       name: modules.SPECIALIST.name,
+      subtitle: 'Inteligência Artificial Agentic',
       description: modules.SPECIALIST.description,
       icon: Bot,
       color: 'bg-orange-500',
@@ -153,9 +157,14 @@ const ModuleSelector = () => {
                   </div>
 
                   {/* Title */}
-                  <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
                     {module.name}
                   </h2>
+
+                  {/* Subtitle */}
+                  <p className="text-sm font-medium text-gray-500 mb-4">
+                    {module.subtitle}
+                  </p>
 
                   {/* Description */}
                   <p className="text-gray-600 mb-6">
