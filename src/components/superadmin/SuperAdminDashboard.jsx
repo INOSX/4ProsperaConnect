@@ -32,19 +32,25 @@ const SuperAdminDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
+      console.log('🔍 [Dashboard] Carregando dados do dashboard...')
+      
       const statsData = await superAdminService.getSystemStats()
       setStats(statsData)
+      console.log('✅ [Dashboard] Stats carregadas:', statsData)
       
       // Carregar atividades recentes
       try {
         const activityData = await superAdminService.getRecentActivity({ limit: 5 })
         setRecentActivity(activityData)
+        console.log('✅ [Dashboard] Atividades carregadas:', activityData.length)
       } catch (err) {
-        console.log('Audit log:', err)
+        console.log('⚠️ [Dashboard] Audit log não disponível:', err)
         setRecentActivity([])
       }
+      
+      console.log('🎯 [Dashboard] Dashboard carregado com sucesso!')
     } catch (error) {
-      console.error('Erro ao carregar dashboard:', error)
+      console.error('❌ [Dashboard] Erro ao carregar dashboard:', error)
     } finally {
       setLoading(false)
     }
@@ -52,8 +58,11 @@ const SuperAdminDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loading />
+      <div className="flex items-center justify-center h-96 animate-fade-in">
+        <div className="text-center">
+          <Shield className="h-20 w-20 text-red-500 animate-pulse mx-auto mb-4 drop-shadow-glow" />
+          <p className="text-gray-300 text-xl font-medium">Carregando painel de controle...</p>
+        </div>
       </div>
     )
   }
