@@ -20,13 +20,7 @@ import Card from '../ui/Card'
 import Loading from '../ui/Loading'
 import superAdminService from '../../services/superAdminService'
 
-console.log('🔥🔥🔥 UserManagement.jsx CARREGADO! 🔥🔥🔥')
-console.log('⚡ Se você está vendo isso, o arquivo está sendo usado!')
-
 const UserManagement = () => {
-  console.log('🚀🚀🚀 [UserManagement] Componente está MONTANDO AGORA!')
-  console.log('📍 URL atual:', window.location.href)
-  
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -43,15 +37,6 @@ const UserManagement = () => {
   const [searchInput, setSearchInput] = useState('')
   const pageSize = 15
 
-  console.log('📊 [UserManagement] Estado atual:', { 
-    usersCount: users.length, 
-    loading, 
-    totalUsers,
-    searchTerm,
-    roleFilter,
-    statusFilter
-  })
-
   // Debounce search
   useEffect(() => {
     console.log('⏱️ [UserManagement] useEffect debounce executado', { searchInput })
@@ -64,12 +49,10 @@ const UserManagement = () => {
   }, [searchInput])
 
   useEffect(() => {
-    console.log('🔄 [UserManagement] useEffect loadUsers executado')
     loadUsers()
   }, [currentPage, roleFilter, searchTerm, statusFilter])
 
   useEffect(() => {
-    console.log('📈 [UserManagement] useEffect loadStats executado')
     loadStats()
   }, [])
 
@@ -84,9 +67,6 @@ const UserManagement = () => {
         status: statusFilter 
       })
       
-      // ALERT PARA FORÇAR APARECER
-      alert(`🔍 loadUsers() CHAMADO! page=${currentPage}, search="${searchTerm}"`)
-      
       const result = await superAdminService.getAllUsers({
         page: currentPage,
         pageSize,
@@ -97,14 +77,11 @@ const UserManagement = () => {
       
       console.log('✅ Usuários carregados:', result)
       
-      alert(`✅ Resultado: ${result.users.length} usuários, total=${result.total}`)
-      
       setUsers(result.users)
       setTotalPages(result.pages)
       setTotalUsers(result.total)
     } catch (error) {
       console.error('❌ Erro ao carregar usuários:', error)
-      alert(`❌ ERRO: ${error.message}`)
     } finally {
       setLoading(false)
     }
