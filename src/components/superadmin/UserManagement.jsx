@@ -20,8 +20,12 @@ import Card from '../ui/Card'
 import Loading from '../ui/Loading'
 import superAdminService from '../../services/superAdminService'
 
+console.log('🔥🔥🔥 UserManagement.jsx CARREGADO! 🔥🔥🔥')
+console.log('⚡ Se você está vendo isso, o arquivo está sendo usado!')
+
 const UserManagement = () => {
-  console.log('🚀 [UserManagement] Componente montado!')
+  console.log('🚀🚀🚀 [UserManagement] Componente está MONTANDO AGORA!')
+  console.log('📍 URL atual:', window.location.href)
   
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
