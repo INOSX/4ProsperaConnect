@@ -84,6 +84,9 @@ const UserManagement = () => {
         status: statusFilter 
       })
       
+      // ALERT PARA FORÇAR APARECER
+      alert(`🔍 loadUsers() CHAMADO! page=${currentPage}, search="${searchTerm}"`)
+      
       const result = await superAdminService.getAllUsers({
         page: currentPage,
         pageSize,
@@ -94,11 +97,14 @@ const UserManagement = () => {
       
       console.log('✅ Usuários carregados:', result)
       
+      alert(`✅ Resultado: ${result.users.length} usuários, total=${result.total}`)
+      
       setUsers(result.users)
       setTotalPages(result.pages)
       setTotalUsers(result.total)
     } catch (error) {
       console.error('❌ Erro ao carregar usuários:', error)
+      alert(`❌ ERRO: ${error.message}`)
     } finally {
       setLoading(false)
     }
