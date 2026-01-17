@@ -12,6 +12,8 @@ const ModuleSelector = () => {
   const { run, startTour, stopTour, steps } = useTour()
   const { isSuperAdmin, isLoading } = useSuperAdmin()
 
+  console.log('🎯 [ModuleSelector] Estado:', { isSuperAdmin, isLoading })
+
   const handleTourClick = () => {
     if (run) {
       stopTour()
@@ -98,6 +100,7 @@ const ModuleSelector = () => {
 
   // Adicionar módulo Super Admin apenas se o usuário for super_admin
   if (isSuperAdmin && !isLoading) {
+    console.log('✅ [ModuleSelector] Adicionando card Super Admin!')
     moduleCards.push({
       id: modules.SUPERADMIN.id,
       name: modules.SUPERADMIN.name,
@@ -115,7 +118,11 @@ const ModuleSelector = () => {
       ],
       dangerous: true
     })
+  } else {
+    console.log('❌ [ModuleSelector] NÃO adicionando Super Admin:', { isSuperAdmin, isLoading })
   }
+
+  console.log('📋 [ModuleSelector] Total de cards:', moduleCards.length)
 
   const handleSelectModule = (moduleId, route) => {
     selectModule(moduleId)
