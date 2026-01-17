@@ -1,7 +1,8 @@
 -- ==========================================
 -- FIX URGENTE - RLS POLICIES PARA CLIENTS
 -- ==========================================
--- Execute este SQL no Supabase SQL Editor AGORA!
+-- Migration: Fix RLS policies to allow users to read their own data
+-- and super_admin to read/update all data
 
 -- 1. REMOVER TODAS AS POLICIES ANTIGAS
 DROP POLICY IF EXISTS "Users can view own client data" ON public.clients;
@@ -51,36 +52,3 @@ WITH CHECK (
     AND c.role = 'super_admin'
   )
 );
-
--- 5. VERIFICAR SEU USUÁRIO
-SELECT 
-  id,
-  user_id,
-  name,
-  role,
-  created_at
-FROM public.clients
-WHERE user_id = auth.uid();
-
--- 6. VERIFICAR TODAS AS POLICIES
-SELECT 
-  schemaname,
-  tablename,
-  policyname,
-  permissive,
-  roles,
-  cmd
-FROM pg_policies
-WHERE tablename = 'clients'
-ORDER BY policyname;
-
--- 7. VERIFICAR SE VOCÊ É SUPER ADMIN
-SELECT 
-  CASE 
-    WHEN role = 'super_admin' THEN '✅ VOCÊ É SUPER ADMIN!'
-    ELSE '❌ VOCÊ NÃO É SUPER ADMIN - Role: ' || role
-  END as status,
-  name,
-  role
-FROM public.clients
-WHERE user_id = auth.uid();
