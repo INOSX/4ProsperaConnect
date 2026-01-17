@@ -69,32 +69,52 @@ export const superAdminService = {
   /**
    * Obter todos os usuários (com paginação)
    */
-  async getAllUsers({ page = 1, pageSize = 50, role = null, search = '' } = {}) {
+  async getAllUsers({ page = 1, pageSize = 50, role = null, search = '', status = 'all' } = {}) {
     try {
+      // Buscar TODOS os usuários com seus dados
       let query = supabase
         .from('clients')
         .select('*, user:user_id(email, created_at)', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .range((page - 1) * pageSize, page * pageSize - 1)
 
       // Filtrar por role
       if (role) {
         query = query.eq('role', role)
       }
 
-      // Buscar por nome ou email
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
-      }
-
-      const { data, error, count } = await query
+      const { data: allUsers, error, count } = await query
 
       if (error) throw error
 
+      // Filtrar por status
+      let filteredByStatus = allUsers
+      if (status === 'active') {
+        filteredByStatus = allUsers.filter(u => u.is_active !== false)
+      } else if (status === 'inactive') {
+        filteredByStatus = allUsers.filter(u => u.is_active === false)
+      }
+
+      // Se há busca, filtrar por nome OU email
+      let filteredUsers = filteredByStatus
+      if (search && search.trim()) {
+        const searchLower = search.toLowerCase().trim()
+        filteredUsers = filteredByStatus.filter(user => {
+          const name = (user.name || '').toLowerCase()
+          const email = (user.user?.email || '').toLowerCase()
+          return name.includes(searchLower) || email.includes(searchLower)
+        })
+      }
+
+      // Aplicar paginação manualmente
+      const totalFiltered = filteredUsers.length
+      const startIndex = (page - 1) * pageSize
+      const endIndex = startIndex + pageSize
+      const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
       return {
-        users: data,
-        total: count,
-        pages: Math.ceil(count / pageSize)
+        users: paginatedUsers,
+        total: totalFiltered,
+        pages: Math.ceil(totalFiltered / pageSize)
       }
     } catch (error) {
       console.error('Erro ao obter usuários:', error)
