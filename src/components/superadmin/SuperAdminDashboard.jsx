@@ -109,101 +109,73 @@ const SuperAdminDashboard = () => {
         </button>
       </div>
 
-      {/* Main Stats - 3 cards ÉPICOS com animações */}
+      {/* Main Stats - 3 cards no MESMO padrão das outras páginas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card Usuários */}
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <Card className="relative bg-gradient-to-br from-blue-600 to-blue-700 border-2 border-blue-500 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
-            {/* Shimmer Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <div className="relative p-8">
-              <div className="flex items-center justify-between mb-6">
-                <Users className="h-16 w-16 text-white drop-shadow-lg" />
-                <TrendingUp className="h-8 w-8 text-white/60" />
-              </div>
-              <h3 className="text-white text-base font-bold mb-3 uppercase tracking-wide">
-                Total de Usuários
-              </h3>
-              <p className="text-6xl font-black text-white mb-6 drop-shadow-lg">
-                {stats?.users?.total || 0}
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {Object.entries(stats?.users?.byRole || {}).map(([role, count]) => (
-                  <span 
-                    key={role} 
-                    className="px-3 py-1.5 bg-white/30 backdrop-blur-sm rounded-lg text-white text-sm font-bold border border-white/20 hover:bg-white/40 transition-all"
-                  >
-                    {roleNames[role]}: {count}
-                  </span>
-                ))}
-              </div>
+        <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl p-6 hover:scale-105 transition-all hover:shadow-xl hover:shadow-blue-500/20">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-3 bg-blue-600/20 rounded-xl">
+              <Users className="h-10 w-10 text-blue-400" />
             </div>
-          </Card>
+            <TrendingUp className="h-6 w-6 text-green-400" />
+          </div>
+          <p className="text-gray-300 text-sm font-medium mb-1">Total de Usuários</p>
+          <p className="text-6xl font-black text-white drop-shadow-glow mb-4">{stats?.users?.total || 0}</p>
+          <div className="flex gap-2 flex-wrap">
+            {Object.entries(stats?.users?.byRole || {}).map(([role, count]) => (
+              <span 
+                key={role} 
+                className="px-3 py-1.5 bg-gray-700/50 text-gray-300 rounded-lg text-xs font-semibold"
+              >
+                {roleNames[role]}: {count}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* Card Empresas */}
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-green-700 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <Card className="relative bg-gradient-to-br from-green-600 to-green-700 border-2 border-green-500 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
-            {/* Shimmer Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <div className="relative p-8">
-              <div className="flex items-center justify-between mb-6">
-                <Building2 className="h-16 w-16 text-white drop-shadow-lg" />
-                <BarChart3 className="h-8 w-8 text-white/60" />
-              </div>
-              <h3 className="text-white text-base font-bold mb-3 uppercase tracking-wide">
-                Empresas Cadastradas
-              </h3>
-              <p className="text-6xl font-black text-white mb-6 drop-shadow-lg">
-                {stats?.companies || 0}
-              </p>
-              <p className="text-white/90 text-base font-semibold">
-                {stats?.employees || 0} colaboradores totais
-              </p>
+        <div className="bg-gradient-to-br from-green-600/20 to-emerald-800/20 backdrop-blur-sm border border-green-500/30 rounded-2xl p-6 hover:scale-105 transition-all hover:shadow-xl hover:shadow-green-500/20">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-3 bg-green-600/20 rounded-xl">
+              <Building2 className="h-10 w-10 text-green-400" />
             </div>
-          </Card>
+            <BarChart3 className="h-6 w-6 text-green-400" />
+          </div>
+          <p className="text-gray-300 text-sm font-medium mb-1">Empresas Cadastradas</p>
+          <p className="text-6xl font-black text-white drop-shadow-glow mb-4">{stats?.companies || 0}</p>
+          <p className="text-gray-400 text-sm font-medium">
+            {stats?.employees || 0} colaboradores totais
+          </p>
         </div>
 
         {/* Card Dados */}
-        <div className="group relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl blur-xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-          <Card className="relative bg-gradient-to-br from-purple-600 to-purple-700 border-2 border-purple-500 shadow-2xl transform hover:scale-105 transition-all duration-300 overflow-hidden">
-            {/* Shimmer Effect */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-            
-            <div className="relative p-8">
-              <div className="flex items-center justify-between mb-6">
-                <Database className="h-16 w-16 text-white drop-shadow-lg" />
-                <Activity className="h-8 w-8 text-white/60" />
-              </div>
-              <h3 className="text-white text-base font-bold mb-3 uppercase tracking-wide">
-                Dados no Sistema
-              </h3>
-              <p className="text-6xl font-black text-white mb-6 drop-shadow-lg">
-                {((stats?.prospects || 0) + (stats?.campaigns || 0)).toLocaleString()}
-              </p>
-              <p className="text-white/90 text-base font-semibold">
-                {stats?.prospects || 0} prospects • {stats?.campaigns || 0} campanhas
-              </p>
+        <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 backdrop-blur-sm border border-purple-500/30 rounded-2xl p-6 hover:scale-105 transition-all hover:shadow-xl hover:shadow-purple-500/20">
+          <div className="flex items-center justify-between mb-3">
+            <div className="p-3 bg-purple-600/20 rounded-xl">
+              <Database className="h-10 w-10 text-purple-400" />
             </div>
-          </Card>
+            <Activity className="h-6 w-6 text-purple-400" />
+          </div>
+          <p className="text-gray-300 text-sm font-medium mb-1">Dados no Sistema</p>
+          <p className="text-6xl font-black text-white drop-shadow-glow mb-4">{((stats?.prospects || 0) + (stats?.campaigns || 0)).toLocaleString()}</p>
+          <p className="text-gray-400 text-sm font-medium">
+            {stats?.prospects || 0} prospects • {stats?.campaigns || 0} campanhas
+          </p>
         </div>
       </div>
 
-      {/* Secondary Stats - Grid de 2 colunas MELHORADO */}
+      {/* Secondary Stats - Grid de 2 colunas no MESMO padrão */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Users by Role - Detailed */}
-        <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm border-2 border-gray-700 shadow-xl hover:border-blue-500/50 transition-all">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Users className="h-6 w-6 text-blue-400" />
-                Distribuição de Usuários
-              </h2>
+        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-blue-600/10 to-blue-800/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-blue-600/20 rounded-xl">
+                  <Users className="h-6 w-6 text-blue-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Distribuição de Usuários</h2>
+              </div>
               <button
                 onClick={() => navigate('/superadmin/users')}
                 className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-2 font-semibold px-4 py-2 bg-blue-500/20 rounded-lg hover:bg-blue-500/30 transition-all"
@@ -211,50 +183,52 @@ const SuperAdminDashboard = () => {
                 Ver todos <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="space-y-5">
-              {Object.entries(stats?.users?.byRole || {}).length === 0 ? (
-                <p className="text-gray-400 text-base">Nenhum usuário cadastrado</p>
-              ) : (
-                Object.entries(stats?.users?.byRole || {})
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([role, count]) => {
-                    const percentage = ((count / stats.users.total) * 100).toFixed(1)
-                    return (
-                      <div key={role} className="group">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-4 h-4 rounded-full ${roleColors[role]} shadow-lg`}></div>
-                            <span className="text-white text-base font-bold">
-                              {roleNames[role] || role}
-                            </span>
-                          </div>
-                          <span className="text-white font-black text-lg">{count}</span>
-                        </div>
-                        <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden backdrop-blur-sm">
-                          <div
-                            className={`h-3 rounded-full ${roleColors[role]} transition-all duration-1000 ease-out shadow-lg`}
-                            style={{ width: `${percentage}%` }}
-                          />
-                        </div>
-                        <p className="text-sm text-gray-400 mt-2 font-semibold">
-                          {percentage}% do total
-                        </p>
-                      </div>
-                    )
-                  })
-              )}
-            </div>
           </div>
-        </Card>
+          <div className="p-6 space-y-5">
+            {Object.entries(stats?.users?.byRole || {}).length === 0 ? (
+              <p className="text-gray-400 text-base">Nenhum usuário cadastrado</p>
+            ) : (
+              Object.entries(stats?.users?.byRole || {})
+                .sort(([, a], [, b]) => b - a)
+                .map(([role, count]) => {
+                  const percentage = ((count / stats.users.total) * 100).toFixed(1)
+                  return (
+                    <div key={role}>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-4 h-4 rounded-full ${roleColors[role]} shadow-lg`}></div>
+                          <span className="text-white text-base font-bold">
+                            {roleNames[role] || role}
+                          </span>
+                        </div>
+                        <span className="text-white font-black text-lg">{count}</span>
+                      </div>
+                      <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                        <div
+                          className={`h-3 rounded-full ${roleColors[role]} transition-all duration-1000 ease-out`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                      </div>
+                      <p className="text-sm text-gray-400 mt-2 font-semibold">
+                        {percentage}% do total
+                      </p>
+                    </div>
+                  )
+                })
+            )}
+          </div>
+        </div>
 
-        {/* Recent Activity MELHORADO */}
-        <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm border-2 border-gray-700 shadow-xl hover:border-purple-500/50 transition-all">
-          <div className="p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                <Activity className="h-6 w-6 text-purple-400" />
-                Atividade Recente
-              </h2>
+        {/* Recent Activity */}
+        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+          <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-purple-600/10 to-purple-800/10">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-purple-600/20 rounded-xl">
+                  <Activity className="h-6 w-6 text-purple-400" />
+                </div>
+                <h2 className="text-xl font-bold text-white">Atividade Recente</h2>
+              </div>
               <button
                 onClick={() => navigate('/superadmin/audit')}
                 className="text-sm text-purple-400 hover:text-purple-300 flex items-center gap-2 font-semibold px-4 py-2 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition-all"
@@ -262,129 +236,134 @@ const SuperAdminDashboard = () => {
                 Ver audit log <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="space-y-4">
-              {recentActivity.length === 0 ? (
-                <div className="text-center py-12">
-                  <Activity className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400 text-base font-semibold">
-                    Nenhuma atividade registrada ainda
-                  </p>
-                  <p className="text-gray-500 text-sm mt-2">
-                    Ações serão exibidas aqui
-                  </p>
-                </div>
-              ) : (
-                recentActivity.map((activity) => (
-                  <div 
-                    key={activity.id} 
-                    className="flex items-start gap-4 p-4 bg-gradient-to-r from-gray-900/80 to-gray-800/80 backdrop-blur-sm rounded-xl border-2 border-gray-700 hover:border-gray-600 transition-all hover:scale-102 shadow-lg"
-                  >
-                    <div className="flex-shrink-0 mt-1">
-                      {activity.action === 'SQL_CONSOLE_QUERY' ? (
-                        <div className="p-2 bg-orange-500/20 rounded-lg">
-                          <Terminal className="h-6 w-6 text-orange-400" />
-                        </div>
-                      ) : activity.action === 'UPDATE_USER_ROLE' ? (
-                        <div className="p-2 bg-blue-500/20 rounded-lg">
-                          <Shield className="h-6 w-6 text-blue-400" />
-                        </div>
-                      ) : (
-                        <div className="p-2 bg-gray-500/20 rounded-lg">
-                          <Activity className="h-6 w-6 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base font-bold text-white">
-                        {actionLabels[activity.action] || activity.action}
-                      </p>
-                      <p className="text-sm text-gray-300 mt-1 font-medium">
-                        Por: {activity.user?.email || 'Sistema'}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 font-semibold">
-                        {new Date(activity.created_at).toLocaleString('pt-BR')}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
           </div>
-        </Card>
+          <div className="p-6 space-y-4">
+            {recentActivity.length === 0 ? (
+              <div className="text-center py-12">
+                <Activity className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-400 text-base font-semibold">
+                  Nenhuma atividade registrada ainda
+                </p>
+                <p className="text-gray-500 text-sm mt-2">
+                  Ações serão exibidas aqui
+                </p>
+              </div>
+            ) : (
+              recentActivity.map((activity) => (
+                <div 
+                  key={activity.id} 
+                  className="flex items-start gap-4 p-4 bg-gray-900/80 rounded-xl border border-gray-700 hover:border-gray-600 transition-all"
+                >
+                  <div className="flex-shrink-0 mt-1">
+                    {activity.action === 'SQL_CONSOLE_QUERY' ? (
+                      <div className="p-2 bg-orange-500/20 rounded-lg">
+                        <Terminal className="h-6 w-6 text-orange-400" />
+                      </div>
+                    ) : activity.action === 'UPDATE_USER_ROLE' ? (
+                      <div className="p-2 bg-blue-500/20 rounded-lg">
+                        <Shield className="h-6 w-6 text-blue-400" />
+                      </div>
+                    ) : (
+                      <div className="p-2 bg-gray-500/20 rounded-lg">
+                        <Activity className="h-6 w-6 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-bold text-white">
+                      {actionLabels[activity.action] || activity.action}
+                    </p>
+                    <p className="text-sm text-gray-300 mt-1 font-medium">
+                      Por: {activity.user?.email || 'Sistema'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1 font-semibold">
+                      {new Date(activity.created_at).toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Quick Actions - ÉPICO */}
-      <Card className="bg-gradient-to-br from-gray-800/90 to-gray-900/90 backdrop-blur-sm border-2 border-gray-700 shadow-2xl">
-        <div className="p-8">
-          <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
-            <ArrowRight className="h-6 w-6 text-red-500" />
-            Acesso Rápido
-          </h2>
+      {/* Quick Actions - MESMO padrão das outras páginas */}
+      <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-red-600/10 to-red-800/10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-600/20 rounded-xl">
+              <ArrowRight className="h-6 w-6 text-red-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white">Acesso Rápido</h2>
+          </div>
+        </div>
+        <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 icon: Users,
                 title: 'Gerenciar Usuários',
-                stat: `${stats?.users?.total || 0} usuários cadastrados`,
-                gradient: 'from-blue-600 to-blue-700',
-                hoverGradient: 'hover:from-blue-700 hover:to-blue-800',
-                border: 'border-blue-500',
+                stat: `${stats?.users?.total || 0} usuários`,
+                gradient: 'from-blue-600/20 to-blue-800/20',
+                border: 'border-blue-500/30',
+                shadow: 'hover:shadow-blue-500/20',
+                iconColor: 'text-blue-400',
                 route: '/superadmin/users'
               },
               {
                 icon: Building2,
                 title: 'Ver Empresas',
-                stat: `${stats?.companies || 0} empresas ativas`,
-                gradient: 'from-green-600 to-green-700',
-                hoverGradient: 'hover:from-green-700 hover:to-green-800',
-                border: 'border-green-500',
+                stat: `${stats?.companies || 0} empresas`,
+                gradient: 'from-green-600/20 to-emerald-800/20',
+                border: 'border-green-500/30',
+                shadow: 'hover:shadow-green-500/20',
+                iconColor: 'text-green-400',
                 route: '/superadmin/companies'
               },
               {
                 icon: Activity,
                 title: 'Monitor',
-                stat: 'Status e métricas do sistema',
-                gradient: 'from-purple-600 to-purple-700',
-                hoverGradient: 'hover:from-purple-700 hover:to-purple-800',
-                border: 'border-purple-500',
+                stat: 'Status do sistema',
+                gradient: 'from-purple-600/20 to-purple-800/20',
+                border: 'border-purple-500/30',
+                shadow: 'hover:shadow-purple-500/20',
+                iconColor: 'text-purple-400',
                 route: '/superadmin/monitor'
               },
               {
                 icon: Terminal,
                 title: 'Console SQL',
-                stat: 'Acesso total ao banco de dados',
-                gradient: 'from-red-600 to-red-700',
-                hoverGradient: 'hover:from-red-700 hover:to-red-800',
-                border: 'border-red-500',
+                stat: 'Acesso ao banco',
+                gradient: 'from-red-600/20 to-red-800/20',
+                border: 'border-red-500/30',
+                shadow: 'hover:shadow-red-500/20',
+                iconColor: 'text-red-400',
                 route: '/superadmin/sql'
               }
             ].map((action, index) => (
               <button
                 key={index}
                 onClick={() => navigate(action.route)}
-                className={`relative group p-6 bg-gradient-to-br ${action.gradient} ${action.hoverGradient} border-2 ${action.border} rounded-2xl transition-all text-left transform hover:scale-105 hover:-translate-y-1 shadow-xl overflow-hidden`}
+                className={`bg-gradient-to-br ${action.gradient} backdrop-blur-sm border ${action.border} rounded-2xl p-6 hover:scale-105 transition-all hover:shadow-xl ${action.shadow} text-left`}
               >
-                {/* Shimmer Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                
-                <div className="relative">
-                  <action.icon className="h-10 w-10 text-white mb-4 drop-shadow-lg group-hover:scale-110 transition-transform" />
-                  <p className="text-xl font-black text-white mb-2">
-                    {action.title}
-                  </p>
-                  <p className="text-sm text-white/90 font-semibold mb-4">
-                    {action.stat}
-                  </p>
-                  <div className="flex items-center gap-2 text-white font-bold group-hover:gap-3 transition-all">
-                    <span className="text-sm">Acessar</span>
-                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                <div className="p-3 bg-gray-900/50 rounded-xl w-fit mb-4">
+                  <action.icon className={`h-8 w-8 ${action.iconColor}`} />
+                </div>
+                <p className="text-xl font-black text-white mb-2">
+                  {action.title}
+                </p>
+                <p className="text-sm text-gray-400 font-medium mb-4">
+                  {action.stat}
+                </p>
+                <div className="flex items-center gap-2 text-white font-bold group">
+                  <span className="text-sm">Acessar</span>
+                  <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </button>
             ))}
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Custom CSS for Animations */}
       <style jsx>{`
