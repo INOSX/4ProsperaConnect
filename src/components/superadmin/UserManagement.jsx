@@ -58,26 +58,29 @@ const UserManagement = () => {
   const loadUsers = async () => {
     try {
       setLoading(true)
+      console.log('🔍 Carregando usuários...', { 
+        page: currentPage, 
+        pageSize, 
+        role: roleFilter, 
+        search: searchTerm,
+        status: statusFilter 
+      })
+      
       const result = await superAdminService.getAllUsers({
         page: currentPage,
         pageSize,
         role: roleFilter || null,
-        search: searchTerm
+        search: searchTerm,
+        status: statusFilter
       })
       
-      // Filtrar por status se necessário
-      let filteredUsers = result.users
-      if (statusFilter === 'active') {
-        filteredUsers = result.users.filter(u => u.is_active !== false)
-      } else if (statusFilter === 'inactive') {
-        filteredUsers = result.users.filter(u => u.is_active === false)
-      }
+      console.log('✅ Usuários carregados:', result)
       
-      setUsers(filteredUsers)
+      setUsers(result.users)
       setTotalPages(result.pages)
       setTotalUsers(result.total)
     } catch (error) {
-      console.error('Erro ao carregar usuários:', error)
+      console.error('❌ Erro ao carregar usuários:', error)
     } finally {
       setLoading(false)
     }
