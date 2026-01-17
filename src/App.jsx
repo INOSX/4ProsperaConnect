@@ -59,6 +59,7 @@ import CompanyManagement from './components/superadmin/CompanyManagement'
 import SQLConsole from './components/superadmin/SQLConsole'
 import AuditLog from './components/superadmin/AuditLog'
 import SuperAdminSettings from './components/superadmin/SuperAdminSettings'
+import SystemMonitor from './components/superadmin/SystemMonitor'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -373,9 +374,7 @@ function App() {
               <Route path="users" element={<UserManagement />} />
               <Route path="companies" element={<CompanyManagement />} />
               <Route path="sql" element={<SQLConsole />} />
-              <Route path="monitor" element={
-                <div className="text-white">Monitor em desenvolvimento (Fase 3)</div>
-              } />
+              <Route path="monitor" element={<SystemMonitor />} />
               <Route path="audit" element={<AuditLog />} />
               <Route path="settings" element={<SuperAdminSettings />} />
             </Route>

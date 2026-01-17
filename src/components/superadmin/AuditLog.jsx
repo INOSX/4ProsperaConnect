@@ -68,6 +68,7 @@ const AuditLog = () => {
     DELETE_USER: Trash2,
     UPDATE_COMPANY: Edit,
     VIEW_DETAILS: Eye,
+    SQL_CONSOLE_QUERY: FileText,
     DEFAULT: FileText
   }
 
@@ -78,6 +79,7 @@ const AuditLog = () => {
     DELETE_USER: 'text-red-500 bg-red-500/10',
     UPDATE_COMPANY: 'text-purple-500 bg-purple-500/10',
     VIEW_DETAILS: 'text-gray-500 bg-gray-500/10',
+    SQL_CONSOLE_QUERY: 'text-orange-500 bg-orange-500/10',
     DEFAULT: 'text-gray-500 bg-gray-500/10'
   }
 
@@ -87,7 +89,8 @@ const AuditLog = () => {
     CREATE_USER: 'Criação de Usuário',
     DELETE_USER: 'Exclusão de Usuário',
     UPDATE_COMPANY: 'Atualização de Empresa',
-    VIEW_DETAILS: 'Visualização de Detalhes'
+    VIEW_DETAILS: 'Visualização de Detalhes',
+    SQL_CONSOLE_QUERY: 'Execução de Query SQL'
   }
 
   const getActionIcon = (action) => {
