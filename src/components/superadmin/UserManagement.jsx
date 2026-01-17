@@ -21,6 +21,8 @@ import Loading from '../ui/Loading'
 import superAdminService from '../../services/superAdminService'
 
 const UserManagement = () => {
+  console.log('🚀 [UserManagement] Componente montado!')
+  
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -37,8 +39,18 @@ const UserManagement = () => {
   const [searchInput, setSearchInput] = useState('')
   const pageSize = 15
 
+  console.log('📊 [UserManagement] Estado atual:', { 
+    usersCount: users.length, 
+    loading, 
+    totalUsers,
+    searchTerm,
+    roleFilter,
+    statusFilter
+  })
+
   // Debounce search
   useEffect(() => {
+    console.log('⏱️ [UserManagement] useEffect debounce executado', { searchInput })
     const timer = setTimeout(() => {
       setSearchTerm(searchInput)
       setCurrentPage(1)
@@ -48,10 +60,12 @@ const UserManagement = () => {
   }, [searchInput])
 
   useEffect(() => {
+    console.log('🔄 [UserManagement] useEffect loadUsers executado')
     loadUsers()
   }, [currentPage, roleFilter, searchTerm, statusFilter])
 
   useEffect(() => {
+    console.log('📈 [UserManagement] useEffect loadStats executado')
     loadStats()
   }, [])
 
