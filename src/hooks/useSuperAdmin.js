@@ -22,7 +22,10 @@ export const useSuperAdmin = () => {
       // Obter usuário autenticado
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
 
+      console.log('🔍 [useSuperAdmin] Verificando super admin...', { authUser: authUser?.email })
+
       if (authError || !authUser) {
+        console.log('❌ [useSuperAdmin] Sem usuário autenticado')
         setIsSuperAdmin(false)
         setIsLoading(false)
         return
@@ -37,21 +40,26 @@ export const useSuperAdmin = () => {
         .eq('user_id', authUser.id)
         .single()
 
+      console.log('📊 [useSuperAdmin] Resultado da query:', { clientData, clientError })
+
       if (clientError) {
-        console.error('Erro ao verificar role:', clientError)
+        console.error('❌ [useSuperAdmin] Erro ao verificar role:', clientError)
         setIsSuperAdmin(false)
         setUserRole(null)
       } else {
         const role = clientData?.role
         setUserRole(role)
-        setIsSuperAdmin(role === 'super_admin')
+        const isSA = role === 'super_admin'
+        console.log('✅ [useSuperAdmin] Role verificada:', { role, isSuperAdmin: isSA })
+        setIsSuperAdmin(isSA)
       }
     } catch (error) {
-      console.error('Erro ao verificar super admin:', error)
+      console.error('❌ [useSuperAdmin] Erro geral:', error)
       setIsSuperAdmin(false)
       setUserRole(null)
     } finally {
       setIsLoading(false)
+      console.log('🏁 [useSuperAdmin] Verificação finalizada')
     }
   }
 
