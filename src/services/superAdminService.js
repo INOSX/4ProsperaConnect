@@ -71,6 +71,8 @@ export const superAdminService = {
    */
   async getAllUsers({ page = 1, pageSize = 50, role = null, search = '', status = 'all' } = {}) {
     try {
+      console.log('🔍 [SuperAdminService] Iniciando getAllUsers...', { page, pageSize, role, search, status })
+      
       // Buscar TODOS os usuários com seus dados
       let query = supabase
         .from('clients')
@@ -82,9 +84,32 @@ export const superAdminService = {
         query = query.eq('role', role)
       }
 
+      console.log('📡 [SuperAdminService] Executando query...')
       const { data: allUsers, error, count } = await query
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ [SuperAdminService] ERRO na query:', error)
+        console.error('❌ Detalhes:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        throw error
+      }
+
+      console.log('✅ [SuperAdminService] Query executada com sucesso!')
+      console.log('📊 Dados recebidos:', { 
+        totalUsers: allUsers?.length, 
+        count,
+        firstUser: allUsers?.[0] 
+      })
+      console.log('✅ [SuperAdminService] Query executada com sucesso!')
+      console.log('📊 Dados recebidos:', { 
+        totalUsers: allUsers?.length, 
+        count,
+        firstUser: allUsers?.[0] 
+      })
 
       // Filtrar por status
       let filteredByStatus = allUsers
@@ -94,15 +119,25 @@ export const superAdminService = {
         filteredByStatus = allUsers.filter(u => u.is_active === false)
       }
 
+      console.log('🔄 [SuperAdminService] Após filtro de status:', filteredByStatus?.length)
+
       // Se há busca, filtrar por nome OU email
       let filteredUsers = filteredByStatus
       if (search && search.trim()) {
         const searchLower = search.toLowerCase().trim()
+        console.log('🔍 [SuperAdminService] Aplicando busca:', searchLower)
+        
         filteredUsers = filteredByStatus.filter(user => {
           const name = (user.name || '').toLowerCase()
           const email = (user.user?.email || '').toLowerCase()
-          return name.includes(searchLower) || email.includes(searchLower)
+          const matches = name.includes(searchLower) || email.includes(searchLower)
+          if (matches) {
+            console.log('✅ Match encontrado:', { name, email })
+          }
+          return matches
         })
+        
+        console.log('🔍 [SuperAdminService] Após busca:', filteredUsers?.length)
       }
 
       // Aplicar paginação manualmente
@@ -111,13 +146,28 @@ export const superAdminService = {
       const endIndex = startIndex + pageSize
       const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
 
-      return {
+      console.log('📄 [SuperAdminService] Paginação aplicada:', {
+        totalFiltered,
+        startIndex,
+        endIndex,
+        paginatedCount: paginatedUsers.length
+      })
+
+      const result = {
         users: paginatedUsers,
         total: totalFiltered,
         pages: Math.ceil(totalFiltered / pageSize)
       }
+
+      console.log('🎯 [SuperAdminService] Retornando resultado:', {
+        usersCount: result.users.length,
+        total: result.total,
+        pages: result.pages
+      })
+
+      return result
     } catch (error) {
-      console.error('Erro ao obter usuários:', error)
+      console.error('❌ [SuperAdminService] ERRO GERAL:', error)
       throw error
     }
   },
