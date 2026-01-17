@@ -236,27 +236,106 @@ export const superAdminService = {
    */
   async getAllCompanies({ page = 1, pageSize = 50, search = '' } = {}) {
     try {
+      console.log('🔍 [SuperAdminService] Iniciando getAllCompanies...', { page, pageSize, search })
+      
+      // Buscar TODAS as empresas SEM JOIN (para evitar erro de schema)
       let query = supabase
         .from('companies')
-        .select('*, owner:owner_user_id(name, email)', { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
-        .range((page - 1) * pageSize, page * pageSize - 1)
 
-      if (search) {
-        query = query.or(`company_name.ilike.%${search}%,cnpj.ilike.%${search}%`)
+      console.log('📡 [SuperAdminService] Executando query...')
+      const { data: allCompanies, error, count } = await query
+
+      if (error) {
+        console.error('❌ [SuperAdminService] ERRO na query:', error)
+        throw error
       }
 
-      const { data, error, count } = await query
+      console.log('✅ [SuperAdminService] Query executada com sucesso!')
+      console.log('📊 Dados recebidos:', { 
+        totalCompanies: allCompanies?.length, 
+        count,
+        firstCompany: allCompanies?.[0] 
+      })
 
-      if (error) throw error
-
-      return {
-        companies: data,
-        total: count,
-        pages: Math.ceil(count / pageSize)
+      // Se há busca, filtrar por nome OU CNPJ
+      let filteredCompanies = allCompanies
+      if (search && search.trim()) {
+        const searchLower = search.toLowerCase().trim()
+        console.log('🔍 [SuperAdminService] Aplicando busca:', searchLower)
+        
+        filteredCompanies = allCompanies.filter(company => {
+          const name = (company.company_name || '').toLowerCase()
+          const cnpj = (company.cnpj || '').toLowerCase()
+          const matches = name.includes(searchLower) || cnpj.includes(searchLower)
+          if (matches) {
+            console.log('✅ Match encontrado:', { name, cnpj })
+          }
+          return matches
+        })
+        
+        console.log('🔍 [SuperAdminService] Após busca:', filteredCompanies?.length)
       }
+
+      // Aplicar paginação manualmente
+      const totalFiltered = filteredCompanies.length
+      const startIndex = (page - 1) * pageSize
+      const endIndex = startIndex + pageSize
+      const paginatedCompanies = filteredCompanies.slice(startIndex, endIndex)
+
+      console.log('📄 [SuperAdminService] Paginação aplicada:', {
+        totalFiltered,
+        startIndex,
+        endIndex,
+        paginatedCount: paginatedCompanies.length
+      })
+
+      // Buscar dados dos owners se houver
+      const companiesWithOwner = await Promise.all(
+        paginatedCompanies.map(async (company) => {
+          if (company.owner_user_id) {
+            try {
+              const { data: ownerData } = await supabase
+                .from('clients')
+                .select('name, user_id')
+                .eq('user_id', company.owner_user_id)
+                .single()
+              
+              if (ownerData) {
+                // Buscar email do owner
+                const { data: userData } = await supabase.auth.admin.getUserById(company.owner_user_id)
+                return {
+                  ...company,
+                  owner: {
+                    name: ownerData.name,
+                    email: userData?.user?.email || 'N/A'
+                  }
+                }
+              }
+            } catch (err) {
+              console.log('⚠️ Não foi possível buscar owner:', err)
+            }
+          }
+          return company
+        })
+      )
+
+      const result = {
+        companies: companiesWithOwner,
+        total: totalFiltered,
+        pages: Math.ceil(totalFiltered / pageSize)
+      }
+
+      console.log('🎯 [SuperAdminService] Retornando resultado:', {
+        companiesCount: result.companies.length,
+        total: result.total,
+        pages: result.pages
+      })
+
+      return result
     } catch (error) {
-      console.error('Erro ao obter empresas:', error)
+      console.error('❌ [SuperAdminService] ERRO GERAL:', error)
       throw error
     }
   },
