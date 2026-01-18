@@ -298,18 +298,16 @@ export const superAdminService = {
             try {
               const { data: ownerData } = await supabase
                 .from('clients')
-                .select('name, user_id')
+                .select('name, email')
                 .eq('user_id', company.owner_user_id)
                 .single()
               
               if (ownerData) {
-                // Buscar email do owner
-                const { data: userData } = await supabase.auth.admin.getUserById(company.owner_user_id)
                 return {
                   ...company,
                   owner: {
                     name: ownerData.name,
-                    email: userData?.user?.email || 'N/A'
+                    email: ownerData.email || 'N/A'
                   }
                 }
               }
@@ -381,20 +379,18 @@ export const superAdminService = {
         data.map(async (log) => {
           if (log.user_id) {
             try {
-              // Buscar na tabela clients
+              // Buscar na tabela clients (que tem o email)
               const { data: clientData } = await supabase
                 .from('clients')
-                .select('user_id')
+                .select('email')
                 .eq('user_id', log.user_id)
                 .single()
               
-              if (clientData) {
-                // Buscar email do auth
-                const { data: userData } = await supabase.auth.admin.getUserById(log.user_id)
+              if (clientData && clientData.email) {
                 return {
                   ...log,
                   user: {
-                    email: userData?.user?.email || `user-${log.user_id.substring(0, 8)}`
+                    email: clientData.email
                   }
                 }
               }
