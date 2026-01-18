@@ -11,10 +11,10 @@ const ModuleSelector = () => {
   const navigate = useNavigate()
   const { selectModule, modules } = useModule()
   const { run, startTour, stopTour, steps } = useTour()
-  const { isSuperAdmin, isLoading } = useSuperAdmin()
+  const { isSuperAdmin, isLoading, userRole } = useSuperAdmin()
   const { user } = useAuth()
 
-  console.log('🎯 [ModuleSelector] Estado:', { isSuperAdmin, isLoading, userRole: user?.user_metadata?.role })
+  console.log('🎯 [ModuleSelector] Estado:', { isSuperAdmin, isLoading, userRole })
 
   const handleTourClick = () => {
     if (run) {
@@ -37,9 +37,6 @@ const ModuleSelector = () => {
   const hasAccessToModule = (module) => {
     // Se o módulo não tem allowedRoles, todos têm acesso
     if (!module.allowedRoles) return true
-    
-    // Obter role do usuário
-    const userRole = user?.user_metadata?.role
     
     // Verificar se o role do usuário está na lista de allowedRoles
     return module.allowedRoles.includes(userRole)
@@ -146,7 +143,7 @@ const ModuleSelector = () => {
   }
 
   console.log('📋 [ModuleSelector] Total de cards:', moduleCards.length)
-  console.log('🔐 [ModuleSelector] Acesso Gestão de Pessoas:', hasAccessToModule(modules.PEOPLE), '| Role:', user?.user_metadata?.role)
+  console.log('🔐 [ModuleSelector] Acesso Gestão de Pessoas:', hasAccessToModule(modules.PEOPLE), '| Role:', userRole)
 
   const handleSelectModule = (moduleId, route) => {
     selectModule(moduleId)
