@@ -33,9 +33,14 @@ const BankAdminRoute = ({ children }) => {
     try {
       const clientResult = await ClientService.getClientByUserId(user.id)
       if (clientResult.success && clientResult.client) {
-        const userIsBankAdmin = clientResult.client.role === 'admin'
-        setIsBankAdmin(userIsBankAdmin)
-        if (!userIsBankAdmin) {
+        const userRole = clientResult.client.role
+        // Permitir acesso para super_admin, bank_manager e admin (legado)
+        const hasAccess = userRole === 'super_admin' || userRole === 'bank_manager' || userRole === 'admin'
+        
+        console.log('🔍 [BankAdminRoute] Role:', userRole, '| Acesso:', hasAccess)
+        
+        setIsBankAdmin(hasAccess)
+        if (!hasAccess) {
           // Redirecionar após um pequeno delay para mostrar mensagem
           setTimeout(() => {
             navigate('/')
@@ -74,7 +79,7 @@ const BankAdminRoute = ({ children }) => {
             <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-400" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h3>
             <p className="text-gray-600 mb-4">
-              Esta página é restrita apenas para administradores do banco.
+              Esta página é restrita para administradores do banco e super admins.
             </p>
             <p className="text-sm text-gray-500 mb-6">
               Você será redirecionado em instantes...
