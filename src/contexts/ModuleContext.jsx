@@ -17,7 +17,8 @@ const MODULES = {
     name: 'Gestão de Pessoas',
     description: 'Gerencie colaboradores e benefícios para pequenas empresas',
     routes: ['/employees', '/companies'],
-    defaultRoute: '/companies'
+    defaultRoute: '/companies',
+    allowedRoles: ['super_admin', 'bank_manager', 'company_manager']
   },
   PROSPECTING: {
     id: 'prospecting',
