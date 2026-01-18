@@ -10,6 +10,9 @@
 -- Permite executar queries SQL dinâmicas de forma segura
 -- ============================================================================
 
+-- Drop da função existente se houver
+DROP FUNCTION IF EXISTS execute_dynamic_sql(TEXT);
+
 CREATE OR REPLACE FUNCTION execute_dynamic_sql(query_text TEXT)
 RETURNS JSONB
 LANGUAGE plpgsql
