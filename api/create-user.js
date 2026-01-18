@@ -55,6 +55,13 @@ export default async function handler(req, res) {
 
     console.log('✅ [API] Usuário criado no auth:', authData.user.id)
 
+    // Gerar client_code único
+    const timestamp = Date.now()
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
+    const client_code = `CLI-${timestamp}-${random}`
+
+    console.log('🔑 [API] Client code gerado:', client_code)
+
     // 2. Criar registro na tabela clients
     const { error: clientError } = await supabaseAdmin
       .from('clients')
@@ -63,6 +70,7 @@ export default async function handler(req, res) {
         name,
         email,
         role,
+        client_code,
         is_active: isActive !== undefined ? isActive : true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
