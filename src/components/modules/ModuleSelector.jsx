@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
 import { useTour } from '../../contexts/TourContext'
+import { useAuth } from '../../contexts/AuthContext'
 import useSuperAdmin from '../../hooks/useSuperAdmin'
 import Card from '../ui/Card'
 import { Users, Target, Mail, ArrowRight, HelpCircle, X, Bot, Shield } from 'lucide-react'
@@ -11,8 +12,9 @@ const ModuleSelector = () => {
   const { selectModule, modules } = useModule()
   const { run, startTour, stopTour, steps } = useTour()
   const { isSuperAdmin, isLoading } = useSuperAdmin()
+  const { user } = useAuth()
 
-  console.log('🎯 [ModuleSelector] Estado:', { isSuperAdmin, isLoading })
+  console.log('🎯 [ModuleSelector] Estado:', { isSuperAdmin, isLoading, userRole: user?.user_metadata?.role })
 
   const handleTourClick = () => {
     if (run) {
@@ -31,8 +33,23 @@ const ModuleSelector = () => {
     }
   }
 
-  const moduleCards = [
-    {
+  // Função para verificar se o usuário tem acesso ao módulo
+  const hasAccessToModule = (module) => {
+    // Se o módulo não tem allowedRoles, todos têm acesso
+    if (!module.allowedRoles) return true
+    
+    // Obter role do usuário
+    const userRole = user?.user_metadata?.role
+    
+    // Verificar se o role do usuário está na lista de allowedRoles
+    return module.allowedRoles.includes(userRole)
+  }
+
+  const moduleCards = []
+  
+  // Adicionar módulo PEOPLE apenas se o usuário tiver acesso
+  if (hasAccessToModule(modules.PEOPLE)) {
+    moduleCards.push({
       id: modules.PEOPLE.id,
       name: modules.PEOPLE.name,
       subtitle: 'Visão da Empresa',
@@ -47,56 +64,62 @@ const ModuleSelector = () => {
         'Portal do colaborador',
         'Dashboard da empresa'
       ]
-    },
-    {
-      id: modules.PROSPECTING.id,
-      name: modules.PROSPECTING.name,
-      subtitle: 'Visão do Banco',
-      description: modules.PROSPECTING.description,
-      icon: Target,
-      color: 'bg-green-500',
-      gradient: 'from-green-500 to-green-600',
-      route: modules.PROSPECTING.defaultRoute,
-      features: [
-        'Identificar prospects',
-        'Enriquecer dados',
-        'Scoring inteligente',
-        'Análise de potencial'
-      ]
-    },
-    {
-      id: modules.MARKETING.id,
-      name: modules.MARKETING.name,
-      subtitle: 'Ferramentas para o banco',
-      description: modules.MARKETING.description,
-      icon: Mail,
-      color: 'bg-purple-500',
-      gradient: 'from-purple-500 to-purple-600',
-      route: modules.MARKETING.defaultRoute,
-      features: [
-        'Criar campanhas',
-        'Email marketing',
-        'Segmentação',
-        'Acompanhar resultados'
-      ]
-    },
-    {
-      id: modules.SPECIALIST.id,
-      name: modules.SPECIALIST.name,
-      subtitle: 'Inteligência Artificial Agentic',
-      description: modules.SPECIALIST.description,
-      icon: Bot,
-      color: 'bg-orange-500',
-      gradient: 'from-orange-500 to-orange-600',
-      route: modules.SPECIALIST.defaultRoute,
-      features: [
-        'Consultoria por voz',
-        'Ações inteligentes',
-        'Busca semântica',
-        'Visualizações automáticas'
-      ]
-    }
-  ]
+    })
+  }
+  
+  // PROSPECTING - Disponível para todos
+  moduleCards.push({
+    id: modules.PROSPECTING.id,
+    name: modules.PROSPECTING.name,
+    subtitle: 'Visão do Banco',
+    description: modules.PROSPECTING.description,
+    icon: Target,
+    color: 'bg-green-500',
+    gradient: 'from-green-500 to-green-600',
+    route: modules.PROSPECTING.defaultRoute,
+    features: [
+      'Identificar prospects',
+      'Enriquecer dados',
+      'Scoring inteligente',
+      'Análise de potencial'
+    ]
+  })
+  
+  // MARKETING - Disponível para todos
+  moduleCards.push({
+    id: modules.MARKETING.id,
+    name: modules.MARKETING.name,
+    subtitle: 'Ferramentas para o banco',
+    description: modules.MARKETING.description,
+    icon: Mail,
+    color: 'bg-purple-500',
+    gradient: 'from-purple-500 to-purple-600',
+    route: modules.MARKETING.defaultRoute,
+    features: [
+      'Criar campanhas',
+      'Email marketing',
+      'Segmentação',
+      'Acompanhar resultados'
+    ]
+  })
+  
+  // SPECIALIST - Disponível para todos
+  moduleCards.push({
+    id: modules.SPECIALIST.id,
+    name: modules.SPECIALIST.name,
+    subtitle: 'Inteligência Artificial Agentic',
+    description: modules.SPECIALIST.description,
+    icon: Bot,
+    color: 'bg-orange-500',
+    gradient: 'from-orange-500 to-orange-600',
+    route: modules.SPECIALIST.defaultRoute,
+    features: [
+      'Consultoria por voz',
+      'Ações inteligentes',
+      'Busca semântica',
+      'Visualizações automáticas'
+    ]
+  })
 
   // Adicionar módulo Super Admin apenas se o usuário for super_admin
   if (isSuperAdmin && !isLoading) {
@@ -123,6 +146,7 @@ const ModuleSelector = () => {
   }
 
   console.log('📋 [ModuleSelector] Total de cards:', moduleCards.length)
+  console.log('🔐 [ModuleSelector] Acesso Gestão de Pessoas:', hasAccessToModule(modules.PEOPLE), '| Role:', user?.user_metadata?.role)
 
   const handleSelectModule = (moduleId, route) => {
     selectModule(moduleId)
