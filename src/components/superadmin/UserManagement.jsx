@@ -236,7 +236,7 @@ const UserManagement = () => {
 
       // 3. Registrar no audit log
       await superAdminService.logAction('CREATE_USER', {
-        userId: authData.user.id,
+        userId: result.user.id,
         email: createForm.email,
         role: createForm.role
       })
