@@ -210,44 +210,29 @@ const UserManagement = () => {
 
       console.log('🔨 Criando usuário:', createForm.email)
 
-      // 1. Criar usuário no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: createForm.email,
-        password: createForm.password,
-        email_confirm: true,
-        user_metadata: {
-          name: createForm.name
-        }
-      })
-
-      if (authError) {
-        console.error('❌ Erro ao criar no auth:', authError)
-        throw new Error(`Erro ao criar usuário: ${authError.message}`)
-      }
-
-      console.log('✅ Usuário criado no auth:', authData.user.id)
-
-      // 2. Criar registro na tabela clients
-      const { error: clientError } = await supabase
-        .from('clients')
-        .insert({
-          user_id: authData.user.id,
+      // Chamar API serverless que usa service_role key
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
           name: createForm.name,
           email: createForm.email,
+          password: createForm.password,
           role: createForm.role,
-          is_active: createForm.isActive,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
+          isActive: createForm.isActive
         })
+      })
 
-      if (clientError) {
-        console.error('❌ Erro ao criar cliente:', clientError)
-        // Tentar deletar do auth se falhar
-        await supabase.auth.admin.deleteUser(authData.user.id)
-        throw new Error(`Erro ao criar registro: ${clientError.message}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ Erro na API:', result)
+        throw new Error(result.details || result.error || 'Erro ao criar usuário')
       }
 
-      console.log('✅ Cliente criado com sucesso!')
+      console.log('✅ Usuário criado com sucesso:', result.user)
 
       // 3. Registrar no audit log
       await superAdminService.logAction('CREATE_USER', {
@@ -296,23 +281,25 @@ const UserManagement = () => {
       setActionLoading(true)
       console.log('🗑️ Excluindo usuário:', deletingUser.email)
 
-      // 1. Deletar da tabela clients
-      const { error: clientError } = await supabase
-        .from('clients')
-        .delete()
-        .eq('user_id', deletingUser.user_id)
+      // Chamar API serverless que usa service_role key
+      const response = await fetch('/api/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: deletingUser.user_id
+        })
+      })
 
-      if (clientError) {
-        throw new Error(`Erro ao deletar cliente: ${clientError.message}`)
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ Erro na API:', result)
+        throw new Error(result.details || result.error || 'Erro ao excluir usuário')
       }
 
-      // 2. Deletar do Supabase Auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(deletingUser.user_id)
-
-      if (authError) {
-        console.warn('⚠️ Erro ao deletar do auth:', authError)
-        // Continua mesmo com erro no auth
-      }
+      console.log('✅ Usuário excluído com sucesso')
 
       // 3. Registrar no audit log
       await superAdminService.logAction('DELETE_USER', {
