@@ -28,6 +28,13 @@ SET role = CASE
     ELSE role
 END;
 
+-- PASSO 2.5: Dropar view que depende da coluna role (será recriada depois)
+DROP VIEW IF EXISTS user_roles_hierarchy CASCADE;
+
+-- PASSO 2.6: Dropar policies que dependem da coluna role (serão recriadas depois)
+DROP POLICY IF EXISTS "Super admins can view audit logs" ON audit_logs;
+DROP POLICY IF EXISTS "Super admins can insert audit logs" ON audit_logs;
+
 -- PASSO 3: Atualizar coluna role com os novos valores
 ALTER TABLE public.clients 
 ALTER COLUMN role TYPE TEXT,
@@ -51,12 +58,12 @@ COMMENT ON COLUMN public.clients.role IS
 -- ============================================
 
 -- Dropar funções antigas para recriar com novos parâmetros
-DROP FUNCTION IF EXISTS public.is_admin(UUID);
-DROP FUNCTION IF EXISTS public.is_super_admin(UUID);
-DROP FUNCTION IF EXISTS public.is_bank_manager(UUID);
-DROP FUNCTION IF EXISTS public.is_company_manager(UUID, UUID);
-DROP FUNCTION IF EXISTS public.is_company_employee(UUID, UUID);
-DROP FUNCTION IF EXISTS public.get_user_role(UUID);
+DROP FUNCTION IF EXISTS public.is_admin(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.is_super_admin(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.is_bank_manager(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.is_company_manager(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.is_company_employee(UUID, UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.get_user_role(UUID) CASCADE;
 
 -- Função: Verificar se é Super Admin
 CREATE OR REPLACE FUNCTION public.is_super_admin(check_user_id UUID)
