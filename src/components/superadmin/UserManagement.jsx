@@ -14,7 +14,10 @@ import {
   Mail,
   Calendar,
   Award,
-  Loader2
+  Loader2,
+  Eye,
+  User,
+  Crown
 } from 'lucide-react'
 import Card from '../ui/Card'
 import Loading from '../ui/Loading'
@@ -23,6 +26,7 @@ import superAdminService from '../../services/superAdminService'
 const UserManagement = () => {
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [searchInput, setSearchInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -33,18 +37,20 @@ const UserManagement = () => {
   const [newRole, setNewRole] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
-  const [stats, setStats] = useState(null)
-  const [searchInput, setSearchInput] = useState('')
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    byRole: {}
+  })
   const pageSize = 15
 
   // Debounce search
   useEffect(() => {
-    console.log('⏱️ [UserManagement] useEffect debounce executado', { searchInput })
     const timer = setTimeout(() => {
       setSearchTerm(searchInput)
       setCurrentPage(1)
     }, 500)
-
     return () => clearTimeout(timer)
   }, [searchInput])
 
@@ -90,7 +96,12 @@ const UserManagement = () => {
   const loadStats = async () => {
     try {
       const statsData = await superAdminService.getSystemStats()
-      setStats(statsData)
+      setStats({
+        total: statsData.users.total,
+        active: statsData.users.active,
+        inactive: statsData.users.inactive,
+        byRole: statsData.users.byRole
+      })
     } catch (error) {
       console.error('Erro ao carregar stats:', error)
     }
@@ -148,375 +159,406 @@ const UserManagement = () => {
     }
   }
 
-  const roleColors = {
-    super_admin: 'bg-red-500/20 text-red-400 border-red-500/50',
-    bank_manager: 'bg-blue-500/20 text-blue-400 border-blue-500/50',
-    company_manager: 'bg-green-500/20 text-green-400 border-green-500/50',
-    company_employee: 'bg-gray-500/20 text-gray-400 border-gray-500/50'
-  }
-
-  const roleIcons = {
-    super_admin: Award,
-    bank_manager: Shield,
-    company_manager: Users,
-    company_employee: Users
+  const handleClearSearch = () => {
+    setSearchInput('')
+    setSearchTerm('')
+    setCurrentPage(1)
   }
 
   const roleNames = {
     super_admin: 'Super Admin',
     bank_manager: 'Bank Manager',
     company_manager: 'Company Manager',
-    company_employee: 'Employee'
+    company_employee: 'Company Employee'
   }
 
-  const allRoles = ['super_admin', 'bank_manager', 'company_manager', 'company_employee']
-
-  const getInitials = (name) => {
-    if (!name) return 'U'
-    const parts = name.split(' ')
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return name.substring(0, 2).toUpperCase()
+  const roleColors = {
+    super_admin: 'from-red-500 to-red-600',
+    bank_manager: 'from-blue-500 to-blue-600',
+    company_manager: 'from-green-500 to-green-600',
+    company_employee: 'from-gray-500 to-gray-600'
   }
 
-  const getAvatarColor = (role) => {
-    const colors = {
-      super_admin: 'bg-gradient-to-br from-red-500 to-red-600',
-      bank_manager: 'bg-gradient-to-br from-blue-500 to-blue-600',
-      company_manager: 'bg-gradient-to-br from-green-500 to-green-600',
-      company_employee: 'bg-gradient-to-br from-gray-500 to-gray-600'
+  const getRoleIcon = (role) => {
+    switch(role) {
+      case 'super_admin': return Crown
+      case 'bank_manager': return Shield
+      case 'company_manager': return Award
+      default: return User
     }
-    return colors[role] || colors.company_employee
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 animate-fade-in">
+      {/* Mensagem de Sucesso */}
+      {successMessage && (
+        <div className="bg-gradient-to-r from-green-600/20 to-emerald-800/20 border-2 border-green-500/30 rounded-2xl p-4 flex items-center gap-3 animate-fade-in">
+          <Check className="h-6 w-6 text-green-400" />
+          <p className="text-white font-semibold">{successMessage}</p>
+        </div>
+      )}
+
+      {/* Header Moderno com Gradiente */}
+      <div className="flex items-center justify-between bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
         <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Users className="h-8 w-8 text-blue-500" />
+          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-500 via-indigo-600 to-blue-700 bg-clip-text text-transparent flex items-center gap-3">
+            <Users className="h-10 w-10 text-blue-500 drop-shadow-glow" />
             Gerenciamento de Usuários
           </h1>
-          <p className="text-gray-400 mt-1">
-            {totalUsers} usuários {searchTerm && `• Buscando por "${searchTerm}"`} {users.length > 0 && `• ${users.length} nesta página`}
+          <p className="text-gray-300 mt-2 text-lg font-medium">
+            {totalUsers} {totalUsers === 1 ? 'usuário cadastrado' : 'usuários cadastrados'}
+            {searchTerm && <span className="text-blue-400 ml-2">• Buscando: "{searchTerm}"</span>}
           </p>
         </div>
         <button
-          onClick={() => {
-            loadUsers()
-            loadStats()
-          }}
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+          onClick={loadUsers}
+          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-500/50 hover:scale-105 font-semibold"
         >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className="h-5 w-5" />
           Atualizar
         </button>
       </div>
 
-      {/* Success Message */}
-      {successMessage && (
-        <div className="bg-green-500/20 border border-green-500/50 rounded-lg p-4 flex items-center gap-3">
-          <Check className="h-5 w-5 text-green-400" />
-          <p className="text-green-400 font-medium">{successMessage}</p>
-        </div>
-      )}
-
       {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/80 text-sm">Total</p>
-                  <p className="text-3xl font-bold text-white">{stats.users.total}</p>
-                </div>
-                <Users className="h-10 w-10 text-white/30" />
-              </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 backdrop-blur-sm border border-blue-500/30 rounded-2xl p-6 hover:border-blue-400/50 transition-all hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm font-medium mb-1">Total</p>
+              <p className="text-6xl font-black text-white drop-shadow-glow">{stats.total}</p>
             </div>
-          </Card>
-          <Card className="bg-gray-800 border-gray-700">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Super Admins</p>
-                  <p className="text-2xl font-bold text-red-400">{stats.users.byRole.super_admin || 0}</p>
-                </div>
-                <Award className="h-8 w-8 text-red-500/30" />
-              </div>
-            </div>
-          </Card>
-          <Card className="bg-gray-800 border-gray-700">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Bank Managers</p>
-                  <p className="text-2xl font-bold text-blue-400">{stats.users.byRole.bank_manager || 0}</p>
-                </div>
-                <Shield className="h-8 w-8 text-blue-500/30" />
-              </div>
-            </div>
-          </Card>
-          <Card className="bg-gray-800 border-gray-700">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Company Managers</p>
-                  <p className="text-2xl font-bold text-green-400">{stats.users.byRole.company_manager || 0}</p>
-                </div>
-                <Users className="h-8 w-8 text-green-500/30" />
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Filters */}
-      <Card className="bg-gray-800 border-gray-700 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Buscar por nome ou email..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
-            />
-            {searchInput && (
-              <button
-                onClick={() => setSearchInput('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+            <Users className="h-16 w-16 text-blue-400 opacity-50" />
           </div>
+        </div>
+        <div className="bg-gradient-to-br from-green-600/20 to-emerald-800/20 backdrop-blur-sm border border-green-500/30 rounded-2xl p-6 hover:border-green-400/50 transition-all hover:scale-105 hover:shadow-xl hover:shadow-green-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm font-medium mb-1">Ativos</p>
+              <p className="text-6xl font-black text-white drop-shadow-glow">{stats.active}</p>
+            </div>
+            <Check className="h-16 w-16 text-green-400 opacity-50" />
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-red-600/20 to-red-800/20 backdrop-blur-sm border border-red-500/30 rounded-2xl p-6 hover:border-red-400/50 transition-all hover:scale-105 hover:shadow-xl hover:shadow-red-500/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-300 text-sm font-medium mb-1">Inativos</p>
+              <p className="text-6xl font-black text-white drop-shadow-glow">{stats.inactive}</p>
+            </div>
+            <X className="h-16 w-16 text-red-400 opacity-50" />
+          </div>
+        </div>
+      </div>
 
-          {/* Role Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      {/* Filtros Modernos */}
+      <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 space-y-4">
+        {/* Busca */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou email..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-12 pr-20 py-4 bg-gray-900/50 border-2 border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all text-lg font-medium"
+          />
+          {searchInput && (
+            <button
+              onClick={handleClearSearch}
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Filtros */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-gray-400 text-sm font-medium mb-2 block">Role</label>
             <select
               value={roleFilter}
               onChange={(e) => {
                 setRoleFilter(e.target.value)
                 setCurrentPage(1)
               }}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-all font-medium"
             >
               <option value="">Todos os roles</option>
-              {allRoles.map(role => (
-                <option key={role} value={role}>{roleNames[role]}</option>
-              ))}
+              <option value="super_admin">Super Admin</option>
+              <option value="bank_manager">Bank Manager</option>
+              <option value="company_manager">Company Manager</option>
+              <option value="company_employee">Company Employee</option>
             </select>
           </div>
-
-          {/* Status Filter */}
-          <div className="relative">
-            <Power className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div>
+            <label className="text-gray-400 text-sm font-medium mb-2 block">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => {
                 setStatusFilter(e.target.value)
                 setCurrentPage(1)
               }}
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-3 bg-gray-900/50 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-all font-medium"
             >
-              <option value="all">Todos os status</option>
+              <option value="all">Todos</option>
               <option value="active">Ativos</option>
               <option value="inactive">Inativos</option>
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Users List */}
+      {/* Lista de Usuários */}
       {loading ? (
-        <Card className="bg-gray-800 border-gray-700 p-12">
-          <div className="flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 text-blue-500 animate-spin mb-4" />
-            <p className="text-gray-400">Carregando usuários...</p>
-          </div>
-        </Card>
+        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-16 border border-gray-700 flex flex-col items-center justify-center">
+          <Loader2 className="h-16 w-16 text-blue-500 animate-spin mb-4" />
+          <p className="text-gray-300 text-lg font-medium">Carregando usuários...</p>
+        </div>
       ) : users.length === 0 ? (
-        <Card className="bg-gray-800 border-gray-700 p-12">
+        <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-16 border border-gray-700">
           <div className="text-center">
-            <AlertCircle className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Nenhum usuário encontrado</h3>
-            <p className="text-gray-400">Tente ajustar os filtros de busca</p>
+            <AlertCircle className="h-20 w-20 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2">Nenhum usuário encontrado</h3>
+            <p className="text-gray-400 text-lg">Tente ajustar os filtros de busca</p>
           </div>
-        </Card>
+        </div>
       ) : (
-        <div className="space-y-3">
-          {users.map((user) => {
-            const RoleIcon = roleIcons[user.role] || Users
-            const isEditing = editingUser?.id === user.id
-            
-            return (
-              <Card 
-                key={user.id} 
-                className={`bg-gray-800 border-gray-700 hover:border-gray-600 transition-all ${
-                  isEditing ? 'ring-2 ring-blue-500' : ''
-                }`}
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between">
-                    {/* User Info */}
-                    <div className="flex items-center gap-4 flex-1">
-                      {/* Avatar */}
-                      <div className={`flex-shrink-0 h-14 w-14 rounded-full ${getAvatarColor(user.role)} flex items-center justify-center shadow-lg`}>
-                        <span className="text-white font-bold text-lg">
-                          {getInitials(user.name)}
-                        </span>
+        <>
+          {/* Cards de Usuários */}
+          <div className="space-y-4">
+            {users.map((user, index) => {
+              const RoleIcon = getRoleIcon(user.role)
+              return (
+                <div
+                  key={user.id}
+                  className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <div className="flex items-start justify-between gap-6">
+                    {/* Avatar e Info Principal */}
+                    <div className="flex items-start gap-4 flex-1">
+                      <div className="relative">
+                        <div className={`h-16 w-16 rounded-2xl bg-gradient-to-br ${roleColors[user.role] || 'from-gray-500 to-gray-600'} flex items-center justify-center shadow-lg`}>
+                          <RoleIcon className="h-8 w-8 text-white" />
+                        </div>
+                        <div className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-gray-800 ${
+                          user.is_active !== false ? 'bg-green-500' : 'bg-red-500'
+                        }`} />
                       </div>
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-white mb-1">{user.name}</h3>
+                        <p className="text-gray-400 mb-3 flex items-center gap-2">
+                          <Mail className="h-4 w-4" />
+                          {user.user?.email || user.email || 'N/A'}
+                        </p>
+                        
+                        {/* Badges */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          <span className={`px-3 py-1 bg-gradient-to-r ${roleColors[user.role] || 'from-gray-500 to-gray-600'} bg-opacity-20 text-white rounded-lg text-sm font-bold border border-white/20`}>
+                            {roleNames[user.role] || user.role}
+                          </span>
+                          <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
+                            user.is_active !== false
+                              ? 'bg-green-600/20 text-green-300'
+                              : 'bg-red-600/20 text-red-300'
+                          }`}>
+                            {user.is_active !== false ? '✓ Ativo' : '✕ Inativo'}
+                          </span>
+                          {user.created_at && (
+                            <span className="px-3 py-1 bg-gray-700/50 text-gray-300 rounded-lg text-sm font-medium flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                            </span>
+                          )}
+                        </div>
 
-                      {/* Details */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-white truncate">{user.name}</h3>
-                        <div className="flex items-center gap-3 mt-1">
-                          <div className="flex items-center gap-1 text-sm text-gray-400">
-                            <Mail className="h-3.5 w-3.5" />
-                            <span className="truncate">{user.email}</span>
+                        {/* Grid de Info */}
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1 font-medium">User ID</p>
+                            <p className="text-white font-mono text-xs truncate">
+                              {user.user_id?.substring(0, 8)}...
+                            </p>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-gray-500">
-                            <Calendar className="h-3.5 w-3.5" />
-                            <span>{new Date(user.created_at).toLocaleDateString('pt-BR')}</span>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-1 font-medium">Client ID</p>
+                            <p className="text-white font-mono text-xs truncate">
+                              {user.id?.toString().substring(0, 8)}...
+                            </p>
                           </div>
+                          {user.company_id && (
+                            <div>
+                              <p className="text-xs text-gray-500 mb-1 font-medium">Company ID</p>
+                              <p className="text-white font-mono text-xs truncate">
+                                {user.company_id?.toString().substring(0, 8)}...
+                              </p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
 
-                    {/* Role & Status */}
-                    <div className="flex items-center gap-4">
-                      {/* Role Badge */}
-                      <div>
-                        {isEditing ? (
-                          <select
-                            value={newRole}
-                            onChange={(e) => setNewRole(e.target.value)}
-                            className="px-4 py-2 bg-gray-900 border-2 border-blue-500 rounded-lg text-sm text-white font-medium focus:outline-none"
-                            disabled={actionLoading}
-                          >
-                            {allRoles.map(role => (
-                              <option key={role} value={role}>{roleNames[role]}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${roleColors[user.role]}`}>
-                            <RoleIcon className="h-4 w-4" />
-                            <span className="text-sm font-semibold">{roleNames[user.role]}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Status Badge */}
-                      <div>
-                        {user.is_active !== false ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/20 text-green-400 border border-green-500/50 text-sm font-semibold">
-                            <Check className="h-4 w-4" /> Ativo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/50 text-sm font-semibold">
-                            <X className="h-4 w-4" /> Inativo
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex items-center gap-2">
-                        {isEditing ? (
-                          <>
-                            <button
-                              onClick={handleSaveRole}
-                              disabled={actionLoading}
-                              className="p-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Salvar alterações"
-                            >
-                              {actionLoading ? (
-                                <Loader2 className="h-5 w-5 animate-spin" />
-                              ) : (
-                                <Check className="h-5 w-5" />
-                              )}
-                            </button>
-                            <button
-                              onClick={() => {
-                                setEditingUser(null)
-                                setNewRole('')
-                              }}
-                              disabled={actionLoading}
-                              className="p-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors disabled:opacity-50"
-                              title="Cancelar"
-                            >
-                              <X className="h-5 w-5" />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleEditRole(user)}
-                              disabled={actionLoading}
-                              className="p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                              title="Editar Role"
-                            >
-                              <Shield className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => handleToggleStatus(user)}
-                              disabled={actionLoading}
-                              className={`p-2.5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                                user.is_active !== false
-                                  ? 'bg-red-600 hover:bg-red-700'
-                                  : 'bg-green-600 hover:bg-green-700'
-                              } text-white`}
-                              title={user.is_active !== false ? 'Desativar usuário' : 'Ativar usuário'}
-                            >
-                              <Power className="h-5 w-5" />
-                            </button>
-                          </>
-                        )}
-                      </div>
+                    {/* Ações */}
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => handleEditRole(user)}
+                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl transition-all shadow-lg hover:shadow-blue-500/50 hover:scale-105 font-semibold flex items-center gap-2"
+                      >
+                        <Shield className="h-4 w-4" />
+                        Editar Role
+                      </button>
+                      <button
+                        onClick={() => handleToggleStatus(user)}
+                        className={`px-4 py-2 bg-gradient-to-r ${
+                          user.is_active !== false
+                            ? 'from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 hover:shadow-red-500/50'
+                            : 'from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-green-500/50'
+                        } text-white rounded-xl transition-all shadow-lg hover:scale-105 font-semibold flex items-center gap-2`}
+                      >
+                        <Power className="h-4 w-4" />
+                        {user.is_active !== false ? 'Desativar' : 'Ativar'}
+                      </button>
                     </div>
                   </div>
                 </div>
-              </Card>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="text-gray-300 font-medium">
+                  Página <span className="text-white font-bold">{currentPage}</span> de <span className="text-white font-bold">{totalPages}</span>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 font-semibold flex items-center gap-2"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-gray-700 font-semibold flex items-center gap-2"
+                  >
+                    Próxima
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && !loading && (
-        <Card className="bg-gray-800 border-gray-700 p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-400">
-              Página <span className="text-white font-semibold">{currentPage}</span> de{' '}
-              <span className="text-white font-semibold">{totalPages}</span>
-            </div>
-            <div className="flex gap-2">
+      {/* Modal de Edição de Role */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 max-w-md w-full border-2 border-gray-700 shadow-2xl animate-scale-in">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white">Alterar Role</h3>
               <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                onClick={() => setEditingUser(null)}
+                className="p-2 hover:bg-gray-700 rounded-xl transition-colors"
               >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
+                <X className="h-6 w-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-300 mb-2">Usuário:</p>
+              <p className="text-xl font-bold text-white">{editingUser.name}</p>
+              <p className="text-gray-400 text-sm">{editingUser.user?.email || editingUser.email}</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-gray-300 font-medium mb-3 block">Novo Role:</label>
+              <select
+                value={newRole}
+                onChange={(e) => setNewRole(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-blue-500 transition-all font-medium"
+              >
+                <option value="super_admin">Super Admin</option>
+                <option value="bank_manager">Bank Manager</option>
+                <option value="company_manager">Company Manager</option>
+                <option value="company_employee">Company Employee</option>
+              </select>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setEditingUser(null)}
+                className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all font-semibold"
+              >
+                Cancelar
               </button>
               <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                onClick={handleSaveRole}
+                disabled={actionLoading || newRole === editingUser.role}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2"
               >
-                Próxima
-                <ChevronRight className="h-4 w-4" />
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Salvar
+                  </>
+                )}
               </button>
             </div>
           </div>
-        </Card>
+        </div>
       )}
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fade-in-up {
+          from { 
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to { 
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.9);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out;
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.5s ease-out both;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+        .drop-shadow-glow {
+          filter: drop-shadow(0 0 8px currentColor);
+        }
+      `}</style>
     </div>
   )
 }
