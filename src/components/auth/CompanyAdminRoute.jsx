@@ -36,8 +36,18 @@ const CompanyAdminRoute = ({ children }) => {
       // Verificar se é Admin do Banco
       const clientResult = await ClientService.getClientByUserId(user.id)
       let userIsBankAdmin = false
+      let isSuperAdmin = false
+      
       if (clientResult.success && clientResult.client) {
         userIsBankAdmin = clientResult.client.role === 'admin'
+        isSuperAdmin = clientResult.client.role === 'super_admin'
+      }
+
+      // Super Admin sempre tem acesso
+      if (isSuperAdmin) {
+        setHasPermission(true)
+        setLoading(false)
+        return
       }
 
       // Verificar se é Admin do Cliente

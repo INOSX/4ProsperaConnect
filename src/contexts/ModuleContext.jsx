@@ -25,7 +25,8 @@ const MODULES = {
     name: 'Prospecção de Clientes',
     description: 'Identifique e qualifique potenciais clientes',
     routes: ['/prospecting'],
-    defaultRoute: '/prospecting'
+    defaultRoute: '/prospecting',
+    allowedRoles: ['super_admin', 'bank_manager']
   },
   MARKETING: {
     id: 'marketing',
