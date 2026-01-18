@@ -173,24 +173,10 @@ const UserManagement = () => {
     }
 
     // Verificar se já existe
-    try {
-      const { data } = await supabase
-        .from('clients')
-        .select('email')
-        .eq('email', email)
-        .single()
-      
-      if (data) {
-        setEmailError('Email já cadastrado')
-        return false
-      }
-      
-      setEmailError('')
-      return true
-    } catch (error) {
-      setEmailError('')
-      return true // Se der erro na query, assume que não existe
-    }
+    // REMOVIDO: A validação de duplicata será feita no backend
+    // A API retornará erro se o email já existir
+    setEmailError('')
+    return true
   }
 
   const handleCreateUser = async () => {
