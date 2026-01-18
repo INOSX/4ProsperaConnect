@@ -17,11 +17,18 @@ import {
   Loader2,
   Eye,
   User,
-  Crown
+  Crown,
+  UserPlus,
+  Trash2,
+  EyeOff,
+  Dices,
+  Sparkles,
+  Skull
 } from 'lucide-react'
 import Card from '../ui/Card'
 import Loading from '../ui/Loading'
 import superAdminService from '../../services/superAdminService'
+import { supabase } from '../../services/supabase'
 
 const UserManagement = () => {
   const [users, setUsers] = useState([])
@@ -43,6 +50,25 @@ const UserManagement = () => {
     inactive: 0,
     byRole: {}
   })
+  
+  // Estados para CRIAÇÃO de usuário
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'company_employee',
+    isActive: true
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [passwordStrength, setPasswordStrength] = useState(0)
+  
+  // Estados para EXCLUSÃO de usuário
+  const [deletingUser, setDeletingUser] = useState(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [deleteCountdown, setDeleteCountdown] = useState(3)
+  
   const pageSize = 15
 
   // Debounce search
@@ -62,16 +88,32 @@ const UserManagement = () => {
     loadStats()
   }, [])
 
+  // Countdown para exclusão
+  useEffect(() => {
+    if (deletingUser && deleteCountdown > 0) {
+      const timer = setTimeout(() => setDeleteCountdown(deleteCountdown - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [deletingUser, deleteCountdown])
+
+  // Validar força da senha
+  useEffect(() => {
+    if (createForm.password) {
+      let strength = 0
+      if (createForm.password.length >= 8) strength += 25
+      if (/[a-z]/.test(createForm.password)) strength += 25
+      if (/[A-Z]/.test(createForm.password)) strength += 25
+      if (/[0-9]/.test(createForm.password) && /[!@#$%^&*]/.test(createForm.password)) strength += 25
+      setPasswordStrength(strength)
+    } else {
+      setPasswordStrength(0)
+    }
+  }, [createForm.password])
+
   const loadUsers = async () => {
     try {
       setLoading(true)
-      console.log('🔍 Carregando usuários...', { 
-        page: currentPage, 
-        pageSize, 
-        role: roleFilter, 
-        search: searchTerm,
-        status: statusFilter 
-      })
+      console.log('🔍 Carregando usuários...')
       
       const result = await superAdminService.getAllUsers({
         page: currentPage,
@@ -107,6 +149,198 @@ const UserManagement = () => {
     }
   }
 
+  // ========== CRIAR USUÁRIO ==========
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+    let password = ''
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    setCreateForm({ ...createForm, password })
+  }
+
+  const validateEmail = async (email) => {
+    if (!email) {
+      setEmailError('')
+      return false
+    }
+
+    // Validar formato
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setEmailError('Email inválido')
+      return false
+    }
+
+    // Verificar se já existe
+    try {
+      const { data } = await supabase
+        .from('clients')
+        .select('email')
+        .eq('email', email)
+        .single()
+      
+      if (data) {
+        setEmailError('Email já cadastrado')
+        return false
+      }
+      
+      setEmailError('')
+      return true
+    } catch (error) {
+      setEmailError('')
+      return true // Se der erro na query, assume que não existe
+    }
+  }
+
+  const handleCreateUser = async () => {
+    try {
+      setActionLoading(true)
+
+      // Validações
+      if (!createForm.name || !createForm.email || !createForm.password) {
+        alert('Preencha todos os campos obrigatórios')
+        return
+      }
+
+      if (emailError) {
+        alert('Corrija os erros antes de continuar')
+        return
+      }
+
+      console.log('🔨 Criando usuário:', createForm.email)
+
+      // 1. Criar usuário no Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: createForm.email,
+        password: createForm.password,
+        email_confirm: true,
+        user_metadata: {
+          name: createForm.name
+        }
+      })
+
+      if (authError) {
+        console.error('❌ Erro ao criar no auth:', authError)
+        throw new Error(`Erro ao criar usuário: ${authError.message}`)
+      }
+
+      console.log('✅ Usuário criado no auth:', authData.user.id)
+
+      // 2. Criar registro na tabela clients
+      const { error: clientError } = await supabase
+        .from('clients')
+        .insert({
+          user_id: authData.user.id,
+          name: createForm.name,
+          email: createForm.email,
+          role: createForm.role,
+          is_active: createForm.isActive,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (clientError) {
+        console.error('❌ Erro ao criar cliente:', clientError)
+        // Tentar deletar do auth se falhar
+        await supabase.auth.admin.deleteUser(authData.user.id)
+        throw new Error(`Erro ao criar registro: ${clientError.message}`)
+      }
+
+      console.log('✅ Cliente criado com sucesso!')
+
+      // 3. Registrar no audit log
+      await superAdminService.logAction('CREATE_USER', {
+        userId: authData.user.id,
+        email: createForm.email,
+        role: createForm.role
+      })
+
+      // 4. Fechar modal e atualizar lista
+      setShowCreateModal(false)
+      setCreateForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'company_employee',
+        isActive: true
+      })
+      
+      setSuccessMessage(`🎉 Usuário ${createForm.name} criado com sucesso!`)
+      setTimeout(() => setSuccessMessage(''), 5000)
+      
+      await loadUsers()
+      await loadStats()
+
+    } catch (error) {
+      console.error('❌ Erro ao criar usuário:', error)
+      alert(error.message || 'Erro ao criar usuário')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // ========== EXCLUIR USUÁRIO ==========
+  const handleDeleteUser = async () => {
+    if (deleteConfirmation !== 'DELETE') {
+      alert('Digite DELETE para confirmar')
+      return
+    }
+
+    if (deleteCountdown > 0) {
+      alert('Aguarde o contador finalizar')
+      return
+    }
+
+    try {
+      setActionLoading(true)
+      console.log('🗑️ Excluindo usuário:', deletingUser.email)
+
+      // 1. Deletar da tabela clients
+      const { error: clientError } = await supabase
+        .from('clients')
+        .delete()
+        .eq('user_id', deletingUser.user_id)
+
+      if (clientError) {
+        throw new Error(`Erro ao deletar cliente: ${clientError.message}`)
+      }
+
+      // 2. Deletar do Supabase Auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(deletingUser.user_id)
+
+      if (authError) {
+        console.warn('⚠️ Erro ao deletar do auth:', authError)
+        // Continua mesmo com erro no auth
+      }
+
+      // 3. Registrar no audit log
+      await superAdminService.logAction('DELETE_USER', {
+        userId: deletingUser.user_id,
+        email: deletingUser.email,
+        name: deletingUser.name
+      })
+
+      // 4. Fechar modal e atualizar lista
+      setDeletingUser(null)
+      setDeleteConfirmation('')
+      setDeleteCountdown(3)
+      
+      setSuccessMessage(`🗑️ Usuário ${deletingUser.name} excluído permanentemente`)
+      setTimeout(() => setSuccessMessage(''), 5000)
+      
+      await loadUsers()
+      await loadStats()
+
+    } catch (error) {
+      console.error('❌ Erro ao excluir usuário:', error)
+      alert(error.message || 'Erro ao excluir usuário')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // ========== OUTRAS FUNÇÕES ==========
   const handleEditRole = (user) => {
     setEditingUser(user)
     setNewRole(user.role)
@@ -188,17 +422,29 @@ const UserManagement = () => {
     }
   }
 
+  const getPasswordStrengthColor = () => {
+    if (passwordStrength < 50) return 'bg-red-500'
+    if (passwordStrength < 75) return 'bg-yellow-500'
+    return 'bg-green-500'
+  }
+
+  const getPasswordStrengthText = () => {
+    if (passwordStrength < 50) return 'Fraca'
+    if (passwordStrength < 75) return 'Média'
+    return 'Forte'
+  }
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Mensagem de Sucesso */}
       {successMessage && (
         <div className="bg-gradient-to-r from-green-600/20 to-emerald-800/20 border-2 border-green-500/30 rounded-2xl p-4 flex items-center gap-3 animate-fade-in">
-          <Check className="h-6 w-6 text-green-400" />
+          <Sparkles className="h-6 w-6 text-green-400 animate-pulse" />
           <p className="text-white font-semibold">{successMessage}</p>
         </div>
       )}
 
-      {/* Header Moderno com Gradiente */}
+      {/* Header Moderno com Botão Criar */}
       <div className="flex items-center justify-between bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
         <div>
           <h1 className="text-4xl font-black bg-gradient-to-r from-blue-500 via-indigo-600 to-blue-700 bg-clip-text text-transparent flex items-center gap-3">
@@ -210,13 +456,22 @@ const UserManagement = () => {
             {searchTerm && <span className="text-blue-400 ml-2">• Buscando: "{searchTerm}"</span>}
           </p>
         </div>
-        <button
-          onClick={loadUsers}
-          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-500/50 hover:scale-105 font-semibold"
-        >
-          <RefreshCw className="h-5 w-5" />
-          Atualizar
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-green-500/50 hover:scale-105 font-semibold"
+          >
+            <UserPlus className="h-5 w-5" />
+            Criar Usuário
+          </button>
+          <button
+            onClick={loadUsers}
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white rounded-xl flex items-center gap-2 transition-all shadow-lg hover:shadow-blue-500/50 hover:scale-105 font-semibold"
+          >
+            <RefreshCw className="h-5 w-5" />
+            Atualizar
+          </button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -332,7 +587,7 @@ const UserManagement = () => {
               return (
                 <div
                   key={user.id}
-                  className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 animate-fade-in-up"
+                  className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 hover:border-blue-500/50 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/10 animate-fade-in-up group"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-start justify-between gap-6">
@@ -419,6 +674,18 @@ const UserManagement = () => {
                         <Power className="h-4 w-4" />
                         {user.is_active !== false ? 'Desativar' : 'Ativar'}
                       </button>
+                      {/* Botão EXCLUIR - só aparece no hover */}
+                      <button
+                        onClick={() => {
+                          setDeletingUser(user)
+                          setDeleteCountdown(3)
+                          setDeleteConfirmation('')
+                        }}
+                        className="px-4 py-2 bg-gradient-to-r from-red-900 to-red-950 hover:from-red-800 hover:to-red-900 text-white rounded-xl transition-all shadow-lg hover:shadow-red-500/50 hover:scale-105 font-semibold flex items-center gap-2 opacity-0 group-hover:opacity-100 hover:animate-shake"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Excluir
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -455,6 +722,251 @@ const UserManagement = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* MODAL DE CRIAÇÃO */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 max-w-2xl w-full border-2 border-green-500/30 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
+                <UserPlus className="h-8 w-8 text-green-500" />
+                Criar Novo Usuário
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 hover:bg-gray-700 rounded-xl transition-colors"
+              >
+                <X className="h-6 w-6 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Nome */}
+              <div>
+                <label className="text-gray-300 font-medium mb-2 block">Nome Completo *</label>
+                <input
+                  type="text"
+                  value={createForm.name}
+                  onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                  placeholder="Ex: João Silva"
+                  className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 transition-all"
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-gray-300 font-medium mb-2 block">Email *</label>
+                <input
+                  type="email"
+                  value={createForm.email}
+                  onChange={(e) => {
+                    setCreateForm({ ...createForm, email: e.target.value })
+                    validateEmail(e.target.value)
+                  }}
+                  onBlur={(e) => validateEmail(e.target.value)}
+                  placeholder="Ex: joao@empresa.com"
+                  className={`w-full px-4 py-3 bg-gray-900 border-2 rounded-xl text-white focus:outline-none transition-all ${
+                    emailError ? 'border-red-500' : 'border-gray-700 focus:border-green-500'
+                  }`}
+                />
+                {emailError && <p className="text-red-400 text-sm mt-1">{emailError}</p>}
+              </div>
+
+              {/* Senha */}
+              <div>
+                <label className="text-gray-300 font-medium mb-2 block">Senha *</label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={createForm.password}
+                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                    placeholder="Mínimo 8 caracteres"
+                    className="w-full px-4 py-3 pr-24 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 transition-all"
+                  />
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                      title={showPassword ? 'Ocultar' : 'Mostrar'}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={generateRandomPassword}
+                      className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                      title="Gerar senha aleatória"
+                    >
+                      <Dices className="h-4 w-4 text-green-400" />
+                    </button>
+                  </div>
+                </div>
+                {createForm.password && (
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-gray-400">Força da senha:</span>
+                      <span className={`text-sm font-semibold ${
+                        passwordStrength < 50 ? 'text-red-400' : passwordStrength < 75 ? 'text-yellow-400' : 'text-green-400'
+                      }`}>
+                        {getPasswordStrengthText()}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
+                        style={{ width: `${passwordStrength}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Role */}
+              <div>
+                <label className="text-gray-300 font-medium mb-2 block">Role *</label>
+                <select
+                  value={createForm.role}
+                  onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+                  className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-xl text-white focus:outline-none focus:border-green-500 transition-all"
+                >
+                  <option value="company_employee">Company Employee</option>
+                  <option value="company_manager">Company Manager</option>
+                  <option value="bank_manager">Bank Manager</option>
+                  <option value="super_admin">Super Admin</option>
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="text-gray-300 font-medium mb-2 block">Status Inicial</label>
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, isActive: true })}
+                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                      createForm.isActive
+                        ? 'bg-gradient-to-r from-green-600 to-emerald-700 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <Check className="h-5 w-5 inline mr-2" />
+                    Ativo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateForm({ ...createForm, isActive: false })}
+                    className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                      !createForm.isActive
+                        ? 'bg-gradient-to-r from-red-600 to-red-700 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <X className="h-5 w-5 inline mr-2" />
+                    Inativo
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateUser}
+                disabled={actionLoading || !createForm.name || !createForm.email || !createForm.password || emailError}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-green-500/50 flex items-center justify-center gap-2"
+              >
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Criando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-5 w-5" />
+                    Criar Usuário
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE EXCLUSÃO */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl p-8 max-w-md w-full border-2 border-red-500/30 shadow-2xl animate-scale-in">
+            <div className="text-center mb-6">
+              <Skull className="h-20 w-20 text-red-500 mx-auto mb-4 animate-pulse" />
+              <h3 className="text-3xl font-bold text-red-500 mb-2">⚠️ TEM CERTEZA ABSOLUTA?</h3>
+              <p className="text-gray-300">Esta ação NÃO pode ser desfeita!</p>
+            </div>
+
+            <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4 mb-6">
+              <p className="text-white font-bold text-lg">{deletingUser.name}</p>
+              <p className="text-gray-400 text-sm">{deletingUser.email}</p>
+              <p className="text-gray-500 text-xs mt-2">Role: {roleNames[deletingUser.role]}</p>
+            </div>
+
+            <div className="mb-6">
+              <label className="text-gray-300 font-medium mb-2 block">
+                Digite <span className="text-red-500 font-bold">DELETE</span> para confirmar:
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                placeholder="DELETE"
+                className="w-full px-4 py-3 bg-gray-900 border-2 border-red-500/30 rounded-xl text-white focus:outline-none focus:border-red-500 transition-all font-mono text-center text-lg"
+              />
+            </div>
+
+            {deleteCountdown > 0 && (
+              <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-4 mb-6 text-center">
+                <p className="text-yellow-300 font-semibold">
+                  Aguarde {deleteCountdown} segundo{deleteCountdown !== 1 ? 's' : ''}...
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setDeletingUser(null)
+                  setDeleteConfirmation('')
+                  setDeleteCountdown(3)
+                }}
+                className="flex-1 px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl transition-all font-semibold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteUser}
+                disabled={actionLoading || deleteConfirmation !== 'DELETE' || deleteCountdown > 0}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-red-500/50 flex items-center justify-center gap-2 animate-pulse disabled:animate-none"
+              >
+                {actionLoading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-5 w-5" />
+                    EXCLUIR PERMANENTEMENTE
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal de Edição de Role */}
@@ -546,6 +1058,11 @@ const UserManagement = () => {
             transform: scale(1);
           }
         }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-5px); }
+          75% { transform: translateX(5px); }
+        }
         .animate-fade-in {
           animation: fade-in 0.5s ease-out;
         }
@@ -554,6 +1071,9 @@ const UserManagement = () => {
         }
         .animate-scale-in {
           animation: scale-in 0.3s ease-out;
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
         }
         .drop-shadow-glow {
           filter: drop-shadow(0 0 8px currentColor);
