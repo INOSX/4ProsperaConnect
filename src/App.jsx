@@ -60,6 +60,8 @@ import SQLConsole from './components/superadmin/SQLConsole'
 import AuditLog from './components/superadmin/AuditLog'
 import SuperAdminSettings from './components/superadmin/SuperAdminSettings'
 import SystemMonitor from './components/superadmin/SystemMonitor'
+// Employee Redirect
+import EmployeeRedirect from './components/auth/EmployeeRedirect'
 import { Analytics } from '@vercel/analytics/react'
 
 function App() {
@@ -90,7 +92,9 @@ function App() {
               } />
               <Route path="/modules" element={
                 <ProtectedRoute>
-                  <ModuleSelector />
+                  <EmployeeRedirect>
+                    <ModuleSelector />
+                  </EmployeeRedirect>
                 </ProtectedRoute>
               } />
               <Route path="/dashboard" element={
