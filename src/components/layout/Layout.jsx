@@ -3,13 +3,18 @@ import { useLocation } from 'react-router-dom'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import ModuleTopMenu from './ModuleTopMenu'
+import { useSuperAdmin } from '../../hooks/useSuperAdmin'
 
 const Layout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const location = useLocation()
+  const { userRole } = useSuperAdmin()
 
   // Verificar se está dentro de um iframe
   const isInIframe = window.self !== window.top
+  
+  // Ocultar sidebar para company_employee
+  const hideSidebar = userRole === 'company_employee'
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -35,8 +40,8 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      {/* Sidebar - Oculta para company_employee */}
+      {!hideSidebar && <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />}
       
       {/* Main content area */}
       <div className="flex-1 flex flex-col">
@@ -44,6 +49,7 @@ const Layout = ({ children }) => {
         <Header 
           onMenuToggle={toggleSidebar} 
           isSidebarOpen={isSidebarOpen}
+          hideSidebarToggle={hideSidebar}
         />
         
         {/* Module Top Menu */}

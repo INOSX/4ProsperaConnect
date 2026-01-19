@@ -23,7 +23,7 @@ import Button from '../ui/Button'
 import TourButton from '../tour/TourButton'
 import Documentation from '../documentation/Documentation'
 
-const Header = ({ onMenuToggle, isSidebarOpen }) => {
+const Header = ({ onMenuToggle, isSidebarOpen, hideSidebarToggle = false }) => {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const {
@@ -117,16 +117,19 @@ const Header = ({ onMenuToggle, isSidebarOpen }) => {
     <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 h-16 flex items-center justify-between flex-shrink-0 transition-colors duration-300">
       {/* Left side */}
       <div className="flex items-center space-x-4">
-        <button
-          onClick={onMenuToggle}
-          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden transition-colors"
-        >
-          {isSidebarOpen ? (
-            <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-          ) : (
-            <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-          )}
-        </button>
+        {/* Menu hambúrguer - Oculta se não houver sidebar */}
+        {!hideSidebarToggle && (
+          <button
+            onClick={onMenuToggle}
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 lg:hidden transition-colors"
+          >
+            {isSidebarOpen ? (
+              <X className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <Menu className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+        )}
 
         <button
           onClick={() => navigate('/modules')}
