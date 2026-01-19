@@ -87,7 +87,9 @@ function App() {
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/" element={
                 <ProtectedRoute>
-                  <ModuleSelector />
+                  <EmployeeRedirect>
+                    <ModuleSelector />
+                  </EmployeeRedirect>
                 </ProtectedRoute>
               } />
               <Route path="/modules" element={
