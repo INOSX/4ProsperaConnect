@@ -199,7 +199,9 @@ function App() {
             } />
             <Route path="/companies/:id/dashboard" element={
               <ProtectedRoute>
-                <CompanyDashboardSimplified />
+                <Layout>
+                  <CompanyDashboardSimplified />
+                </Layout>
               </ProtectedRoute>
             } />
             <Route path="/companies/:id/edit" element={
