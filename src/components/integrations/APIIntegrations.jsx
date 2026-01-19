@@ -35,6 +35,8 @@ const APIIntegrations = () => {
   const [cacheStats, setCacheStats] = useState({ size: 0, keys: [] })
   const [customCNPJ, setCustomCNPJ] = useState('33000167000101') // CNPJ default para teste
 
+  console.log('🔄 [APIIntegrations] Renderizado, customCNPJ:', customCNPJ)
+
   // Carregar configurações salvas
   useEffect(() => {
     loadConfig()
@@ -399,8 +401,10 @@ const APIIntegrations = () => {
               value={customCNPJ}
               onChange={(e) => setCustomCNPJ(e.target.value.replace(/\D/g, ''))}
               placeholder="33000167000101"
-              maxLength="14"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+              maxLength={14}
+              autoComplete="off"
+              disabled={testing === 'opencnpj'}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">
               Digite apenas números (14 dígitos)
