@@ -64,59 +64,65 @@ const ModuleSelector = () => {
     })
   }
   
-  // PROSPECTING - Disponível para todos
-  moduleCards.push({
-    id: modules.PROSPECTING.id,
-    name: modules.PROSPECTING.name,
-    subtitle: 'Visão do Banco',
-    description: modules.PROSPECTING.description,
-    icon: Target,
-    color: 'bg-green-500',
-    gradient: 'from-green-500 to-green-600',
-    route: modules.PROSPECTING.defaultRoute,
-    features: [
-      'Identificar prospects',
-      'Enriquecer dados',
-      'Scoring inteligente',
-      'Análise de potencial'
-    ]
-  })
+  // PROSPECTING - Verificar acesso (super_admin e bank_manager apenas)
+  if (hasAccessToModule(modules.PROSPECTING)) {
+    moduleCards.push({
+      id: modules.PROSPECTING.id,
+      name: modules.PROSPECTING.name,
+      subtitle: 'Visão do Banco',
+      description: modules.PROSPECTING.description,
+      icon: Target,
+      color: 'bg-green-500',
+      gradient: 'from-green-500 to-green-600',
+      route: modules.PROSPECTING.defaultRoute,
+      features: [
+        'Identificar prospects',
+        'Enriquecer dados',
+        'Scoring inteligente',
+        'Análise de potencial'
+      ]
+    })
+  }
   
-  // MARKETING - Disponível para todos
-  moduleCards.push({
-    id: modules.MARKETING.id,
-    name: modules.MARKETING.name,
-    subtitle: 'Ferramentas para o banco',
-    description: modules.MARKETING.description,
-    icon: Mail,
-    color: 'bg-purple-500',
-    gradient: 'from-purple-500 to-purple-600',
-    route: modules.MARKETING.defaultRoute,
-    features: [
-      'Criar campanhas',
-      'Email marketing',
-      'Segmentação',
-      'Acompanhar resultados'
-    ]
-  })
+  // MARKETING - Verificar acesso
+  if (hasAccessToModule(modules.MARKETING)) {
+    moduleCards.push({
+      id: modules.MARKETING.id,
+      name: modules.MARKETING.name,
+      subtitle: 'Ferramentas para o banco',
+      description: modules.MARKETING.description,
+      icon: Mail,
+      color: 'bg-purple-500',
+      gradient: 'from-purple-500 to-purple-600',
+      route: modules.MARKETING.defaultRoute,
+      features: [
+        'Criar campanhas',
+        'Email marketing',
+        'Segmentação',
+        'Acompanhar resultados'
+      ]
+    })
+  }
   
-  // SPECIALIST - Disponível para todos
-  moduleCards.push({
-    id: modules.SPECIALIST.id,
-    name: modules.SPECIALIST.name,
-    subtitle: 'Inteligência Artificial Agentic',
-    description: modules.SPECIALIST.description,
-    icon: Bot,
-    color: 'bg-orange-500',
-    gradient: 'from-orange-500 to-orange-600',
-    route: modules.SPECIALIST.defaultRoute,
-    features: [
-      'Consultoria por voz',
-      'Ações inteligentes',
-      'Busca semântica',
-      'Visualizações automáticas'
-    ]
-  })
+  // SPECIALIST - Verificar acesso
+  if (hasAccessToModule(modules.SPECIALIST)) {
+    moduleCards.push({
+      id: modules.SPECIALIST.id,
+      name: modules.SPECIALIST.name,
+      subtitle: 'Inteligência Artificial Agentic',
+      description: modules.SPECIALIST.description,
+      icon: Bot,
+      color: 'bg-orange-500',
+      gradient: 'from-orange-500 to-orange-600',
+      route: modules.SPECIALIST.defaultRoute,
+      features: [
+        'Consultoria por voz',
+        'Ações inteligentes',
+        'Busca semântica',
+        'Visualizações automáticas'
+      ]
+    })
+  }
 
   // Adicionar módulo Super Admin apenas se o usuário for super_admin
   if (isSuperAdmin && !isLoading) {
@@ -144,6 +150,9 @@ const ModuleSelector = () => {
 
   console.log('📋 [ModuleSelector] Total de cards:', moduleCards.length)
   console.log('🔐 [ModuleSelector] Acesso Gestão de Pessoas:', hasAccessToModule(modules.PEOPLE), '| Role:', userRole)
+  console.log('🔐 [ModuleSelector] Acesso Prospecção:', hasAccessToModule(modules.PROSPECTING), '| Role:', userRole)
+  console.log('🔐 [ModuleSelector] Acesso Marketing:', hasAccessToModule(modules.MARKETING), '| Role:', userRole)
+  console.log('🔐 [ModuleSelector] Acesso Especialista:', hasAccessToModule(modules.SPECIALIST), '| Role:', userRole)
 
   const handleSelectModule = (moduleId, route) => {
     selectModule(moduleId)
