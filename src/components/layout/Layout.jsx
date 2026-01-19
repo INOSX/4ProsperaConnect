@@ -52,8 +52,8 @@ const Layout = ({ children }) => {
           hideSidebarToggle={hideSidebar}
         />
         
-        {/* Module Top Menu */}
-        {showModuleMenu && <ModuleTopMenu />}
+        {/* Module Top Menu - Oculta para company_employee */}
+        {showModuleMenu && !hideSidebar && <ModuleTopMenu />}
         
         {/* Page content */}
         <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
