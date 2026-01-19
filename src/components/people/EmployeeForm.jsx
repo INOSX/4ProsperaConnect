@@ -133,7 +133,9 @@ const EmployeeForm = () => {
     if (!formData.company_id) {
       newErrors.company_id = 'Empresa é obrigatória'
     }
-    if (!formData.cpf || formData.cpf.length !== 11) {
+    // Validar CPF removendo formatação
+    const cpfNumbers = formData.cpf.replace(/\D/g, '')
+    if (!cpfNumbers || cpfNumbers.length !== 11) {
       newErrors.cpf = 'CPF deve ter 11 dígitos'
     }
     if (!formData.name || formData.name.trim().length < 3) {
