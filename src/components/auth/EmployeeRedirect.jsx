@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../services/supabase'
 
@@ -10,14 +10,26 @@ import { supabase } from '../../services/supabase'
 const EmployeeRedirect = ({ children }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isRedirecting, setIsRedirecting] = useState(false)
+  const [hasChecked, setHasChecked] = useState(false)
 
   useEffect(() => {
-    checkAndRedirect()
-  }, [user])
+    // Só verifica uma vez por mudança de usuário
+    if (!hasChecked && user) {
+      checkAndRedirect()
+    }
+  }, [user, hasChecked])
 
   const checkAndRedirect = async () => {
     if (!user) return
+
+    // Se já estiver na rota de employee, não faz nada
+    if (location.pathname.startsWith('/people/employees/')) {
+      console.log('✅ [EmployeeRedirect] Já está no dashboard do employee, não redireciona')
+      setHasChecked(true)
+      return
+    }
 
     try {
       console.log('🔍 [EmployeeRedirect] Verificando role do usuário...')
@@ -31,6 +43,7 @@ const EmployeeRedirect = ({ children }) => {
 
       if (error) {
         console.error('❌ [EmployeeRedirect] Erro ao buscar role:', error)
+        setHasChecked(true)
         return
       }
 
@@ -50,21 +63,26 @@ const EmployeeRedirect = ({ children }) => {
 
         if (employeeError) {
           console.error('❌ [EmployeeRedirect] Erro ao buscar employee:', employeeError)
+          setHasChecked(true)
           return
         }
 
         if (employeeData?.id) {
           console.log('✅ [EmployeeRedirect] Redirecionando para dashboard:', employeeData.id)
           setIsRedirecting(true)
-          navigate(`/people/employees/${employeeData.id}`)
+          setHasChecked(true)
+          navigate(`/people/employees/${employeeData.id}`, { replace: true })
         } else {
           console.warn('⚠️ [EmployeeRedirect] Employee não encontrado para user_id:', user.id)
+          setHasChecked(true)
         }
       } else {
         console.log('✅ [EmployeeRedirect] Não é company_employee, continua navegação normal')
+        setHasChecked(true)
       }
     } catch (error) {
       console.error('❌ [EmployeeRedirect] Erro geral:', error)
+      setHasChecked(true)
     }
   }
 
