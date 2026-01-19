@@ -2,13 +2,10 @@
 -- SETUP: Associar company_manager@www.com a Empresa Fictícia
 -- Com Funcionários e Benefícios
 -- ============================================
-
--- ⚠️ IMPORTANTE: Desabilitar triggers temporariamente
--- Isso permite criar dados sem passar pelas validações de RLS/triggers
-ALTER TABLE public.companies DISABLE TRIGGER ALL;
-ALTER TABLE public.employees DISABLE TRIGGER ALL;
-ALTER TABLE public.company_benefits DISABLE TRIGGER ALL;
-ALTER TABLE public.employee_benefits DISABLE TRIGGER ALL;
+-- 
+-- ⚠️ IMPORTANTE: Execute este script no Supabase SQL Editor
+-- Ele será executado com privilégios de service_role automaticamente
+-- ============================================
 
 -- ============================================
 -- 1. BUSCAR USER_ID DO COMPANY_MANAGER
@@ -678,17 +675,11 @@ BEGIN
 END $$;
 
 -- ============================================
--- RE-HABILITAR TRIGGERS
+-- LOG FINAL
 -- ============================================
 
-ALTER TABLE public.companies ENABLE TRIGGER ALL;
-ALTER TABLE public.employees ENABLE TRIGGER ALL;
-ALTER TABLE public.company_benefits ENABLE TRIGGER ALL;
-ALTER TABLE public.employee_benefits ENABLE TRIGGER ALL;
-
--- Log final
 DO $$ BEGIN
   RAISE NOTICE '';
-  RAISE NOTICE '✅ Triggers re-habilitados com sucesso!';
-  RAISE NOTICE '✅ Sistema pronto para uso normal!';
+  RAISE NOTICE '✅ Script executado com sucesso via service_role!';
+  RAISE NOTICE '✅ Dados de teste criados e prontos para uso!';
 END $$;
