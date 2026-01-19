@@ -3,6 +3,13 @@
 -- Com Funcionários e Benefícios
 -- ============================================
 
+-- ⚠️ IMPORTANTE: Desabilitar triggers temporariamente
+-- Isso permite criar dados sem passar pelas validações de RLS/triggers
+ALTER TABLE public.companies DISABLE TRIGGER ALL;
+ALTER TABLE public.employees DISABLE TRIGGER ALL;
+ALTER TABLE public.company_benefits DISABLE TRIGGER ALL;
+ALTER TABLE public.employee_benefits DISABLE TRIGGER ALL;
+
 -- ============================================
 -- 1. BUSCAR USER_ID DO COMPANY_MANAGER
 -- ============================================
@@ -668,4 +675,20 @@ BEGIN
   RAISE NOTICE '';
   RAISE NOTICE '========================================';
 
+END $$;
+
+-- ============================================
+-- RE-HABILITAR TRIGGERS
+-- ============================================
+
+ALTER TABLE public.companies ENABLE TRIGGER ALL;
+ALTER TABLE public.employees ENABLE TRIGGER ALL;
+ALTER TABLE public.company_benefits ENABLE TRIGGER ALL;
+ALTER TABLE public.employee_benefits ENABLE TRIGGER ALL;
+
+-- Log final
+DO $$ BEGIN
+  RAISE NOTICE '';
+  RAISE NOTICE '✅ Triggers re-habilitados com sucesso!';
+  RAISE NOTICE '✅ Sistema pronto para uso normal!';
 END $$;
