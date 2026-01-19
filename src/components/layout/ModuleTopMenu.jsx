@@ -2,13 +2,20 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
 import { useSuperAdmin } from '../../hooks/useSuperAdmin'
+import { useAuth } from '../../contexts/AuthContext'
 import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus, UserCircle, Shield, Database, BarChart3, Terminal, Activity } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
   const { isSuperAdmin } = useSuperAdmin()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [hoveredModule, setHoveredModule] = useState(null)
+
+  // Obter role do usuário
+  const userRole = user?.user_metadata?.role || user?.role || null
+
+  console.log('🔍 [ModuleTopMenu] User role:', userRole)
 
   // Submenu para Gestão de Pessoas
   const peopleSubmenu = [
@@ -132,7 +139,8 @@ const ModuleTopMenu = () => {
       activeColor: 'bg-blue-50 text-blue-700 border-blue-200',
       hoverColor: 'hover:bg-blue-50 hover:text-blue-700',
       hasSubmenu: true,
-      submenu: peopleSubmenu
+      submenu: peopleSubmenu,
+      allowedRoles: modules.PEOPLE.allowedRoles
     },
     {
       id: modules.PROSPECTING.id,
@@ -143,7 +151,8 @@ const ModuleTopMenu = () => {
       activeColor: 'bg-green-50 text-green-700 border-green-200',
       hoverColor: 'hover:bg-green-50 hover:text-green-700',
       hasSubmenu: true,
-      submenu: prospectingSubmenu
+      submenu: prospectingSubmenu,
+      allowedRoles: modules.PROSPECTING.allowedRoles
     },
     {
       id: modules.MARKETING.id,
@@ -154,13 +163,39 @@ const ModuleTopMenu = () => {
       activeColor: 'bg-purple-50 text-purple-700 border-purple-200',
       hoverColor: 'hover:bg-purple-50 hover:text-purple-700',
       hasSubmenu: true,
-      submenu: marketingSubmenu
+      submenu: marketingSubmenu,
+      allowedRoles: modules.MARKETING.allowedRoles
     }
   ]
 
+  // Função para verificar se usuário tem acesso ao módulo
+  const hasAccessToModule = (module) => {
+    // Se não há roles definidas, o módulo é público
+    if (!module.allowedRoles || module.allowedRoles.length === 0) {
+      return true
+    }
+    
+    // Se não há role do usuário, não tem acesso
+    if (!userRole) {
+      return false
+    }
+    
+    // Verificar se a role do usuário está na lista de roles permitidas
+    return module.allowedRoles.includes(userRole)
+  }
+
+  // Filtrar módulos baseado nas permissões do usuário
+  const visibleModules = moduleItems.filter(hasAccessToModule)
+
+  console.log('📋 [ModuleTopMenu] Visible modules:', visibleModules.map(m => m.name))
+  console.log('🔐 [ModuleTopMenu] Access check:')
+  moduleItems.forEach(m => {
+    console.log(`   - ${m.name}: ${hasAccessToModule(m)} | Required roles:`, m.allowedRoles || 'public')
+  })
+
   // Adicionar Super Admin se o usuário tiver permissão
   if (isSuperAdmin) {
-    moduleItems.push({
+    visibleModules.push({
       id: 'super-admin',
       name: 'Super Admin',
       icon: Shield,
@@ -187,7 +222,7 @@ const ModuleTopMenu = () => {
     <div className="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4">
         <nav className="flex items-center justify-center space-x-1 py-3 relative">
-          {moduleItems.map((item) => {
+          {visibleModules.map((item) => {
             const Icon = item.icon
             const isActive = activeModule === item.id
             const isHovered = hoveredModule === item.id
