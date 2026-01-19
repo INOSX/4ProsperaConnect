@@ -41,11 +41,11 @@ const EmployeeRedirect = ({ children }) => {
       if (userRole === 'company_employee') {
         console.log('🔄 [EmployeeRedirect] É company_employee, buscando employee_id...')
 
-        // Buscar o employee vinculado ao client
+        // Buscar o employee vinculado ao user_id
         const { data: employeeData, error: employeeError } = await supabase
           .from('employees')
           .select('id')
-          .eq('client_id', clientData.id)
+          .eq('platform_user_id', user.id)
           .single()
 
         if (employeeError) {
@@ -57,6 +57,8 @@ const EmployeeRedirect = ({ children }) => {
           console.log('✅ [EmployeeRedirect] Redirecionando para dashboard:', employeeData.id)
           setIsRedirecting(true)
           navigate(`/people/employees/${employeeData.id}`)
+        } else {
+          console.warn('⚠️ [EmployeeRedirect] Employee não encontrado para user_id:', user.id)
         }
       } else {
         console.log('✅ [EmployeeRedirect] Não é company_employee, continua navegação normal')
