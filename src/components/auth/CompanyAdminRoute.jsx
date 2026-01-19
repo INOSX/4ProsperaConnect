@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { ClientService } from '../../services/clientService'
 import { isCompanyAdminAny } from '../../services/employeeService'
 import { canManageEmployees } from '../../utils/permissions'
+import { supabase } from '../../services/supabase'
 import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { AlertCircle, Shield } from 'lucide-react'
@@ -15,6 +16,7 @@ import { AlertCircle, Shield } from 'lucide-react'
 const CompanyAdminRoute = ({ children }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const params = useParams()
   const [hasPermission, setHasPermission] = useState(false)
   const [loading, setLoading] = useState(true)
 
@@ -37,10 +39,12 @@ const CompanyAdminRoute = ({ children }) => {
       const clientResult = await ClientService.getClientByUserId(user.id)
       let userIsBankAdmin = false
       let isSuperAdmin = false
+      let userRole = null
       
       if (clientResult.success && clientResult.client) {
         userIsBankAdmin = clientResult.client.role === 'admin'
         isSuperAdmin = clientResult.client.role === 'super_admin'
+        userRole = clientResult.client.role
       }
 
       // Super Admin sempre tem acesso
@@ -48,6 +52,28 @@ const CompanyAdminRoute = ({ children }) => {
         setHasPermission(true)
         setLoading(false)
         return
+      }
+
+      // Se for company_employee tentando acessar /people/employees/:id
+      // Verificar se é o próprio employee
+      if (userRole === 'company_employee' && params.id) {
+        console.log('🔍 [CompanyAdminRoute] Verificando se employee acessa próprio dashboard...')
+        
+        const { data: employeeData, error } = await supabase
+          .from('employees')
+          .select('id')
+          .eq('platform_user_id', user.id)
+          .eq('id', params.id)
+          .single()
+
+        if (!error && employeeData) {
+          console.log('✅ [CompanyAdminRoute] Employee acessando próprio dashboard, PERMITIDO')
+          setHasPermission(true)
+          setLoading(false)
+          return
+        } else {
+          console.log('❌ [CompanyAdminRoute] Employee tentando acessar dashboard de outro')
+        }
       }
 
       // Verificar se é Admin do Cliente
