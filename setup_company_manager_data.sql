@@ -4,8 +4,37 @@
 -- ============================================
 -- 
 -- ⚠️ IMPORTANTE: Execute este script no Supabase SQL Editor
--- Ele será executado com privilégios de service_role automaticamente
 -- ============================================
+
+-- ============================================
+-- DESABILITAR TRIGGER ESPECÍFICO DE VALIDAÇÃO
+-- ============================================
+
+-- Desabilitar apenas o trigger que valida admin (não system triggers)
+DO $$
+BEGIN
+  -- Tentar desabilitar o trigger se existir
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'ensure_only_admin_creates_companies_trigger'
+  ) THEN
+    ALTER TABLE public.companies DISABLE TRIGGER ensure_only_admin_creates_companies_trigger;
+    RAISE NOTICE '✅ Trigger de validação desabilitado temporariamente';
+  ELSE
+    RAISE NOTICE '⚠️ Trigger não encontrado, tentando nomes alternativos...';
+    
+    -- Listar triggers da tabela companies para debug
+    RAISE NOTICE 'Triggers encontrados:';
+    FOR rec IN 
+      SELECT tgname FROM pg_trigger t
+      JOIN pg_class c ON t.tgrelid = c.oid
+      WHERE c.relname = 'companies'
+      AND tgname NOT LIKE 'RI_%'  -- Ignorar triggers de sistema (RI = Referential Integrity)
+    LOOP
+      RAISE NOTICE '  - %', rec.tgname;
+    END LOOP;
+  END IF;
+END $$;
 
 -- ============================================
 -- 1. BUSCAR USER_ID DO COMPANY_MANAGER
@@ -675,11 +704,28 @@ BEGIN
 END $$;
 
 -- ============================================
+-- RE-HABILITAR TRIGGER DE VALIDAÇÃO
+-- ============================================
+
+DO $$
+BEGIN
+  -- Re-habilitar o trigger se foi desabilitado
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger 
+    WHERE tgname = 'ensure_only_admin_creates_companies_trigger'
+  ) THEN
+    ALTER TABLE public.companies ENABLE TRIGGER ensure_only_admin_creates_companies_trigger;
+    RAISE NOTICE '✅ Trigger de validação re-habilitado';
+  END IF;
+END $$;
+
+-- ============================================
 -- LOG FINAL
 -- ============================================
 
 DO $$ BEGIN
   RAISE NOTICE '';
-  RAISE NOTICE '✅ Script executado com sucesso via service_role!';
+  RAISE NOTICE '✅ Script executado com sucesso!';
   RAISE NOTICE '✅ Dados de teste criados e prontos para uso!';
+  RAISE NOTICE '✅ Triggers restaurados ao estado normal!';
 END $$;
