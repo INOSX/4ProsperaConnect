@@ -262,7 +262,7 @@ const CompanyList = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      window.open(`/companies/${company.id}/dashboard`, '_blank')
+                      navigate(`/companies/${company.id}/dashboard`)
                     }}
                     className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                   >
