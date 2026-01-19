@@ -86,6 +86,15 @@ const EmployeeRedirect = ({ children }) => {
     }
   }
 
+  // Enquanto não verificou, mostra loading (evita renderizar ModuleSelector antes de saber se é employee)
+  if (!hasChecked) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Verificando permissões...</div>
+      </div>
+    )
+  }
+
   // Se estiver redirecionando, mostra loading
   if (isRedirecting) {
     return (
