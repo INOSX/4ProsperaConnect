@@ -344,5 +344,9 @@ CREATE TRIGGER ensure_only_admin_creates_companies_trigger
   FOR EACH ROW
   EXECUTE FUNCTION public.ensure_only_admin_creates_companies();
 
-RAISE NOTICE '✅ Função e trigger recriados!';
-RAISE NOTICE '✅ Sistema restaurado ao normal!';
+-- Log final
+DO $$ BEGIN
+  RAISE NOTICE '';
+  RAISE NOTICE '✅ Função e trigger recriados!';
+  RAISE NOTICE '✅ Sistema restaurado ao normal!';
+END $$;
