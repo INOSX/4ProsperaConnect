@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
-import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus, UserCircle } from 'lucide-react'
+import { useSuperAdmin } from '../../hooks/useSuperAdmin'
+import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus, UserCircle, Shield, Database, BarChart3, Terminal, Activity } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
+  const { isSuperAdmin } = useSuperAdmin()
   const navigate = useNavigate()
   const [hoveredModule, setHoveredModule] = useState(null)
 
@@ -74,6 +76,52 @@ const ModuleTopMenu = () => {
     }
   ]
 
+  // Submenu para Super Admin
+  const superAdminSubmenu = [
+    {
+      label: 'Dashboard',
+      route: '/superadmin',
+      icon: BarChart3,
+      description: 'Visão geral do sistema'
+    },
+    {
+      label: 'Gerenciar Usuários',
+      route: '/superadmin/users',
+      icon: Users,
+      description: 'Criar e gerenciar usuários'
+    },
+    {
+      label: 'Gerenciar Empresas',
+      route: '/superadmin/companies',
+      icon: Building2,
+      description: 'Visualizar e gerenciar empresas'
+    },
+    {
+      label: 'SQL Console',
+      route: '/superadmin/sql',
+      icon: Terminal,
+      description: 'Executar queries SQL'
+    },
+    {
+      label: 'Monitor do Sistema',
+      route: '/superadmin/monitor',
+      icon: Activity,
+      description: 'Monitorar performance do sistema'
+    },
+    {
+      label: 'Logs de Auditoria',
+      route: '/superadmin/audit',
+      icon: Database,
+      description: 'Ver logs de ações dos usuários'
+    },
+    {
+      label: 'Configurações',
+      route: '/superadmin/settings',
+      icon: Settings,
+      description: 'Configurar sistema'
+    }
+  ]
+
   const moduleItems = [
     {
       id: modules.PEOPLE.id,
@@ -109,6 +157,21 @@ const ModuleTopMenu = () => {
       submenu: marketingSubmenu
     }
   ]
+
+  // Adicionar Super Admin se o usuário tiver permissão
+  if (isSuperAdmin) {
+    moduleItems.push({
+      id: 'super-admin',
+      name: 'Super Admin',
+      icon: Shield,
+      route: '/superadmin',
+      color: 'text-red-600',
+      activeColor: 'bg-red-50 text-red-700 border-red-200',
+      hoverColor: 'hover:bg-red-50 hover:text-red-700',
+      hasSubmenu: true,
+      submenu: superAdminSubmenu
+    })
+  }
 
   const handleModuleClick = (moduleId, route) => {
     selectModule(moduleId)
@@ -163,9 +226,26 @@ const ModuleTopMenu = () => {
                       // Determinar cores baseadas no módulo
                       const isPeople = item.id === modules.PEOPLE.id
                       const isProspecting = item.id === modules.PROSPECTING.id
-                      const iconColor = isPeople ? 'text-blue-600' : isProspecting ? 'text-green-600' : 'text-purple-600'
-                      const hoverBg = isPeople ? 'hover:bg-blue-50' : isProspecting ? 'hover:bg-green-50' : 'hover:bg-purple-50'
-                      const hoverText = isPeople ? 'group-hover:text-blue-700' : isProspecting ? 'group-hover:text-green-700' : 'group-hover:text-purple-700'
+                      const isMarketing = item.id === modules.MARKETING.id
+                      const isSuperAdminModule = item.id === 'super-admin'
+                      
+                      const iconColor = isPeople ? 'text-blue-600' 
+                        : isProspecting ? 'text-green-600' 
+                        : isMarketing ? 'text-purple-600'
+                        : isSuperAdminModule ? 'text-red-600'
+                        : 'text-gray-600'
+                        
+                      const hoverBg = isPeople ? 'hover:bg-blue-50' 
+                        : isProspecting ? 'hover:bg-green-50' 
+                        : isMarketing ? 'hover:bg-purple-50'
+                        : isSuperAdminModule ? 'hover:bg-red-50'
+                        : 'hover:bg-gray-50'
+                        
+                      const hoverText = isPeople ? 'group-hover:text-blue-700' 
+                        : isProspecting ? 'group-hover:text-green-700' 
+                        : isMarketing ? 'group-hover:text-purple-700'
+                        : isSuperAdminModule ? 'group-hover:text-red-700'
+                        : 'group-hover:text-gray-700'
                       
                       return (
                         <button
