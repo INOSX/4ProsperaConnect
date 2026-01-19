@@ -12,6 +12,8 @@
 
 -- Desabilitar apenas o trigger que valida admin (não system triggers)
 DO $$
+DECLARE
+  rec RECORD;  -- Variável para o loop
 BEGIN
   -- Tentar desabilitar o trigger se existir
   IF EXISTS (
