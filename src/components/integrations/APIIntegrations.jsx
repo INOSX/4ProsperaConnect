@@ -77,31 +77,33 @@ const APIIntegrations = () => {
     try {
       let result = null
 
+      // CNPJ de teste: Petrobras (empresa pública válida)
+      const testCNPJ = '33000167000101' // Petrobras
+
       switch (apiName) {
         case 'opencnpj':
-          // Testar com CNPJ da 4Prospera (exemplo)
-          result = await prospectionService.fetchOpenCNPJ('00.000.000/0000-00')
+          result = await prospectionService.fetchOpenCNPJ(testCNPJ)
           break
 
         case 'cnpjws':
           if (!config.cnpjwsApiKey) {
             throw new Error('API Key não configurada')
           }
-          result = await prospectionService.fetchCNPJws('00.000.000/0000-00', config.cnpjwsApiKey)
+          result = await prospectionService.fetchCNPJws(testCNPJ, config.cnpjwsApiKey)
           break
 
         case 'valida':
           if (!config.validaToken) {
             throw new Error('Token não configurado')
           }
-          result = await prospectionService.fetchValidaAPI('00.000.000/0000-00', config.validaToken)
+          result = await prospectionService.fetchValidaAPI(testCNPJ, config.validaToken)
           break
 
         case 'google':
           if (!config.googleApiKey) {
             throw new Error('API Key não configurada')
           }
-          result = await prospectionService.fetchGooglePlaces('4Prospera', 'São Paulo, Brasil', config.googleApiKey)
+          result = await prospectionService.fetchGooglePlaces('Petrobras', 'Rio de Janeiro, Brasil', config.googleApiKey)
           break
 
         default:
@@ -112,16 +114,20 @@ const APIIntegrations = () => {
         ...testResults,
         [apiName]: {
           success: !!result,
-          message: result ? 'Conexão OK! API funcionando.' : 'Sem dados retornados.',
+          message: result ? '✅ Conexão OK! API funcionando. Dados da Petrobras retornados.' : '⚠️ API respondeu mas sem dados. Tente outro CNPJ.',
           data: result
         }
       })
     } catch (error) {
+      const errorMessage = error.message.includes('404') 
+        ? 'CNPJ de teste não encontrado. API está OK, mas CNPJ não existe na base.'
+        : error.message
+        
       setTestResults({
         ...testResults,
         [apiName]: {
           success: false,
-          message: error.message,
+          message: errorMessage,
           data: null
         }
       })
@@ -269,6 +275,11 @@ const APIIntegrations = () => {
             <li>• Atividade Principal e Secundárias (CNAE)</li>
             <li>• Porte, Natureza Jurídica</li>
           </ul>
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="text-xs text-gray-500">
+              💡 <strong>Teste:</strong> Usamos o CNPJ da Petrobras (33.000.167/0001-01) como exemplo.
+            </p>
+          </div>
         </div>
 
         <a
