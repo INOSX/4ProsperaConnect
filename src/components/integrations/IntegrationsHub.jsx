@@ -51,14 +51,14 @@ const IntegrationsHub = () => {
       {/* Content */}
       <div className="animate-fade-in">
         {activeTab === 'databases' && (
-          <div>
+          <div key="databases-tab">
             <DataConnections />
           </div>
         )}
 
         {activeTab === 'apis' && (
-          <div>
-            <APIIntegrations />
+          <div key="apis-tab">
+            <APIIntegrations key="api-integrations" />
           </div>
         )}
       </div>
