@@ -33,7 +33,9 @@ const AdminRoute = ({ children }) => {
     try {
       const clientResult = await ClientService.getClientByUserId(user.id)
       if (clientResult.success && clientResult.client) {
-        const userIsAdmin = clientResult.client.role === 'admin'
+        const role = clientResult.client.role
+        const userIsAdmin = ['super_admin', 'bank_manager', 'admin'].includes(role)
+        console.log('🔐 [AdminRoute] User role:', role, '| isAdmin:', userIsAdmin)
         setIsAdmin(userIsAdmin)
         if (!userIsAdmin) {
           // Redirecionar após um pequeno delay para mostrar mensagem
