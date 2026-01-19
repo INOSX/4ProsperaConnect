@@ -2,18 +2,13 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useModule } from '../../contexts/ModuleContext'
 import { useSuperAdmin } from '../../hooks/useSuperAdmin'
-import { useAuth } from '../../contexts/AuthContext'
 import { Users, Target, Mail, ChevronDown, UserPlus, Package, Briefcase, Building2, Settings, Plus, UserCircle, Shield, Database, BarChart3, Terminal, Activity } from 'lucide-react'
 
 const ModuleTopMenu = () => {
   const { activeModule, selectModule, modules } = useModule()
-  const { isSuperAdmin } = useSuperAdmin()
-  const { user } = useAuth()
+  const { isSuperAdmin, userRole } = useSuperAdmin()
   const navigate = useNavigate()
   const [hoveredModule, setHoveredModule] = useState(null)
-
-  // Obter role do usuário
-  const userRole = user?.user_metadata?.role || user?.role || null
 
   console.log('🔍 [ModuleTopMenu] User role:', userRole)
 
