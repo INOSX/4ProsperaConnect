@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { CompanyService } from '../../services/companyService'
 import { EmployeeService } from '../../services/employeeService'
@@ -9,6 +10,7 @@ import { Building2, Users, Package, Briefcase, TrendingUp, Search, ArrowRight, C
 
 const CompanyList = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [companies, setCompanies] = useState([])
   const [companiesWithStats, setCompaniesWithStats] = useState([])
   const [loading, setLoading] = useState(true)
