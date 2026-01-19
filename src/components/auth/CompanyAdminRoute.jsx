@@ -35,7 +35,7 @@ const CompanyAdminRoute = ({ children }) => {
     }
 
     try {
-      // Verificar se é Admin do Banco
+      // Verificar role do usuário
       const clientResult = await ClientService.getClientByUserId(user.id)
       let userIsBankAdmin = false
       let isSuperAdmin = false
@@ -49,6 +49,23 @@ const CompanyAdminRoute = ({ children }) => {
 
       // Super Admin sempre tem acesso
       if (isSuperAdmin) {
+        console.log('✅ [CompanyAdminRoute] Super Admin - ACESSO PERMITIDO')
+        setHasPermission(true)
+        setLoading(false)
+        return
+      }
+
+      // Bank Manager também tem acesso
+      if (userRole === 'bank_manager' || userIsBankAdmin) {
+        console.log('✅ [CompanyAdminRoute] Bank Manager/Admin - ACESSO PERMITIDO')
+        setHasPermission(true)
+        setLoading(false)
+        return
+      }
+
+      // Company Manager tem acesso
+      if (userRole === 'company_manager') {
+        console.log('✅ [CompanyAdminRoute] Company Manager - ACESSO PERMITIDO')
         setHasPermission(true)
         setLoading(false)
         return
@@ -76,7 +93,7 @@ const CompanyAdminRoute = ({ children }) => {
         }
       }
 
-      // Verificar se é Admin do Cliente
+      // Verificar se é Admin do Cliente (employee com is_company_admin=true)
       const userIsCompanyAdmin = await isCompanyAdminAny(user.id)
 
       // Verificar se tem permissão para gerenciar colaboradores
@@ -84,6 +101,7 @@ const CompanyAdminRoute = ({ children }) => {
       setHasPermission(canManage)
 
       if (!canManage) {
+        console.log('❌ [CompanyAdminRoute] Sem permissões - ACESSO NEGADO')
         // Redirecionar após um pequeno delay para mostrar mensagem
         setTimeout(() => {
           navigate('/')

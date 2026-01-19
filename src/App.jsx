@@ -284,9 +284,11 @@ function App() {
             } />
                 <Route path="/people/products/assign" element={
                   <ProtectedRoute>
-                    <Layout>
-                      <AssignProductsPage />
-                    </Layout>
+                    <CompanyAdminRoute>
+                      <Layout>
+                        <AssignProductsPage />
+                      </Layout>
+                    </CompanyAdminRoute>
                   </ProtectedRoute>
                 } />
                 <Route path="/people/products/catalog" element={
