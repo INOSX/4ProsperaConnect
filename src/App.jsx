@@ -42,6 +42,7 @@ import BenefitForm from './components/people/BenefitForm'
 import ProductsManagement from './components/people/ProductsManagement'
 import ProductCatalog from './components/people/ProductCatalog'
 import ProductForm from './components/people/ProductForm'
+import AssignProductsPage from './components/products/AssignProductsPage'
 import DataConnections from './components/integrations/DataConnections'
 import NewIntegration from './components/integrations/NewIntegration'
 import CampaignManagement from './components/campaigns/CampaignManagement'
@@ -281,6 +282,13 @@ function App() {
                 </Layout>
               </ProtectedRoute>
             } />
+                <Route path="/people/products/assign" element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <AssignProductsPage />
+                    </Layout>
+                  </ProtectedRoute>
+                } />
                 <Route path="/people/products/catalog" element={
                   <ProtectedRoute>
                     <Layout>
