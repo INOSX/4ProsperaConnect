@@ -326,32 +326,32 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/campaigns" element={
-              <BankAdminRoute>
+              <ProtectedRoute>
                 <Layout>
                   <CampaignManagement />
                 </Layout>
-              </BankAdminRoute>
+              </ProtectedRoute>
             } />
             <Route path="/campaigns/create" element={
-              <BankAdminRoute>
+              <ProtectedRoute>
                 <Layout>
                   <CreateCampaign />
                 </Layout>
-              </BankAdminRoute>
+              </ProtectedRoute>
             } />
             <Route path="/campaigns/:id" element={
-              <BankAdminRoute>
+              <ProtectedRoute>
                 <Layout>
                   <CampaignDetail />
                 </Layout>
-              </BankAdminRoute>
+              </ProtectedRoute>
             } />
             <Route path="/campaigns/edit/:id" element={
-              <BankAdminRoute>
+              <ProtectedRoute>
                 <Layout>
                   <EditCampaign />
                 </Layout>
-              </BankAdminRoute>
+              </ProtectedRoute>
             } />
             <Route path="/specialist" element={
               <ProtectedRoute>
