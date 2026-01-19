@@ -26,13 +26,15 @@ const CompanyList = () => {
 
     setLoading(true)
     try {
-      // Verificar se o usuário é admin
+      // Verificar se o usuário é admin (super_admin ou bank_manager)
       let userIsAdmin = false
       try {
         const clientResult = await ClientService.getClientByUserId(user.id)
         if (clientResult.success && clientResult.client) {
-          userIsAdmin = clientResult.client.role === 'admin'
+          const role = clientResult.client.role
+          userIsAdmin = ['super_admin', 'bank_manager', 'admin'].includes(role)
           setIsAdmin(userIsAdmin)
+          console.log('👤 [CompanyList] User role:', role, '| isAdmin:', userIsAdmin)
         }
       } catch (e) {
         console.warn('Error checking admin status:', e)
