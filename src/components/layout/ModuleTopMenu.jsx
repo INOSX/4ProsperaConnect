@@ -165,6 +165,17 @@ const ModuleTopMenu = () => {
       hasSubmenu: true,
       submenu: marketingSubmenu,
       allowedRoles: modules.MARKETING.allowedRoles
+    },
+    {
+      id: modules.SPECIALIST.id,
+      name: modules.SPECIALIST.name,
+      icon: Package,
+      route: modules.SPECIALIST.defaultRoute,
+      color: 'text-orange-600',
+      activeColor: 'bg-orange-50 text-orange-700 border-orange-200',
+      hoverColor: 'hover:bg-orange-50 hover:text-orange-700',
+      hasSubmenu: false,
+      allowedRoles: modules.SPECIALIST.allowedRoles
     }
   ]
 
