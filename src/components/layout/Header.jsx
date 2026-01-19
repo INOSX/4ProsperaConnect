@@ -59,6 +59,7 @@ const Header = ({ onMenuToggle, isSidebarOpen, hideSidebarToggle = false }) => {
   const handleSignOut = async () => {
     await signOut()
     setShowUserMenu(false)
+    navigate('/login')
   }
 
   const getUserInitials = (email) => {
