@@ -52,6 +52,11 @@ export const fetchOpenCNPJ = async (cnpj) => {
     console.log('🔍 [OpenCNPJ] Consultando:', cleanedCNPJ)
     const response = await fetch(`https://api.opencnpj.org/${cleanedCNPJ}`)
     
+    if (response.status === 404) {
+      console.warn('⚠️ [OpenCNPJ] CNPJ não encontrado na base de dados')
+      return null
+    }
+    
     if (!response.ok) {
       throw new Error(`OpenCNPJ API returned ${response.status}`)
     }
@@ -64,8 +69,12 @@ export const fetchOpenCNPJ = async (cnpj) => {
     
     return data
   } catch (error) {
+    if (error.message.includes('404')) {
+      console.warn('⚠️ [OpenCNPJ] CNPJ não encontrado')
+      return null
+    }
     console.error('❌ [OpenCNPJ] Erro:', error)
-    return null
+    throw error
   }
 }
 
