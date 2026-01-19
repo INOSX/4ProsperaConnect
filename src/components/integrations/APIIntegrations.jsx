@@ -33,6 +33,7 @@ const APIIntegrations = () => {
   const [testing, setTesting] = useState(null)
   const [testResults, setTestResults] = useState({})
   const [cacheStats, setCacheStats] = useState({ size: 0, keys: [] })
+  const [customCNPJ, setCustomCNPJ] = useState('33000167000101') // CNPJ default para teste
 
   // Carregar configurações salvas
   useEffect(() => {
@@ -77,8 +78,8 @@ const APIIntegrations = () => {
     try {
       let result = null
 
-      // CNPJ de teste: Petrobras (empresa pública válida)
-      const testCNPJ = '33000167000101' // Petrobras
+      // CNPJ a ser usado no teste (customizável)
+      const testCNPJ = customCNPJ || '33000167000101' // Petrobras como fallback
 
       switch (apiName) {
         case 'opencnpj':
@@ -103,7 +104,10 @@ const APIIntegrations = () => {
           if (!config.googleApiKey) {
             throw new Error('API Key não configurada')
           }
-          result = await prospectionService.fetchGooglePlaces('Petrobras', 'Rio de Janeiro, Brasil', config.googleApiKey)
+          // Para Google, usar razão social do resultado anterior ou nome genérico
+          const companyName = result?.razao_social || 'Petrobras'
+          const address = 'Rio de Janeiro, Brasil'
+          result = await prospectionService.fetchGooglePlaces(companyName, address, config.googleApiKey)
           break
 
         default:
@@ -114,13 +118,16 @@ const APIIntegrations = () => {
         ...testResults,
         [apiName]: {
           success: !!result,
-          message: result ? '✅ Conexão OK! API funcionando. Dados da Petrobras retornados.' : '⚠️ API respondeu mas sem dados. Tente outro CNPJ.',
+          message: result ? `✅ Conexão OK! Dados retornados com sucesso.` : '⚠️ API respondeu mas sem dados. Tente outro CNPJ.',
           data: result
         }
       })
+      
+      // Atualizar stats do cache após teste
+      updateCacheStats()
     } catch (error) {
       const errorMessage = error.message.includes('404') 
-        ? 'CNPJ de teste não encontrado. API está OK, mas CNPJ não existe na base.'
+        ? 'CNPJ não encontrado. API está OK, mas CNPJ não existe na base.'
         : error.message
         
       setTestResults({
@@ -140,6 +147,159 @@ const APIIntegrations = () => {
     prospectionService.clearCache()
     updateCacheStats()
     alert('Cache limpo com sucesso!')
+  }
+
+  // Formatar CNPJ para exibição
+  const formatCNPJ = (cnpj) => {
+    if (!cnpj) return ''
+    const cleaned = cnpj.replace(/\D/g, '')
+    return cleaned.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')
+  }
+
+  // Renderizar dados do OpenCNPJ de forma formatada
+  const renderOpenCNPJData = (data) => {
+    if (!data) return null
+
+    return (
+      <div className="mt-4 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl animate-fade-in-up">
+        <div className="flex items-center justify-between mb-4">
+          <h4 className="text-lg font-bold text-green-800 flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Dados Retornados
+          </h4>
+          <span className="text-xs text-green-600 bg-green-100 px-3 py-1 rounded-full">
+            Cache ativo
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* CNPJ */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">CNPJ</p>
+            <p className="text-sm font-semibold text-gray-900">{formatCNPJ(data.cnpj)}</p>
+          </div>
+
+          {/* Razão Social */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Razão Social</p>
+            <p className="text-sm font-semibold text-gray-900">{data.razao_social || '-'}</p>
+          </div>
+
+          {/* Nome Fantasia */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Nome Fantasia</p>
+            <p className="text-sm font-semibold text-gray-900">{data.nome_fantasia || '-'}</p>
+          </div>
+
+          {/* Situação Cadastral */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Situação</p>
+            <div className="flex items-center">
+              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                data.situacao_cadastral === 'Ativa' 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {data.situacao_cadastral || '-'}
+              </span>
+              {data.data_situacao_cadastral && (
+                <span className="ml-2 text-xs text-gray-500">
+                  desde {new Date(data.data_situacao_cadastral).toLocaleDateString('pt-BR')}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Data de Abertura */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Data de Abertura</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {data.data_inicio_atividade 
+                ? new Date(data.data_inicio_atividade).toLocaleDateString('pt-BR')
+                : '-'
+              }
+            </p>
+          </div>
+
+          {/* Natureza Jurídica */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Natureza Jurídica</p>
+            <p className="text-sm font-semibold text-gray-900">{data.natureza_juridica || '-'}</p>
+          </div>
+
+          {/* Porte */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Porte</p>
+            <p className="text-sm font-semibold text-gray-900">{data.porte || '-'}</p>
+          </div>
+
+          {/* Capital Social */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <p className="text-xs text-gray-500 mb-1">Capital Social</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {data.capital_social 
+                ? `R$ ${parseFloat(data.capital_social).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                : '-'
+              }
+            </p>
+          </div>
+
+          {/* Endereço Completo - span 2 cols */}
+          <div className="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+            <p className="text-xs text-gray-500 mb-1">Endereço</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {[
+                data.logradouro,
+                data.numero,
+                data.complemento,
+                data.bairro,
+                data.municipio,
+                data.uf,
+                data.cep
+              ].filter(Boolean).join(', ') || '-'}
+            </p>
+          </div>
+
+          {/* Contato */}
+          {(data.email || data.telefone) && (
+            <div className="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+              <p className="text-xs text-gray-500 mb-2">Contato</p>
+              <div className="flex flex-wrap gap-4">
+                {data.email && (
+                  <div>
+                    <span className="text-xs text-gray-500">Email: </span>
+                    <span className="text-sm font-semibold text-gray-900">{data.email}</span>
+                  </div>
+                )}
+                {data.telefone && (
+                  <div>
+                    <span className="text-xs text-gray-500">Telefone: </span>
+                    <span className="text-sm font-semibold text-gray-900">{data.telefone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Atividade Principal */}
+          {data.cnae_fiscal && (
+            <div className="bg-white p-4 rounded-lg shadow-sm md:col-span-2">
+              <p className="text-xs text-gray-500 mb-1">Atividade Principal (CNAE)</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {data.cnae_fiscal} - {data.cnae_fiscal_descricao || '-'}
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-green-200">
+          <p className="text-xs text-green-600 flex items-center">
+            <Database className="h-3 w-3 mr-1" />
+            Dados obtidos via OpenCNPJ API (gratuita) • Cache de 30 minutos
+          </p>
+        </div>
+      </div>
+    )
   }
 
   const toggleShow = (api) => {
@@ -226,10 +386,30 @@ const APIIntegrations = () => {
               <strong> Nenhuma configuração necessária!</strong>
             </p>
           </div>
+        </div>
+
+        {/* Campo de Input do CNPJ + Botão de Teste */}
+        <div className="flex items-end space-x-3 mb-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              CNPJ para Teste
+            </label>
+            <input
+              type="text"
+              value={customCNPJ}
+              onChange={(e) => setCustomCNPJ(e.target.value.replace(/\D/g, ''))}
+              placeholder="33000167000101"
+              maxLength="14"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Digite apenas números (14 dígitos)
+            </p>
+          </div>
           <button
             onClick={() => handleTest('opencnpj')}
-            disabled={testing === 'opencnpj'}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
+            disabled={testing === 'opencnpj' || !customCNPJ || customCNPJ.length !== 14}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {testing === 'opencnpj' ? (
               <>
@@ -266,6 +446,9 @@ const APIIntegrations = () => {
           </div>
         )}
 
+        {/* Renderizar dados retornados */}
+        {testResults.opencnpj?.success && testResults.opencnpj?.data && renderOpenCNPJData(testResults.opencnpj.data)}
+
         <div className="mt-4 p-4 bg-gray-50 rounded-lg">
           <h4 className="text-sm font-semibold text-gray-700 mb-2">✨ Dados Disponíveis:</h4>
           <ul className="text-sm text-gray-600 space-y-1 ml-4">
@@ -277,7 +460,7 @@ const APIIntegrations = () => {
           </ul>
           <div className="mt-3 pt-3 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              💡 <strong>Teste:</strong> Usamos o CNPJ da Petrobras (33.000.167/0001-01) como exemplo.
+              💡 <strong>Teste:</strong> CNPJ padrão é da Petrobras (33.000.167/0001-01), mas você pode testar qualquer CNPJ válido.
             </p>
           </div>
         </div>
