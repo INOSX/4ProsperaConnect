@@ -33,7 +33,7 @@ const APIIntegrations = () => {
   const [testing, setTesting] = useState(null)
   const [testResults, setTestResults] = useState({})
   const [cacheStats, setCacheStats] = useState({ size: 0, keys: [] })
-  const [customCNPJ, setCustomCNPJ] = useState('33000167000101') // CNPJ default para teste
+  const [customCNPJ, setCustomCNPJ] = useState('') // COMEÇA VAZIO para permitir digitação
 
   console.log('🔄 [APIIntegrations] Renderizado, customCNPJ:', customCNPJ)
 
@@ -47,6 +47,12 @@ const APIIntegrations = () => {
       length: cleaned.length 
     })
     setCustomCNPJ(cleaned)
+  }
+
+  // Selecionar todo o texto quando focar
+  const handleCNPJFocus = (e) => {
+    console.log('🎯 [APIIntegrations] Input focado')
+    e.target.select() // Seleciona todo o texto
   }
 
   // Carregar configurações salvas
@@ -415,23 +421,33 @@ const APIIntegrations = () => {
               inputMode="numeric"
               value={customCNPJ}
               onChange={handleCNPJChange}
-              onFocus={() => console.log('🎯 [APIIntegrations] Input focado')}
+              onFocus={handleCNPJFocus}
               onBlur={() => console.log('👋 [APIIntegrations] Input perdeu foco')}
               onClick={() => console.log('🖱️ [APIIntegrations] Input clicado')}
-              placeholder="33000167000101"
+              placeholder="Digite o CNPJ (ex: 33000167000101)"
               autoComplete="off"
               spellCheck="false"
               readOnly={testing === 'opencnpj'}
               className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 read-only:bg-gray-100 read-only:cursor-not-allowed"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Digite apenas números (14 dígitos)
-            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-xs text-gray-500">
+                Digite apenas números (14 dígitos)
+              </p>
+              <p className={`text-xs font-medium ${
+                customCNPJ.length === 14 ? 'text-green-600' : 
+                customCNPJ.length > 0 ? 'text-orange-600' : 
+                'text-gray-400'
+              }`}>
+                {customCNPJ.length}/14
+              </p>
+            </div>
           </div>
           <button
             onClick={() => handleTest('opencnpj')}
             disabled={testing === 'opencnpj' || !customCNPJ || customCNPJ.length !== 14}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            title={!customCNPJ ? 'Digite um CNPJ' : customCNPJ.length !== 14 ? `Faltam ${14 - customCNPJ.length} dígitos` : 'Testar API'}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 transition-all"
           >
             {testing === 'opencnpj' ? (
               <>
@@ -482,7 +498,7 @@ const APIIntegrations = () => {
           </ul>
           <div className="mt-3 pt-3 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              💡 <strong>Teste:</strong> CNPJ padrão é da Petrobras (33.000.167/0001-01), mas você pode testar qualquer CNPJ válido.
+              💡 <strong>Exemplo de CNPJ válido:</strong> Petrobras (33.000.167/0001-01) ou qualquer outro CNPJ real.
             </p>
           </div>
         </div>
