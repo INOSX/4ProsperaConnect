@@ -36,6 +36,7 @@ const APIIntegrations = () => {
   const [customCNPJ, setCustomCNPJ] = useState('') // COMEÇA VAZIO para permitir digitação
 
   console.log('🔄 [APIIntegrations] Renderizado, customCNPJ:', customCNPJ)
+  console.log('🔍 [APIIntegrations] Tipo do customCNPJ:', typeof customCNPJ, 'Length:', customCNPJ?.length)
 
   // Handler dedicado para o input do CNPJ
   const handleCNPJChange = (e) => {
@@ -428,6 +429,14 @@ const APIIntegrations = () => {
               autoComplete="off"
               spellCheck="false"
               readOnly={testing === 'opencnpj'}
+              style={{
+                color: '#111827',
+                fontSize: '16px',
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                backgroundColor: testing === 'opencnpj' ? '#f3f4f6' : '#ffffff',
+                opacity: 1,
+                visibility: 'visible'
+              }}
               className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 read-only:bg-gray-100 read-only:cursor-not-allowed"
             />
             <div className="flex items-center justify-between mt-1">
