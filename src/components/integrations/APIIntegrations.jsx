@@ -37,6 +37,18 @@ const APIIntegrations = () => {
 
   console.log('🔄 [APIIntegrations] Renderizado, customCNPJ:', customCNPJ)
 
+  // Handler dedicado para o input do CNPJ
+  const handleCNPJChange = (e) => {
+    const value = e.target.value
+    const cleaned = value.replace(/\D/g, '').slice(0, 14) // Remove não-números e limita a 14
+    console.log('📝 [APIIntegrations] CNPJ mudou:', { 
+      raw: value, 
+      cleaned, 
+      length: cleaned.length 
+    })
+    setCustomCNPJ(cleaned)
+  }
+
   // Carregar configurações salvas
   useEffect(() => {
     loadConfig()
@@ -393,18 +405,24 @@ const APIIntegrations = () => {
         {/* Campo de Input do CNPJ + Botão de Teste */}
         <div className="flex items-end space-x-3 mb-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              CNPJ para Teste
+            <label htmlFor="cnpj-input" className="block text-sm font-medium text-gray-700 mb-2">
+              CNPJ
             </label>
             <input
+              id="cnpj-input"
+              name="cnpj"
               type="text"
+              inputMode="numeric"
               value={customCNPJ}
-              onChange={(e) => setCustomCNPJ(e.target.value.replace(/\D/g, ''))}
+              onChange={handleCNPJChange}
+              onFocus={() => console.log('🎯 [APIIntegrations] Input focado')}
+              onBlur={() => console.log('👋 [APIIntegrations] Input perdeu foco')}
+              onClick={() => console.log('🖱️ [APIIntegrations] Input clicado')}
               placeholder="33000167000101"
-              maxLength={14}
               autoComplete="off"
-              disabled={testing === 'opencnpj'}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              spellCheck="false"
+              readOnly={testing === 'opencnpj'}
+              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 read-only:bg-gray-100 read-only:cursor-not-allowed"
             />
             <p className="text-xs text-gray-500 mt-1">
               Digite apenas números (14 dígitos)
