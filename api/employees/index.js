@@ -108,10 +108,29 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: 'Client not found' })
         }
 
-        const isBankAdmin = client.role === 'admin'
+        const isBankAdmin = ['super_admin', 'bank_manager', 'admin'].includes(client.role)
+        const isCompanyManager = client.role === 'company_manager'
 
-        // Se não for admin do banco, verificar se é admin do cliente da empresa
-        if (!isBankAdmin) {
+        // Super Admin, Bank Manager e Bank Admin sempre podem criar
+        if (isBankAdmin) {
+          // Permitir criação
+        }
+        // Company Manager pode criar colaboradores nas suas empresas
+        else if (isCompanyManager) {
+          const { data: managerCompanies, error: managerError } = await adminClient
+            .from('company_managers')
+            .select('company_id')
+            .eq('user_id', requestingUserId)
+          
+          if (managerError) throw managerError
+          
+          const companyIds = (managerCompanies || []).map(c => c.company_id)
+          if (!companyIds.includes(company_id)) {
+            return res.status(403).json({ error: 'Company Manager só pode criar colaboradores nas suas empresas' })
+          }
+        }
+        // Se não for admin do banco ou company manager, verificar se é admin do cliente da empresa
+        else {
           const { data: companyAdminCheck, error: adminCheckError } = await adminClient
             .from('employees')
             .select('id')
@@ -123,7 +142,7 @@ export default async function handler(req, res) {
 
           if (adminCheckError) throw adminCheckError
           if (!companyAdminCheck) {
-            return res.status(403).json({ error: 'Apenas administradores do banco ou administradores da empresa podem criar colaboradores' })
+            return res.status(403).json({ error: 'Apenas administradores do banco, company managers ou administradores da empresa podem criar colaboradores' })
           }
         }
 
@@ -202,11 +221,31 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: 'Client not found' })
         }
 
-        const isBankAdmin = client.role === 'admin'
+        const isBankAdmin = ['super_admin', 'bank_manager', 'admin'].includes(client.role)
+        const isCompanyManager = client.role === 'company_manager'
         const isOwnData = employee.platform_user_id === requestingUserId
 
-        // Se não for admin do banco e não for próprio dado, verificar se é admin do cliente da empresa
-        if (!isBankAdmin && !isOwnData) {
+        // Super Admin, Bank Manager e Bank Admin sempre têm acesso
+        if (isBankAdmin) {
+          // Permitir edição
+        } 
+        // Company Manager tem acesso aos colaboradores da sua empresa
+        else if (isCompanyManager) {
+          // Buscar empresas do company_manager
+          const { data: managerCompanies, error: managerError } = await adminClient
+            .from('company_managers')
+            .select('company_id')
+            .eq('user_id', requestingUserId)
+          
+          if (managerError) throw managerError
+          
+          const companyIds = (managerCompanies || []).map(c => c.company_id)
+          if (!companyIds.includes(employee.company_id)) {
+            return res.status(403).json({ error: 'Company Manager só pode editar colaboradores das suas empresas' })
+          }
+        }
+        // Se não for admin do banco, company manager, e não for próprio dado, verificar se é admin do cliente da empresa
+        else if (!isOwnData) {
           const { data: companyAdminCheck, error: adminCheckError } = await adminClient
             .from('employees')
             .select('id')
@@ -218,7 +257,7 @@ export default async function handler(req, res) {
 
           if (adminCheckError) throw adminCheckError
           if (!companyAdminCheck) {
-            return res.status(403).json({ error: 'Apenas administradores do banco, administradores da empresa ou o próprio colaborador podem editar' })
+            return res.status(403).json({ error: 'Apenas administradores do banco, company managers, administradores da empresa ou o próprio colaborador podem editar' })
           }
         }
 
@@ -270,10 +309,29 @@ export default async function handler(req, res) {
           return res.status(404).json({ error: 'Client not found' })
         }
 
-        const isBankAdmin = client.role === 'admin'
+        const isBankAdmin = ['super_admin', 'bank_manager', 'admin'].includes(client.role)
+        const isCompanyManager = client.role === 'company_manager'
 
-        // Se não for admin do banco, verificar se é admin do cliente da empresa
-        if (!isBankAdmin) {
+        // Super Admin, Bank Manager e Bank Admin sempre podem deletar
+        if (isBankAdmin) {
+          // Permitir deleção
+        }
+        // Company Manager pode deletar colaboradores das suas empresas
+        else if (isCompanyManager) {
+          const { data: managerCompanies, error: managerError } = await adminClient
+            .from('company_managers')
+            .select('company_id')
+            .eq('user_id', requestingUserId)
+          
+          if (managerError) throw managerError
+          
+          const companyIds = (managerCompanies || []).map(c => c.company_id)
+          if (!companyIds.includes(employee.company_id)) {
+            return res.status(403).json({ error: 'Company Manager só pode deletar colaboradores das suas empresas' })
+          }
+        }
+        // Se não for admin do banco ou company manager, verificar se é admin do cliente da empresa
+        else {
           const { data: companyAdminCheck, error: adminCheckError } = await adminClient
             .from('employees')
             .select('id')
@@ -285,7 +343,7 @@ export default async function handler(req, res) {
 
           if (adminCheckError) throw adminCheckError
           if (!companyAdminCheck) {
-            return res.status(403).json({ error: 'Apenas administradores do banco ou administradores da empresa podem deletar colaboradores' })
+            return res.status(403).json({ error: 'Apenas administradores do banco, company managers ou administradores da empresa podem deletar colaboradores' })
           }
 
           // Admin do cliente não pode deletar outros admins
