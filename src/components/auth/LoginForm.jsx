@@ -32,8 +32,9 @@ const LoginForm = () => {
     const result = await signIn(formData.email, formData.password)
     
     if (result?.success) {
-      // Redireciona para a rota originalmente requisitada ou dashboard
-      navigate(from, { replace: true })
+      // ✅ SEMPRE redireciona para /modules após login bem-sucedido
+      // Ignora "from" para garantir que todos vejam a escolha de módulos primeiro
+      navigate('/modules', { replace: true })
     }
     // Em qualquer caso, encerra o loading
     setIsLoading(false)
