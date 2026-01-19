@@ -7,7 +7,7 @@ import ClientTest from '../dashboard/ClientTest'
 import AuthTest from '../dashboard/AuthTest'
 import SimpleTest from '../dashboard/SimpleTest'
 import DebugTest from '../dashboard/DebugTest'
-import DataConnections from '../integrations/DataConnections'
+import APIIntegrations from '../integrations/APIIntegrations'
 
 const Settings = ({ initialTab }) => {
   const location = useLocation()
@@ -354,7 +354,7 @@ const Settings = ({ initialTab }) => {
 
       {activeTab === 'integrations' && (
         <div>
-          <DataConnections />
+          <APIIntegrations />
         </div>
       )}
 
