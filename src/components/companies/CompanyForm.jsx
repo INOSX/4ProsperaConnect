@@ -16,6 +16,7 @@ const CompanyForm = () => {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true) // 🔒 Novo estado para verificação de auth
   const [errors, setErrors] = useState({})
 
   const [formData, setFormData] = useState({
@@ -49,6 +50,7 @@ const CompanyForm = () => {
 
   const checkAdminStatus = async () => {
     if (!user) return
+    setCheckingAuth(true) // 🔒 Inicia verificação
     try {
       const clientResult = await ClientService.getClientByUserId(user.id)
       if (clientResult.success && clientResult.client) {
@@ -63,6 +65,8 @@ const CompanyForm = () => {
       }
     } catch (error) {
       console.error('Error checking admin status:', error)
+    } finally {
+      setCheckingAuth(false) // 🔒 Termina verificação
     }
   }
 
@@ -234,15 +238,17 @@ const CompanyForm = () => {
     }
   }
 
-  if (loading) {
+  if (loading || checkingAuth) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Carregando dados da empresa...</div>
+        <div className="text-gray-500">
+          {checkingAuth ? 'Verificando permissões...' : 'Carregando dados da empresa...'}
+        </div>
       </div>
     )
   }
 
-  if (!isAdmin && !loading) {
+  if (!isAdmin) {
     return (
       <div className="max-w-4xl mx-auto space-y-6">
         <Card>
