@@ -189,14 +189,14 @@ const EmployeeForm = () => {
       }
 
       if (result.success) {
-        // Ativar benefícios selecionados
+        // Atribuir benefícios selecionados
         if (formData.selected_benefits.length > 0) {
           const employeeId = result.employee.id
           for (const benefitId of formData.selected_benefits) {
             try {
-              await EmployeeService.activateBenefit(employeeId, benefitId)
+              await EmployeeService.assignBenefit(employeeId, benefitId)
             } catch (error) {
-              console.error('Error activating benefit:', error)
+              console.error('Error assigning benefit:', error)
             }
           }
         }
