@@ -9,10 +9,10 @@ export const superAdminService = {
    */
   async getSystemStats() {
     try {
-      // Total de usuários por role
+      // Total de usuários por role e status
       const { data: usersStats, error: usersError } = await supabase
         .from('clients')
-        .select('role')
+        .select('role, is_active')
 
       if (usersError) throw usersError
 
@@ -21,6 +21,10 @@ export const superAdminService = {
         acc[user.role] = (acc[user.role] || 0) + 1
         return acc
       }, {})
+
+      // Contar ativos e inativos
+      const activeCount = usersStats.filter(u => u.is_active !== false).length
+      const inactiveCount = usersStats.filter(u => u.is_active === false).length
 
       // Total de empresas
       const { count: companiesCount, error: companiesError } = await supabase
@@ -53,6 +57,8 @@ export const superAdminService = {
       return {
         users: {
           total: usersStats.length,
+          active: activeCount,
+          inactive: inactiveCount,
           byRole: roleStats
         },
         companies: companiesCount || 0,
