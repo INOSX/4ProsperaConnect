@@ -71,104 +71,76 @@ export const superAdminService = {
    */
   async getAllUsers({ page = 1, pageSize = 50, role = null, search = '', status = 'all' } = {}) {
     try {
-      console.log('🔍 [SuperAdminService] Iniciando getAllUsers...', { page, pageSize, role, search, status })
+      console.log('🔍 [SuperAdminService] Iniciando getAllUsers via API...', { page, pageSize, role, search, status })
       
-      // Buscar TODOS os usuários SEM JOIN (para evitar erro de schema)
-      let query = supabase
-        .from('clients')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
-
-      // Filtrar por role
-      if (role) {
-        query = query.eq('role', role)
+      // Buscar token de autenticação
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão não encontrada')
       }
 
-      console.log('📡 [SuperAdminService] Executando query...')
-      const { data: allUsers, error, count } = await query
-
-      if (error) {
-        console.error('❌ [SuperAdminService] ERRO na query:', error)
-        console.error('❌ Detalhes:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        })
-        throw error
-      }
-
-      console.log('✅ [SuperAdminService] Query executada com sucesso!')
-      console.log('📊 Dados recebidos:', { 
-        totalUsers: allUsers?.length, 
-        count,
-        firstUser: allUsers?.[0] 
+      // Chamar API que usa adminClient (sem RLS)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+        status: status || 'all'
       })
 
-      // Adicionar email fake aos usuários (já que não temos JOIN)
-      const usersWithEmail = allUsers.map(user => ({
-        ...user,
-        user: {
-          email: `user-${user.user_id?.substring(0, 8)}@example.com`,
-          created_at: user.created_at
+      if (role && role !== 'all') {
+        params.append('role', role)
+      }
+
+      console.log('📡 [SuperAdminService] Chamando API /api/superadmin/users...')
+      const response = await fetch(`/api/superadmin/users?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
         }
-      }))
-
-      // Filtrar por status
-      let filteredByStatus = usersWithEmail
-      if (status === 'active') {
-        filteredByStatus = usersWithEmail.filter(u => u.is_active !== false)
-      } else if (status === 'inactive') {
-        filteredByStatus = usersWithEmail.filter(u => u.is_active === false)
-      }
-
-      console.log('🔄 [SuperAdminService] Após filtro de status:', filteredByStatus?.length)
-
-      // Se há busca, filtrar por nome OU email
-      let filteredUsers = filteredByStatus
-      if (search && search.trim()) {
-        const searchLower = search.toLowerCase().trim()
-        console.log('🔍 [SuperAdminService] Aplicando busca:', searchLower)
-        
-        filteredUsers = filteredByStatus.filter(user => {
-          const name = (user.name || '').toLowerCase()
-          const email = (user.user?.email || '').toLowerCase()
-          const matches = name.includes(searchLower) || email.includes(searchLower)
-          if (matches) {
-            console.log('✅ Match encontrado:', { name, email })
-          }
-          return matches
-        })
-        
-        console.log('🔍 [SuperAdminService] Após busca:', filteredUsers?.length)
-      }
-
-      // Aplicar paginação manualmente
-      const totalFiltered = filteredUsers.length
-      const startIndex = (page - 1) * pageSize
-      const endIndex = startIndex + pageSize
-      const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
-
-      console.log('📄 [SuperAdminService] Paginação aplicada:', {
-        totalFiltered,
-        startIndex,
-        endIndex,
-        paginatedCount: paginatedUsers.length
       })
 
-      const result = {
-        users: paginatedUsers,
-        total: totalFiltered,
-        pages: Math.ceil(totalFiltered / pageSize)
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        console.error('❌ [SuperAdminService] Erro na API:', error)
+        throw new Error(error.error || `HTTP ${response.status}`)
       }
 
-      console.log('🎯 [SuperAdminService] Retornando resultado:', {
-        usersCount: result.users.length,
+      const result = await response.json()
+
+      console.log('✅ [SuperAdminService] Dados recebidos da API:', {
+        usersCount: result.users?.length,
         total: result.total,
         pages: result.pages
       })
 
-      return result
+      // Se há busca no frontend, filtrar localmente
+      let filteredUsers = result.users
+      if (search && search.trim()) {
+        const searchLower = search.toLowerCase().trim()
+        console.log('🔍 [SuperAdminService] Aplicando busca local:', searchLower)
+        
+        filteredUsers = result.users.filter(user => {
+          const name = (user.name || '').toLowerCase()
+          const email = (user.user?.email || '').toLowerCase()
+          const matches = name.includes(searchLower) || email.includes(searchLower)
+          return matches
+        })
+        
+        console.log('🔍 [SuperAdminService] Após busca local:', filteredUsers?.length)
+      }
+
+      const finalResult = {
+        users: filteredUsers,
+        total: search ? filteredUsers.length : result.total,
+        pages: search ? Math.ceil(filteredUsers.length / pageSize) : result.pages
+      }
+
+      console.log('🎯 [SuperAdminService] Retornando resultado final:', {
+        usersCount: finalResult.users.length,
+        total: finalResult.total,
+        pages: finalResult.pages
+      })
+
+      return finalResult
     } catch (error) {
       console.error('❌ [SuperAdminService] ERRO GERAL:', error)
       throw error
@@ -180,23 +152,29 @@ export const superAdminService = {
    */
   async updateUserRole(userId, newRole) {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .update({ role: newRole })
-        .eq('user_id', userId)
-        .select()
-        .single()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão não encontrada')
+      }
 
-      if (error) throw error
-
-      // Registrar no audit log
-      await this.logAction('UPDATE_USER_ROLE', {
-        userId,
-        newRole,
-        timestamp: new Date().toISOString()
+      const response = await fetch('/api/superadmin/users', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          updates: { role: newRole }
+        })
       })
 
-      return data
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
     } catch (error) {
       console.error('Erro ao atualizar role:', error)
       throw error
@@ -208,23 +186,29 @@ export const superAdminService = {
    */
   async toggleUserStatus(userId, isActive) {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .update({ is_active: isActive })
-        .eq('user_id', userId)
-        .select()
-        .single()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão não encontrada')
+      }
 
-      if (error) throw error
-
-      // Registrar no audit log
-      await this.logAction('TOGGLE_USER_STATUS', {
-        userId,
-        isActive,
-        timestamp: new Date().toISOString()
+      const response = await fetch('/api/superadmin/users', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId,
+          updates: { is_active: isActive }
+        })
       })
 
-      return data
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
     } catch (error) {
       console.error('Erro ao alterar status:', error)
       throw error
