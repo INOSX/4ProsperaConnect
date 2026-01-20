@@ -380,6 +380,154 @@ const SuperAdminSettings = () => {
         </div>
       </div>
 
+      {/* Banco de Dados e APIs */}
+      <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-cyan-600/10 to-cyan-800/10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-cyan-600/20 rounded-xl">
+              <Zap className="h-8 w-8 text-cyan-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Banco de Dados e APIs</h2>
+              <p className="text-gray-400 text-sm">Configuração de acessos e integrações externas</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Database Access */}
+          <div className="p-6 bg-gradient-to-r from-cyan-900/30 to-blue-900/30 rounded-xl border-2 border-cyan-700/50">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-cyan-600/20 rounded-xl">
+                <Database className="h-8 w-8 text-cyan-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">Acesso ao Banco de Dados</h3>
+                <p className="text-gray-300 mb-4">
+                  Gerencie credenciais e permissões de acesso ao Supabase
+                </p>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Supabase URL</label>
+                    <input
+                      type="text"
+                      value="https://dytuwutsjjxxmyefrfed.supabase.co"
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-400 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Project ID</label>
+                    <input
+                      type="text"
+                      value="dytuwutsjjxxmyefrfed"
+                      disabled
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-gray-400 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => window.open('https://supabase.com/dashboard/project/dytuwutsjjxxmyefrfed', '_blank')}
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg flex items-center gap-2 transition-all hover:scale-105 font-medium text-sm"
+                  >
+                    <Database className="h-4 w-4" />
+                    Abrir Dashboard Supabase
+                  </button>
+                  <button
+                    onClick={() => window.open('https://supabase.com/dashboard/project/dytuwutsjjxxmyefrfed/settings/api', '_blank')}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg flex items-center gap-2 transition-all hover:scale-105 font-medium text-sm"
+                  >
+                    <Lock className="h-4 w-4" />
+                    Ver Credenciais
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* API Integrations */}
+          <div className="p-6 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl border-2 border-purple-700/50">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-purple-600/20 rounded-xl">
+                <Code className="h-8 w-8 text-purple-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white mb-2">APIs Externas</h3>
+                <p className="text-gray-300 mb-4">
+                  Configure integrações com serviços externos (CNPJ, Geolocalização, etc.)
+                </p>
+                
+                <div className="space-y-3">
+                  {/* OpenCNPJ API */}
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <div>
+                      <p className="text-white font-semibold">OpenCNPJ API</p>
+                      <p className="text-xs text-gray-400">Consulta CNPJ gratuita (sem autenticação)</p>
+                    </div>
+                    <span className="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-xs font-bold border border-green-500/30">
+                      ATIVA
+                    </span>
+                  </div>
+
+                  {/* CNPJ.ws API */}
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <div>
+                      <p className="text-white font-semibold">CNPJ.ws API</p>
+                      <p className="text-xs text-gray-400">API freemium com mais dados (requer token)</p>
+                    </div>
+                    <button
+                      onClick={() => alert('Configuração de API será implementada')}
+                      className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-bold border border-blue-500/30 hover:bg-blue-600/30 transition-all"
+                    >
+                      Configurar
+                    </button>
+                  </div>
+
+                  {/* Google Places API */}
+                  <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <div>
+                      <p className="text-white font-semibold">Google Places API</p>
+                      <p className="text-xs text-gray-400">Geolocalização e dados de empresas</p>
+                    </div>
+                    <button
+                      onClick={() => alert('Configuração de API será implementada')}
+                      className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs font-bold border border-blue-500/30 hover:bg-blue-600/30 transition-all"
+                    >
+                      Configurar
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => window.location.href = '/integrations'}
+                  className="mt-4 w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center justify-center gap-2 transition-all hover:scale-105 font-semibold"
+                >
+                  <Zap className="h-5 w-5" />
+                  Gerenciar Todas as Integrações
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Service Role Key Warning */}
+          <div className="bg-gradient-to-r from-red-600/20 to-red-800/20 border-2 border-red-500/30 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-6 w-6 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-red-400 font-bold mb-1">⚠️ Aviso de Segurança</h4>
+                <p className="text-sm text-gray-300">
+                  As <span className="font-bold text-white">Service Role Keys</span> do Supabase possuem 
+                  <span className="text-red-400 font-semibold"> acesso total ao banco de dados</span> e 
+                  <span className="font-bold text-white"> ignoram todas as políticas RLS</span>. 
+                  Nunca exponha essas credenciais no frontend ou em repositórios públicos.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Notificações */}
       <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700 overflow-hidden">
         <div className="p-6 border-b border-gray-700 bg-gradient-to-r from-orange-600/10 to-orange-800/10">
