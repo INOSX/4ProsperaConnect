@@ -13,7 +13,7 @@ function getAdminClient() {
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
   if (req.method === 'OPTIONS') {
@@ -113,6 +113,31 @@ export default async function handler(req, res) {
           .single()
 
         if (error) throw error
+        return res.status(200).json({ success: true, benefit: data })
+      }
+
+      case 'DELETE': {
+        const { employee_id, company_benefit_id } = req.query
+
+        if (!employee_id || !company_benefit_id) {
+          return res.status(400).json({ error: 'employee_id and company_benefit_id are required' })
+        }
+
+        // Soft delete: mudar status para inactive
+        const { data, error } = await adminClient
+          .from('employee_benefits')
+          .update({ status: 'inactive' })
+          .eq('employee_id', employee_id)
+          .eq('company_benefit_id', company_benefit_id)
+          .select()
+          .maybeSingle()
+
+        if (error) throw error
+        
+        if (!data) {
+          return res.status(404).json({ error: 'Benefit assignment not found' })
+        }
+
         return res.status(200).json({ success: true, benefit: data })
       }
 
