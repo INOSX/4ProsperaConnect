@@ -156,7 +156,7 @@ export class EmployeeService {
    */
   static async getEmployeeBenefits(employeeId) {
     try {
-      const response = await fetch(`/api/benefits?employeeId=${employeeId}`)
+      const response = await fetch(`/api/employees/benefits?employeeId=${employeeId}`)
       
       if (!response.ok) {
         const error = await response.json().catch(() => ({}))
