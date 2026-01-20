@@ -87,10 +87,19 @@ const EmployeeForm = () => {
 
         // Carregar benefícios do colaborador
         const benefitsResult = await EmployeeService.getEmployeeBenefits(id)
+        console.log('📦 [EmployeeForm] Benefícios carregados:', benefitsResult)
+        
         if (benefitsResult.success) {
+          console.log('✅ [EmployeeForm] Total de benefícios:', benefitsResult.benefits?.length)
+          console.log('📋 [EmployeeForm] Benefícios:', benefitsResult.benefits)
+          
           const activeBenefits = benefitsResult.benefits
             .filter(b => b.status === 'active')
             .map(b => b.company_benefit_id)
+          
+          console.log('✅ [EmployeeForm] Benefícios ativos (filtrados):', activeBenefits)
+          console.log('📊 [EmployeeForm] IDs dos benefícios:', activeBenefits)
+          
           setFormData(prev => ({ ...prev, selected_benefits: activeBenefits }))
           setOriginalBenefits(activeBenefits) // Guardar benefícios originais
         }
