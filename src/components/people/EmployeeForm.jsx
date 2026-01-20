@@ -16,6 +16,7 @@ const EmployeeForm = () => {
   const isEdit = !!id
   const [company, setCompany] = useState(null)
   const [availableBenefits, setAvailableBenefits] = useState([])
+  const [originalBenefits, setOriginalBenefits] = useState([]) // Benefícios originais do colaborador
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState({})
@@ -91,6 +92,7 @@ const EmployeeForm = () => {
             .filter(b => b.status === 'active')
             .map(b => b.company_benefit_id)
           setFormData(prev => ({ ...prev, selected_benefits: activeBenefits }))
+          setOriginalBenefits(activeBenefits) // Guardar benefícios originais
         }
       }
     } catch (error) {
@@ -189,19 +191,46 @@ const EmployeeForm = () => {
       }
 
       if (result.success) {
-        // Atribuir benefícios selecionados
-        if (formData.selected_benefits.length > 0) {
-          const employeeId = result.employee.id
-          for (const benefitId of formData.selected_benefits) {
+        const employeeId = isEdit ? id : result.employee.id
+
+        // Gerenciar benefícios apenas no modo edição ou quando há benefícios selecionados
+        if (isEdit) {
+          // Descobrir quais benefícios adicionar e quais remover
+          const currentBenefits = formData.selected_benefits || []
+          const benefitsToAdd = currentBenefits.filter(b => !originalBenefits.includes(b))
+          const benefitsToRemove = originalBenefits.filter(b => !currentBenefits.includes(b))
+
+          // Adicionar novos benefícios
+          for (const benefitId of benefitsToAdd) {
             try {
               await EmployeeService.assignBenefit(employeeId, benefitId)
             } catch (error) {
               console.error('Error assigning benefit:', error)
             }
           }
+
+          // Remover benefícios desmarcados
+          for (const benefitId of benefitsToRemove) {
+            try {
+              await EmployeeService.removeBenefit(employeeId, benefitId)
+            } catch (error) {
+              console.error('Error removing benefit:', error)
+            }
+          }
+        } else {
+          // No modo criação, apenas adicionar benefícios selecionados
+          if (formData.selected_benefits.length > 0) {
+            for (const benefitId of formData.selected_benefits) {
+              try {
+                await EmployeeService.assignBenefit(employeeId, benefitId)
+              } catch (error) {
+                console.error('Error assigning benefit:', error)
+              }
+            }
+          }
         }
 
-        navigate(`/people/employees/${result.employee.id}`)
+        navigate(`/people/employees/${employeeId}`)
       }
     } catch (error) {
       console.error('Error saving employee:', error)
