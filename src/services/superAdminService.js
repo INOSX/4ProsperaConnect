@@ -9,65 +9,32 @@ export const superAdminService = {
    */
   async getSystemStats() {
     try {
-      // Total de usuários por role e status
-      const { data: usersStats, error: usersError } = await supabase
-        .from('clients')
-        .select('role, is_active')
-
-      if (usersError) throw usersError
-
-      // Contar por role
-      const roleStats = usersStats.reduce((acc, user) => {
-        acc[user.role] = (acc[user.role] || 0) + 1
-        return acc
-      }, {})
-
-      // Contar ativos e inativos
-      const activeCount = usersStats.filter(u => u.is_active !== false).length
-      const inactiveCount = usersStats.filter(u => u.is_active === false).length
-
-      // Total de empresas
-      const { count: companiesCount, error: companiesError } = await supabase
-        .from('companies')
-        .select('*', { count: 'exact', head: true })
-
-      if (companiesError) throw companiesError
-
-      // Total de colaboradores
-      const { count: employeesCount, error: employeesError } = await supabase
-        .from('employees')
-        .select('*', { count: 'exact', head: true })
-
-      if (employeesError) throw employeesError
-
-      // Total de prospects
-      const { count: prospectsCount, error: prospectsError } = await supabase
-        .from('prospects')
-        .select('*', { count: 'exact', head: true })
-
-      if (prospectsError) throw prospectsError
-
-      // Total de campanhas
-      const { count: campaignsCount, error: campaignsError } = await supabase
-        .from('campaigns')
-        .select('*', { count: 'exact', head: true })
-
-      if (campaignsError) throw campaignsError
-
-      return {
-        users: {
-          total: usersStats.length,
-          active: activeCount,
-          inactive: inactiveCount,
-          byRole: roleStats
-        },
-        companies: companiesCount || 0,
-        employees: employeesCount || 0,
-        prospects: prospectsCount || 0,
-        campaigns: campaignsCount || 0
+      // Buscar token de autenticação
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error('Sessão não encontrada')
       }
+
+      console.log('🔍 [SuperAdminService] Chamando API /api/superadmin/stats...')
+      const response = await fetch('/api/superadmin/stats', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        console.error('❌ [SuperAdminService] Erro na API stats:', error)
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      const stats = await response.json()
+      console.log('✅ [SuperAdminService] Stats recebidas:', stats)
+
+      return stats
     } catch (error) {
-      console.error('Erro ao obter estatísticas:', error)
+      console.error('❌ [SuperAdminService] Erro ao obter estatísticas:', error)
       throw error
     }
   },
