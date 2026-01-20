@@ -1,4 +1,12 @@
-import { getAdminClient } from '../lib/supabase-admin'
+const DEFAULT_SUPABASE_URL = 'https://dytuwutsjjxxmyefrfed.supabase.co'
+const DEFAULT_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5dHV3dXRzamp4eG15ZWZyZmVkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTkxNTcyNSwiZXhwIjoyMDgxNDkxNzI1fQ.lFy7Gg8jugdDbbYE_9c2SUF5SNhlnJn2oPowVkl6UlQ'
+
+function getAdminClient() {
+  const { createClient } = require('@supabase/supabase-js')
+  const url = process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || DEFAULT_SERVICE_KEY
+  return createClient(url, serviceKey)
+}
 
 export default async function handler(req, res) {
   // CORS Headers
