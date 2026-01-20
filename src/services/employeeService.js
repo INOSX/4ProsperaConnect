@@ -169,6 +169,60 @@ export class EmployeeService {
       throw error
     }
   }
+
+  /**
+   * Atribuir benefício a um colaborador
+   * @param {string} employeeId - ID do colaborador
+   * @param {string} benefitId - ID do benefício
+   * @returns {Promise<Object>}
+   */
+  static async assignBenefit(employeeId, benefitId) {
+    try {
+      const response = await fetch(`/api/employees/benefits`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          employee_id: employeeId,
+          company_benefit_id: benefitId,
+          status: 'active'
+        })
+      })
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error assigning benefit:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Remover benefício de um colaborador
+   * @param {string} employeeId - ID do colaborador
+   * @param {string} benefitId - ID do benefício
+   * @returns {Promise<Object>}
+   */
+  static async removeBenefit(employeeId, benefitId) {
+    try {
+      const response = await fetch(`/api/employees/benefits?employee_id=${employeeId}&company_benefit_id=${benefitId}`, {
+        method: 'DELETE'
+      })
+      
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Error removing benefit:', error)
+      throw error
+    }
+  }
 }
 
 /**
