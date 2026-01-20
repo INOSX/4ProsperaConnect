@@ -58,10 +58,12 @@ export default async function handler(req, res) {
 
       if (error) {
         console.error('❌ [API SuperAdmin] Erro ao buscar usuários:', error)
+        console.error('❌ Detalhes do erro:', JSON.stringify(error, null, 2))
         return res.status(500).json({ error: error.message })
       }
 
-      console.log('✅ [API SuperAdmin] Total de usuários:', allUsers?.length)
+      console.log('✅ [API SuperAdmin] Total de usuários retornados:', allUsers?.length)
+      console.log('📊 [API SuperAdmin] Primeiros 3 usuários:', allUsers?.slice(0, 3).map(u => ({ name: u.name, role: u.role, email: u.email })))
 
       // Buscar emails do auth.users para cada usuário
       const usersWithAuth = await Promise.all(
