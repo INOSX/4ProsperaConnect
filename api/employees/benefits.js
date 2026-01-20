@@ -123,10 +123,10 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'employee_id and company_benefit_id are required' })
         }
 
-        // Soft delete: mudar status para inactive
+        // Deletar o registro completamente
         const { data, error } = await adminClient
           .from('employee_benefits')
-          .update({ status: 'inactive' })
+          .delete()
           .eq('employee_id', employee_id)
           .eq('company_benefit_id', company_benefit_id)
           .select()
