@@ -66,29 +66,40 @@ export default async function handler(req, res) {
       console.log('📊 [API SuperAdmin] Primeiros 3 usuários:', allUsers?.slice(0, 3).map(u => ({ name: u.name, role: u.role, email: u.email })))
 
       // Buscar emails do auth.users para cada usuário
+      console.log('🔍 [API SuperAdmin] Buscando emails do auth.users...')
       const usersWithAuth = await Promise.all(
         allUsers.map(async (client) => {
           try {
-            const { data: authUser } = await adminClient.auth.admin.getUserById(client.user_id)
+            // Usar getUserById do auth.admin
+            const { data: { user: authUser }, error: authError } = await adminClient.auth.admin.getUserById(client.user_id)
+            
+            if (authError) {
+              console.log('⚠️ Erro ao buscar auth user:', client.user_id, authError.message)
+              throw authError
+            }
+
             return {
               ...client,
               user: {
-                email: authUser?.user?.email || `user-${client.user_id?.substring(0, 8)}@example.com`,
-                created_at: authUser?.user?.created_at || client.created_at
+                email: authUser?.email || client.email || `user-${client.user_id?.substring(0, 8)}@example.com`,
+                created_at: authUser?.created_at || client.created_at
               }
             }
           } catch (err) {
-            console.log('⚠️ Não foi possível buscar email para:', client.user_id)
+            console.log('⚠️ Usando email do client para:', client.user_id)
+            // Usar email do próprio client se falhar
             return {
               ...client,
               user: {
-                email: `user-${client.user_id?.substring(0, 8)}@example.com`,
+                email: client.email || `user-${client.user_id?.substring(0, 8)}@example.com`,
                 created_at: client.created_at
               }
             }
           }
         })
       )
+
+      console.log('✅ [API SuperAdmin] Emails processados:', usersWithAuth.length)
 
       // Filtrar por status
       let filteredByStatus = usersWithAuth
