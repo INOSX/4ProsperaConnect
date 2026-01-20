@@ -15,6 +15,14 @@ const EmployeeRedirect = ({ children }) => {
   const [hasChecked, setHasChecked] = useState(false)
 
   useEffect(() => {
+    // Resetar estado quando usuário mudar
+    if (user) {
+      setHasChecked(false)
+      setIsRedirecting(false)
+    }
+  }, [user?.id])
+
+  useEffect(() => {
     // Só verifica uma vez por mudança de usuário
     if (!hasChecked && user) {
       checkAndRedirect()
